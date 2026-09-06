@@ -25,7 +25,7 @@ final class UserSignature
             throw new \RuntimeException('Signature must be a JPG or PNG image.');
         }
 
-        $dir = BASE_PATH . '/storage/signatures/' . $userId;
+        $dir = STORAGE_PATH . '/signatures/' . $userId;
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
@@ -48,7 +48,7 @@ final class UserSignature
     {
         $path = self::relativePath($userId);
         if ($path !== null) {
-            $full = BASE_PATH . '/storage/' . $path;
+            $full = STORAGE_PATH . '/' . $path;
             if (is_file($full)) {
                 unlink($full);
             }
@@ -73,7 +73,7 @@ final class UserSignature
             return null;
         }
 
-        $full = BASE_PATH . '/storage/' . $relative;
+        $full = STORAGE_PATH . '/' . $relative;
         return is_file($full) ? $full : null;
     }
 

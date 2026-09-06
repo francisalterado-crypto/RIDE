@@ -196,7 +196,7 @@ final class ScholarlyAttachment
 
     private static function storageDir(string $recordType, int $recordId): string
     {
-        return BASE_PATH . '/storage/scholarly/' . $recordType . '/' . $recordId;
+        return STORAGE_PATH . '/scholarly/' . $recordType . '/' . $recordId;
     }
 
     /** @param array<string, mixed> $attachment */

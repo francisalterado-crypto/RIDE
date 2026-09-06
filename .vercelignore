@@ -1,0 +1,14 @@
+.git
+.idea
+.vscode
+.cursor
+.java-client
+java-client
+*.log
+storage/projects
+storage/avatars
+storage/signatures
+storage/scholarly
+agent-transcripts
+node_modules
+.vercel

@@ -19,9 +19,55 @@ function config(string $key, mixed $default = null): mixed
     return $value;
 }
 
+function is_vercel(): bool
+{
+    $value = $_ENV['VERCEL'] ?? $_SERVER['VERCEL'] ?? getenv('VERCEL');
+
+    return $value === '1' || $value === 'true';
+}
+
+/** @param array{host?: string, user?: string, pass?: string} $database */
+function database_configured(array $database): bool
+{
+    $host = (string) ($database['host'] ?? '');
+    $user = (string) ($database['user'] ?? '');
+    $pass = (string) ($database['pass'] ?? '');
+
+    if (($host === '127.0.0.1' || $host === 'localhost') && $user === 'root' && $pass === '') {
+        return false;
+    }
+
+    return $host !== '' && $user !== '';
+}
+
+function app_base_url(): string
+{
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
+
+    if (is_vercel()) {
+        $proto = (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https');
+        if (str_contains($proto, ',')) {
+            $proto = trim(explode(',', $proto)[0]);
+        }
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? getenv('VERCEL_URL') ?: '');
+        if ($host !== '') {
+            $cached = $proto . '://' . $host;
+
+            return $cached;
+        }
+    }
+
+    $cached = rtrim((string) config('app.url', ''), '/');
+
+    return $cached;
+}
+
 function base_url(string $path = ''): string
 {
-    $base = rtrim((string) config('app.url', ''), '/');
+    $base = app_base_url();
     $path = ltrim($path, '/');
     return $path === '' ? $base : $base . '/' . $path;
 }

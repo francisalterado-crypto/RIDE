@@ -1,0 +1,7 @@
+{
+  "name": "ride/ims",
+  "description": "RIDE Integrated Monitoring & Workflow Approval System",
+  "require": {
+    "php": ">=8.2"
+  }
+}

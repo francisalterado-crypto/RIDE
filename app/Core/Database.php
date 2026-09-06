@@ -11,34 +11,43 @@ final class Database
 {
     private static ?PDO $pdo = null;
 
-    /** @param array{host: string, port: int, name: string, user: string, pass: string, charset: string} $config */
+    /**
+     * @param array{
+     *     host: string,
+     *     port: int,
+     *     name: string,
+     *     user: string,
+     *     pass: string,
+     *     charset?: string,
+     *     ssl?: bool,
+     *     ssl_ca?: ?string,
+     *     ssl_verify?: bool
+     * } $config
+     */
     public static function init(array $config): void
     {
         if (self::$pdo !== null) {
             return;
         }
 
+        $charset = $config['charset'] ?? 'utf8mb4';
         $dsn = sprintf(
             'mysql:host=%s;port=%d;dbname=%s;charset=%s',
             $config['host'],
             $config['port'],
             $config['name'],
-            $config['charset']
+            $charset
         );
+        $options = self::pdoOptions($config);
 
         try {
-            self::$pdo = new PDO($dsn, $config['user'], $config['pass'], [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            ]);
+            self::$pdo = new PDO($dsn, $config['user'], $config['pass'], $options);
+            self::ensureBaseSchema();
             self::migratePending();
         } catch (PDOException $e) {
-            if (str_contains($e->getMessage(), 'Unknown database')) {
+            if (str_contains($e->getMessage(), 'Unknown database') && !self::isServerless()) {
                 self::createDatabase($config);
-                self::$pdo = new PDO($dsn, $config['user'], $config['pass'], [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                ]);
+                self::$pdo = new PDO($dsn, $config['user'], $config['pass'], $options);
                 self::runMigrations();
                 self::migratePending();
             } else {
@@ -53,6 +62,7 @@ final class Database
             return;
         }
         self::ensureSchemaMigrationsTable();
+        self::ensureSessionsTable();
 
         self::applyMigrationFile('phase2');
         self::applyMigrationFile('phase3');
@@ -76,6 +86,22 @@ final class Database
         self::applyMigrationFile('phase21');
         self::applyMigrationFile('phase22');
         self::applyMigrationFile('phase23');
+    }
+
+    public static function ensureSessionsTable(): void
+    {
+        if (self::$pdo === null) {
+            return;
+        }
+
+        self::$pdo->exec(
+            'CREATE TABLE IF NOT EXISTS php_sessions (
+                id VARCHAR(128) PRIMARY KEY,
+                data MEDIUMBLOB NOT NULL,
+                last_activity INT UNSIGNED NOT NULL,
+                INDEX idx_php_sessions_last_activity (last_activity)
+            ) ENGINE=InnoDB'
+        );
     }
 
     private static function ensureSchemaMigrationsTable(): void
@@ -130,7 +156,7 @@ final class Database
         if ($sql === false) {
             return;
         }
-        self::$pdo->exec($sql);
+        self::execSql($sql);
         $stmt = self::$pdo->prepare('INSERT INTO schema_migrations (version) VALUES (?)');
         $stmt->execute([$version]);
     }
@@ -143,11 +169,11 @@ final class Database
         return self::$pdo;
     }
 
-    /** @param array{host: string, port: int, name: string, user: string, pass: string} $config */
+    /** @param array{host: string, port: int, name: string, user: string, pass: string, ssl?: bool, ssl_ca?: ?string, ssl_verify?: bool} $config */
     private static function createDatabase(array $config): void
     {
         $dsn = sprintf('mysql:host=%s;port=%d;charset=utf8mb4', $config['host'], $config['port']);
-        $pdo = new PDO($dsn, $config['user'], $config['pass']);
+        $pdo = new PDO($dsn, $config['user'], $config['pass'], self::pdoOptions($config));
         $name = $config['name'];
         $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     }
@@ -158,14 +184,94 @@ final class Database
         if ($schema === false) {
             return;
         }
-        self::$pdo->exec($schema);
+        self::execSql($schema);
 
         $seedPath = BASE_PATH . '/database/seeds.sql';
         if (is_file($seedPath)) {
             $seeds = file_get_contents($seedPath);
             if ($seeds !== false) {
-                self::$pdo->exec($seeds);
+                self::execSql($seeds);
             }
         }
+    }
+
+    private static function ensureBaseSchema(): void
+    {
+        if (self::$pdo === null) {
+            return;
+        }
+
+        if (!self::hasTable('users')) {
+            self::runMigrations();
+        }
+    }
+
+    private static function hasTable(string $name): bool
+    {
+        if (self::$pdo === null) {
+            return false;
+        }
+
+        $stmt = self::$pdo->prepare(
+            'SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1'
+        );
+        $stmt->execute([$name]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /**
+     * @param array{ssl?: bool, ssl_ca?: ?string, ssl_verify?: bool} $config
+     * @return array<int, mixed>
+     */
+    private static function pdoOptions(array $config): array
+    {
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_MULTI_STATEMENTS => true,
+        ];
+
+        if (!empty($config['ssl'])) {
+            $ca = is_string($config['ssl_ca'] ?? null) ? (string) $config['ssl_ca'] : '';
+            if ($ca === '') {
+                foreach (['/etc/ssl/certs/ca-certificates.crt', '/etc/pki/tls/certs/ca-bundle.crt'] as $candidate) {
+                    if (is_file($candidate)) {
+                        $ca = $candidate;
+                        break;
+                    }
+                }
+            }
+            if ($ca !== '' && is_file($ca)) {
+                $options[PDO::MYSQL_ATTR_SSL_CA] = $ca;
+            }
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = !empty($config['ssl_verify']);
+        }
+
+        return $options;
+    }
+
+    private static function execSql(string $sql): void
+    {
+        if (self::$pdo === null) {
+            return;
+        }
+
+        $sql = preg_replace('/^\s*--[^\n]*$/m', '', $sql) ?? $sql;
+        $chunks = preg_split('/;\s*(?:\r\n|\n|$)/', $sql) ?: [];
+        foreach ($chunks as $chunk) {
+            $chunk = trim($chunk);
+            if ($chunk === '') {
+                continue;
+            }
+            self::$pdo->exec($chunk);
+        }
+    }
+
+    private static function isServerless(): bool
+    {
+        $value = getenv('VERCEL');
+
+        return $value === '1' || $value === 'true';
     }
 }

@@ -38,7 +38,7 @@ final class UserAvatar
             throw new \RuntimeException('Profile picture must be a JPG, PNG, or WebP image.');
         }
 
-        $dir = BASE_PATH . '/storage/avatars/' . $userId;
+        $dir = STORAGE_PATH . '/avatars/' . $userId;
         if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
             throw new \RuntimeException('Could not create profile picture folder.');
         }
@@ -64,13 +64,13 @@ final class UserAvatar
     {
         $path = self::relativePath($userId);
         if ($path !== null) {
-            $full = BASE_PATH . '/storage/' . $path;
+            $full = STORAGE_PATH . '/' . $path;
             if (is_file($full)) {
                 unlink($full);
             }
         }
 
-        $dir = BASE_PATH . '/storage/avatars/' . $userId;
+        $dir = STORAGE_PATH . '/avatars/' . $userId;
         if (is_dir($dir)) {
             self::deleteExistingFiles($dir);
         }
@@ -94,7 +94,7 @@ final class UserAvatar
             return null;
         }
 
-        $full = BASE_PATH . '/storage/' . $relative;
+        $full = STORAGE_PATH . '/' . $relative;
         return is_file($full) ? $full : null;
     }
 

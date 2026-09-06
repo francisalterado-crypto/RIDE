@@ -42,7 +42,7 @@ final class Document
             throw new \RuntimeException('File type not allowed.');
         }
 
-        $dir = BASE_PATH . '/storage/projects/' . $proposalId;
+        $dir = STORAGE_PATH . '/projects/' . $proposalId;
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
@@ -82,7 +82,7 @@ final class Document
         }
 
         $proposalId = (int) $document['proposal_id'];
-        $dir = BASE_PATH . '/storage/projects/' . $proposalId;
+        $dir = STORAGE_PATH . '/projects/' . $proposalId;
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
@@ -167,7 +167,7 @@ final class Document
 
     public static function filePath(array $doc): string
     {
-        return BASE_PATH . '/storage/projects/' . $doc['proposal_id'] . '/' . $doc['stored_name'];
+        return STORAGE_PATH . '/projects/' . $doc['proposal_id'] . '/' . $doc['stored_name'];
     }
 
     public static function delete(int $id): void
