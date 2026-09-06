@@ -4,9 +4,17 @@ INSERT IGNORE INTO roles (id, slug, name, description) VALUES
 (11, 'coordinator_research', 'Coordinator of Research', 'Endorses research submissions from their college and forwards to the College Dean'),
 (12, 'coordinator_extension', 'Coordinator of Extension', 'Endorses extension submissions from their college and forwards to the College Dean');
 
-INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES
-(11, 3),(11, 7),
-(12, 3),(12, 7);
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, 3 FROM roles r WHERE r.slug = 'coordinator_research';
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, 7 FROM roles r WHERE r.slug = 'coordinator_research';
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, 3 FROM roles r WHERE r.slug = 'coordinator_extension';
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT r.id, 7 FROM roles r WHERE r.slug = 'coordinator_extension';
 
 UPDATE user_roles ur
 INNER JOIN roles r ON r.id = ur.role_id AND r.slug = 'college_coordinator'
