@@ -12,6 +12,55 @@ use App\Support\MonitoringRoles;
 
 final class ApiController
 {
+    public function health(): void
+    {
+        $database = config('database', []);
+        $configured = database_configured(is_array($database) ? $database : []);
+
+        if (!$configured) {
+            json_response([
+                'status' => 'error',
+                'database' => [
+                    'configured' => false,
+                    'connected' => false,
+                    'message' => 'Database environment variables are not set.',
+                ],
+            ], 503);
+        }
+
+        try {
+            $pdo = \App\Core\Database::pdo();
+            $driver = \App\Core\Database::isPgsql() ? 'pgsql' : 'mysql';
+            $version = (string) $pdo->query('SELECT version()')->fetchColumn();
+            $users = (int) $pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
+
+            json_response([
+                'status' => 'ok',
+                'environment' => is_vercel() ? 'vercel' : 'local',
+                'database' => [
+                    'configured' => true,
+                    'connected' => true,
+                    'driver' => $driver,
+                    'host' => (string) ($database['host'] ?? ''),
+                    'name' => (string) ($database['name'] ?? ''),
+                    'users' => $users,
+                    'version' => $version,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            json_response([
+                'status' => 'error',
+                'database' => [
+                    'configured' => true,
+                    'connected' => false,
+                    'driver' => is_array($database) ? ($database['driver'] ?? 'unknown') : 'unknown',
+                    'host' => is_array($database) ? (string) ($database['host'] ?? '') : '',
+                    'message' => $e->getMessage(),
+                ],
+            ], 503);
+        }
+    }
+
     public function login(): void
     {
         $input = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];
