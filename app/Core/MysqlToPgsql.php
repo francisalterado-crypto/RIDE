@@ -197,7 +197,7 @@ final class MysqlToPgsql
         $sql = preg_replace('/\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP\b/i', '', $sql) ?? $sql;
         $sql = preg_replace('/\bTINYINT\s*\(\s*1\s*\)/i', 'SMALLINT', $sql) ?? $sql;
         $sql = preg_replace('/\bTINYINT\b/i', 'SMALLINT', $sql) ?? $sql;
-        $sql = preg_replace('/\bYEAR\s*(?:\(\s*\d+\s*\))?/i', 'SMALLINT', $sql) ?? $sql;
+        $sql = preg_replace('/\bYEAR(?:\(\s*\d+\s*\))?\b/i', 'SMALLINT', $sql) ?? $sql;
         $sql = preg_replace('/\b(?:LONG|MEDIUM|TINY)?BLOB\b/i', 'BYTEA', $sql) ?? $sql;
         $sql = preg_replace('/\bTINYTEXT\b/i', 'TEXT', $sql) ?? $sql;
         $sql = preg_replace('/\bENUM\s*\([^)]*\)/is', 'VARCHAR(80)', $sql) ?? $sql;
