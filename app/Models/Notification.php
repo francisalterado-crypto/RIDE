@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Core\Auth;
 use App\Core\Database;
+use App\Core\Sql;
 
 final class Notification
 {
@@ -28,7 +29,7 @@ final class Notification
         );
         foreach ($stmt->fetchAll() ?: [] as $row) {
             $exists = Database::pdo()->prepare(
-                "SELECT 1 FROM notifications WHERE user_id = ? AND link = ? AND title LIKE 'Overdue milestone%' AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY) LIMIT 1"
+                "SELECT 1 FROM notifications WHERE user_id = ? AND link = ? AND title LIKE 'Overdue milestone%' AND created_at > " . Sql::nowMinusDays(7) . ' LIMIT 1'
             );
             $link = 'projects/' . $row['proposal_id'];
             $exists->execute([(int) $row['user_id'], $link]);

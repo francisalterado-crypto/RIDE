@@ -37,7 +37,7 @@ date_default_timezone_set((string) ($config['app']['timezone'] ?? 'Asia/Manila')
 try {
     if (is_vercel() && !database_configured($config['database'])) {
         throw new RuntimeException(
-            'MySQL is not configured. In the Vercel project, set DATABASE_URL (or DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS).'
+            'Database is not configured. In the Vercel project, set DATABASE_URL (Neon Postgres) or DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS.'
         );
     }
     \App\Core\Database::init($config['database']);
@@ -53,7 +53,7 @@ try {
     echo '<h1>Database connection failed</h1>';
     echo '<p>' . $message . '</p>';
     if (is_vercel()) {
-        echo '<p>Create a hosted MySQL database (PlanetScale, Railway, Aiven, or TiDB Cloud), then add <code>DATABASE_URL</code> in Vercel → Project → Settings → Environment Variables. Redeploy after saving.</p>';
+        echo '<p>Connect <a href="https://neon.tech">Neon</a> to your Vercel project (Storage → Neon, or Neon dashboard → Integrations → Vercel). That injects <code>DATABASE_URL</code> automatically. Or paste your Neon connection string manually under Project → Settings → Environment Variables, then redeploy.</p>';
     }
     echo '</body></html>';
     exit;

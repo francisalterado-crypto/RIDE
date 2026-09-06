@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\Sql;
 
 final class ProgressReport
 {
@@ -110,7 +111,7 @@ final class ProgressReport
         $sql = "SELECT pr.*, p.title AS project_title, p.project_code
                 FROM progress_reports pr
                 INNER JOIN proposals p ON p.id = pr.proposal_id
-                WHERE pr.status = 'draft' AND pr.due_date IS NOT NULL AND pr.due_date < CURDATE()";
+                WHERE pr.status = 'draft' AND pr.due_date IS NOT NULL AND pr.due_date < " . Sql::currentDate();
         $params = [];
         if ($userId) {
             $sql .= ' AND p.user_id = ?';

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\Sql;
 use App\Support\MonitoringRoles;
 use App\Support\ProposalCoAuthors;
 use PDO;
@@ -321,7 +322,7 @@ final class Proposal
         $code = $college->fetchColumn() ?: 'GEN';
         $year = date('Y');
         $stmt = Database::pdo()->prepare(
-            'SELECT COUNT(*) FROM proposals WHERE project_code IS NOT NULL AND YEAR(approved_at) = ?'
+            'SELECT COUNT(*) FROM proposals WHERE project_code IS NOT NULL AND ' . Sql::year('approved_at') . ' = ?'
         );
         $stmt->execute([$year]);
         $seq = (int) $stmt->fetchColumn() + 1;
@@ -378,7 +379,7 @@ final class Proposal
 
         $overdueReports = (int) $pdo->query(
             "SELECT COUNT(*) FROM progress_reports
-             WHERE status = 'draft' AND due_date IS NOT NULL AND due_date < CURDATE()"
+             WHERE status = 'draft' AND due_date IS NOT NULL AND due_date < " . Sql::currentDate()
         )->fetchColumn();
 
         return [
@@ -442,7 +443,7 @@ final class Proposal
              INNER JOIN proposals p ON p.id = pr.proposal_id
              WHERE pr.status = 'draft'
                AND pr.due_date IS NOT NULL
-               AND pr.due_date < CURDATE()"
+               AND pr.due_date < " . Sql::currentDate()
             . $filterSql
         );
         $overdueReportsStmt->execute($params);
@@ -505,7 +506,7 @@ final class Proposal
              WHERE " . $ownershipSql . $typeFilterSql . "
                AND pr.status = 'draft'
                AND pr.due_date IS NOT NULL
-               AND pr.due_date < CURDATE()"
+               AND pr.due_date < " . Sql::currentDate()
         );
         $overdueReportsStmt->execute([...$ownershipParams, ...$typeParams]);
         $overdueReports = (int) $overdueReportsStmt->fetchColumn();
@@ -548,9 +549,9 @@ final class Proposal
             $typeParams = $projectTypes;
         }
 
-        $submittedSql = "SELECT DATE_FORMAT(p.submitted_at, '%Y-%m') AS month_key, COUNT(*) AS cnt
+        $submittedSql = 'SELECT ' . Sql::yearMonth('p.submitted_at') . ' AS month_key, COUNT(*) AS cnt
                          FROM proposals p
-                         WHERE p.submitted_at IS NOT NULL";
+                         WHERE p.submitted_at IS NOT NULL';
         $submittedParams = [];
         if ($userId !== null) {
             $submittedSql .= ' AND ' . ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
@@ -560,8 +561,8 @@ final class Proposal
             $submittedParams[] = $collegeId;
         }
         $submittedSql .= $typeFilterSql;
-        $submittedSql .= " AND p.submitted_at >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01')
-                           GROUP BY month_key";
+        $submittedSql .= ' AND p.submitted_at >= ' . Sql::monthStartAgo(5) . '
+                           GROUP BY month_key';
 
         $submittedStmt = $pdo->prepare($submittedSql);
         $submittedStmt->execute([...$submittedParams, ...$typeParams]);
@@ -573,9 +574,9 @@ final class Proposal
             }
         }
 
-        $approvedSql = "SELECT DATE_FORMAT(p.approved_at, '%Y-%m') AS month_key, COUNT(*) AS cnt
+        $approvedSql = 'SELECT ' . Sql::yearMonth('p.approved_at') . ' AS month_key, COUNT(*) AS cnt
                         FROM proposals p
-                        WHERE p.approved_at IS NOT NULL";
+                        WHERE p.approved_at IS NOT NULL';
         $approvedParams = [];
         if ($userId !== null) {
             $approvedSql .= ' AND ' . ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
@@ -585,8 +586,8 @@ final class Proposal
             $approvedParams[] = $collegeId;
         }
         $approvedSql .= $typeFilterSql;
-        $approvedSql .= " AND p.approved_at >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01')
-                          GROUP BY month_key";
+        $approvedSql .= ' AND p.approved_at >= ' . Sql::monthStartAgo(5) . '
+                          GROUP BY month_key';
 
         $approvedStmt = $pdo->prepare($approvedSql);
         $approvedStmt->execute([...$approvedParams, ...$typeParams]);

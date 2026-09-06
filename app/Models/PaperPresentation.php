@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\Sql;
 
 final class PaperPresentation
 {
@@ -49,7 +50,7 @@ final class PaperPresentation
     {
         $year = (int) date('Y');
         $sql = 'SELECT COUNT(*) AS total,
-                       SUM(CASE WHEN YEAR(pr.presentation_date) = ? THEN 1 ELSE 0 END) AS this_year,
+                       SUM(CASE WHEN " . Sql::year('pr.presentation_date') . ' = ? THEN 1 ELSE 0 END) AS this_year,
                        SUM(CASE WHEN pr.is_international = 1 THEN 1 ELSE 0 END) AS international,
                        COUNT(DISTINCT pr.user_id) AS faculty_count
                 FROM paper_presentations pr

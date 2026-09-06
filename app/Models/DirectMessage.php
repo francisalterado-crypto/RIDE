@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\Sql;
 
 final class DirectMessage
 {
@@ -82,19 +83,20 @@ final class DirectMessage
             'SELECT partner_id,
                     MAX(created_at) AS last_at,
                     SUM(CASE WHEN recipient_id = ? AND read_at IS NULL THEN 1 ELSE 0 END) AS unread_count,
-                    SUBSTRING_INDEX(
-                        GROUP_CONCAT(body ORDER BY created_at DESC, id DESC SEPARATOR "\x1e"),
+                    ' . Sql::substringIndex(
+                        Sql::groupConcat('body', "\x1e", 'created_at DESC, id DESC'),
                         "\x1e",
                         1
-                    ) AS last_body,
-                    SUBSTRING_INDEX(
-                        GROUP_CONCAT(
-                            CASE WHEN sender_id = ? THEN "out" ELSE "in" END
-                            ORDER BY created_at DESC, id DESC SEPARATOR "\x1e"
+                    ) . ' AS last_body,
+                    ' . Sql::substringIndex(
+                        Sql::groupConcat(
+                            'CASE WHEN sender_id = ? THEN \'out\' ELSE \'in\' END',
+                            "\x1e",
+                            'created_at DESC, id DESC'
                         ),
                         "\x1e",
                         1
-                    ) AS last_direction
+                    ) . ' AS last_direction
              FROM (
                  SELECT CASE WHEN sender_id = ? THEN recipient_id ELSE sender_id END AS partner_id,
                         sender_id, recipient_id, body, read_at, created_at, id

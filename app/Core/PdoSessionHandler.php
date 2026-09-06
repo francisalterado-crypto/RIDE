@@ -34,10 +34,7 @@ final class PdoSessionHandler implements SessionHandlerInterface
 
     public function write(string $id, string $data): bool
     {
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO php_sessions (id, data, last_activity) VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE data = VALUES(data), last_activity = VALUES(last_activity)'
-        );
+        $stmt = $this->pdo->prepare(\App\Core\Sql::sessionUpsertSql());
 
         return $stmt->execute([$id, $data, time()]);
     }

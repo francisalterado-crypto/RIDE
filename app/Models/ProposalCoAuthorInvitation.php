@@ -169,7 +169,7 @@ final class ProposalCoAuthorInvitation
             )
             OR (
                 ' . $proposalAlias . '.summary IS NOT NULL
-                AND ' . $proposalAlias . '.summary REGEXP ?
+                AND ' . \App\Core\Sql::regexp($proposalAlias . '.summary', '?') . '
                 AND NOT EXISTS (
                     SELECT 1 FROM proposal_coauthor_invitations ci2
                     WHERE ci2.proposal_id = ' . $proposalAlias . '.id

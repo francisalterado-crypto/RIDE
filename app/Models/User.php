@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\Sql;
 use PDO;
 
 final class User
@@ -15,8 +16,8 @@ final class User
         $stmt = Database::pdo()->query(
             'SELECT u.id, u.email, u.first_name, u.last_name, u.college_id, u.program, u.campus_id, u.created_at,
                     c.name AS college_name,
-                    GROUP_CONCAT(DISTINCT r.name ORDER BY r.name SEPARATOR ", ") AS role_names,
-                    GROUP_CONCAT(DISTINCT r.slug ORDER BY r.name SEPARATOR ",") AS role_slugs
+                    ' . Sql::groupConcat('r.name', ', ', 'r.name', true) . ' AS role_names,
+                    ' . Sql::groupConcat('r.slug', ', ', 'r.name', true) . ' AS role_slugs
              FROM users u
              LEFT JOIN colleges c ON c.id = u.college_id
              LEFT JOIN user_roles ur ON ur.user_id = u.id
@@ -35,8 +36,8 @@ final class User
         $stmt = Database::pdo()->query(
             'SELECT u.id, u.email, u.first_name, u.last_name, u.college_id, u.program, u.campus_id, u.created_at,
                     c.name AS college_name,
-                    GROUP_CONCAT(DISTINCT r.name ORDER BY r.name SEPARATOR ", ") AS role_names,
-                    GROUP_CONCAT(DISTINCT r.slug ORDER BY r.name SEPARATOR ",") AS role_slugs
+                    ' . Sql::groupConcat('r.name', ', ', 'r.name', true) . ' AS role_names,
+                    ' . Sql::groupConcat('r.slug', ', ', 'r.name', true) . ' AS role_slugs
              FROM users u
              LEFT JOIN colleges c ON c.id = u.college_id
              INNER JOIN user_roles ur ON ur.user_id = u.id
@@ -353,7 +354,7 @@ final class User
     public static function assignRole(int $userId, int $roleId, ?int $collegeId = null): void
     {
         $stmt = Database::pdo()->prepare(
-            'INSERT IGNORE INTO user_roles (user_id, role_id, college_id) VALUES (?, ?, ?)'
+            Sql::insertIgnore('INSERT INTO user_roles (user_id, role_id, college_id) VALUES (?, ?, ?)', 'user_id, role_id')
         );
         $stmt->execute([$userId, $roleId, $collegeId]);
     }

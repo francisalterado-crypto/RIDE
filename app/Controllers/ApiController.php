@@ -26,7 +26,7 @@ final class ApiController
         $token = bin2hex(random_bytes(32));
         $hash = hash('sha256', $token);
         $stmt = \App\Core\Database::pdo()->prepare(
-            'INSERT INTO api_tokens (user_id, token_hash, label, expires_at) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))'
+            'INSERT INTO api_tokens (user_id, token_hash, label, expires_at) VALUES (?, ?, ?, ' . \App\Core\Sql::nowPlusDays(7) . ')'
         );
         $stmt->execute([(int) $user['id'], $hash, 'java-client']);
 

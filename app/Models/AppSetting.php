@@ -31,13 +31,7 @@ final class AppSetting
 
     public static function put(string $key, string $value, ?int $updatedBy = null): void
     {
-        $stmt = Database::pdo()->prepare(
-            'INSERT INTO app_settings (setting_key, setting_value, updated_by)
-             VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE
-                setting_value = VALUES(setting_value),
-                updated_by = VALUES(updated_by)'
-        );
+        $stmt = Database::pdo()->prepare(\App\Core\Sql::appSettingUpsertSql());
         $stmt->execute([$key, $value, $updatedBy]);
     }
 
@@ -66,11 +60,7 @@ final class AppSetting
             return;
         }
 
-        $stmt = Database::pdo()->prepare(
-            'INSERT INTO global_message_reads (user_id, last_read_at)
-             VALUES (?, NOW())
-             ON DUPLICATE KEY UPDATE last_read_at = NOW()'
-        );
+        $stmt = Database::pdo()->prepare(\App\Core\Sql::globalMessageReadUpsertSql());
         $stmt->execute([$userId]);
     }
 }

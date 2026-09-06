@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\Sql;
 use PDO;
 
 final class Extension
@@ -68,7 +69,7 @@ final class Extension
              INNER JOIN colleges c ON c.id = p.college_id
              WHERE p.project_type = 'extension'
                AND p.status IN ('ongoing','completed','approved')
-               AND cb.period_year >= YEAR(CURDATE()) - ?
+               AND cb.period_year >= " . Sql::currentYear() . ' - ?
              GROUP BY p.id, cb.period_year
              ORDER BY cb.period_year DESC, p.title"
         );

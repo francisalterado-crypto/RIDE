@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Core\Database;
+use App\Core\Sql;
 
 final class Milestone
 {
@@ -16,7 +17,7 @@ final class Milestone
             ['Final report submission', 365],
         ];
         $stmt = Database::pdo()->prepare(
-            'INSERT INTO milestones (proposal_id, title, due_date) VALUES (?, ?, DATE_ADD(CURDATE(), INTERVAL ? DAY))'
+            'INSERT INTO milestones (proposal_id, title, due_date) VALUES (?, ?, ' . Sql::dateAddDaysFromToday('?') . ')'
         );
         foreach ($defaults as [$title, $days]) {
             $stmt->execute([$proposalId, $title, $days]);
@@ -28,7 +29,7 @@ final class Milestone
     {
         Database::pdo()->exec(
             "UPDATE milestones SET status = 'overdue'
-             WHERE status = 'pending' AND due_date < CURDATE()"
+             WHERE status = 'pending' AND due_date < " . Sql::currentDate()
         );
     }
 
@@ -60,7 +61,7 @@ final class Milestone
     public static function complete(int $id): void
     {
         Database::pdo()->prepare(
-            "UPDATE milestones SET status = 'completed', completed_at = CURDATE() WHERE id = ?"
+            "UPDATE milestones SET status = 'completed', completed_at = " . Sql::currentDate() . ' WHERE id = ?'
         )->execute([$id]);
     }
 
