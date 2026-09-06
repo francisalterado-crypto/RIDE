@@ -270,10 +270,14 @@ $isFaculty = \App\Core\Auth::hasRole('faculty');
             <div class="meta"><?= htmlspecialchars($dateLabel) ?></div>
             <?php if ($isAdmin && $announcementId > 0): ?>
               <div class="item-actions">
-                <button type="button" class="btn btn-sm announcement-edit-btn" data-target="edit-announcement-<?= $announcementId ?>">Edit</button>
+                <button type="button" class="btn btn-sm icon-btn announcement-edit-btn" data-target="edit-announcement-<?= $announcementId ?>" title="Edit announcement" aria-label="Edit announcement">
+                  <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                </button>
                 <form method="post" action="<?= base_url('messages/announcements/' . $announcementId . '/delete') ?>" style="display:inline;" onsubmit="return confirm('Delete this announcement?');">
                   <?= csrf_field() ?>
-                  <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                  <button type="submit" class="btn btn-sm btn-danger icon-btn" title="Delete announcement" aria-label="Delete announcement">
+                    <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                  </button>
                 </form>
               </div>
             <?php endif; ?>

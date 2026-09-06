@@ -50,7 +50,7 @@ final class PublishedPaper
     {
         $year = (int) date('Y');
         $sql = 'SELECT COUNT(*) AS total,
-                       SUM(CASE WHEN pp.publication_year = ? OR " . Sql::year('pp.publication_date') . ' = ? THEN 1 ELSE 0 END) AS this_year,
+                       SUM(CASE WHEN pp.publication_year = ? OR ' . Sql::year('pp.publication_date') . ' = ? THEN 1 ELSE 0 END) AS this_year,
                        COUNT(DISTINCT pp.user_id) AS faculty_count
                 FROM published_papers pp
                 INNER JOIN users u ON u.id = pp.user_id

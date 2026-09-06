@@ -350,6 +350,10 @@ function view(string $name, array $data = []): void
         return;
     }
     $pageTitle = $pageTitle ?? config('app.name');
+    ob_start();
+    require $contentView;
+    $pageContent = ob_get_clean();
+    $pageTitle = $pageTitle ?? config('app.name');
     require APP_PATH . '/views/layouts/main.php';
 }
 

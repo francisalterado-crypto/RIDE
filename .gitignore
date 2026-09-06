@@ -7,3 +7,4 @@ java-client/target/
 *.log
 .vercel
 node_modules/
+.env*

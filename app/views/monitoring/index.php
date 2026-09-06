@@ -88,6 +88,7 @@ $pageSubtitle = 'Signed in as ' . $roleTitle
     . ($user['college_name'] && $scopeProjectType === null && !MonitoringRoles::isVpride() ? ' · ' . $user['college_name'] : '');
 ?>
 
+<div class="monitoring-page">
 <div class="monitoring-workflows">
     <?php if ($showResearch): ?>
     <div class="monitoring-workflow card">
@@ -236,7 +237,7 @@ $pageSubtitle = 'Signed in as ' . $roleTitle
         <?php endif; ?>
     </h2>
     <div class="proposal-table-wrap">
-        <table class="proposal-table">
+        <table class="proposal-table monitoring-table">
             <thead>
                 <tr>
                     <th>Title</th>
@@ -280,7 +281,7 @@ $pageSubtitle = 'Signed in as ' . $roleTitle
     <h2>Faculty &amp; Extension Worker Submitters</h2>
     <p class="muted">Monitor all faculty and extension workers with extension submissions university-wide.</p>
     <div class="proposal-table-wrap">
-        <table class="proposal-table">
+        <table class="proposal-table monitoring-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -326,7 +327,7 @@ $pageSubtitle = 'Signed in as ' . $roleTitle
         <p>No <?= htmlspecialchars(strtolower($scopeLabel)) ?> submissions found<?= MonitoringRoles::isUniversityWide() ? '' : ' for your college' ?>.</p>
     <?php else: ?>
         <div class="proposal-table-wrap">
-            <table class="proposal-table">
+            <table class="proposal-table monitoring-table">
                 <thead>
                     <tr>
                         <th>Code</th>
@@ -373,4 +374,5 @@ $pageSubtitle = 'Signed in as ' . $roleTitle
             </table>
         </div>
     <?php endif; ?>
+</div>
 </div>

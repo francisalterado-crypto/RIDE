@@ -486,7 +486,9 @@ $collegeCount = count($colleges);
 
                                     <div class="accounts-row-actions">
 
-                                        <a class="btn btn-sm" href="<?= base_url('admin/accounts/colleges/' . $college['id'] . '/edit') ?>">Edit</a>
+                                        <a class="btn btn-sm icon-btn" href="<?= base_url('admin/accounts/colleges/' . $college['id'] . '/edit') ?>" title="Edit college" aria-label="Edit college">
+                                            <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                                        </a>
 
                                         <form
 
@@ -500,7 +502,9 @@ $collegeCount = count($colleges);
 
                                             <?= csrf_field() ?>
 
-                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            <button type="submit" class="btn btn-sm btn-danger icon-btn" title="Delete college" aria-label="Delete college">
+                                                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                            </button>
 
                                         </form>
 
@@ -640,7 +644,9 @@ $collegeCount = count($colleges);
 
                                 <div class="accounts-row-actions">
 
-                                    <a class="btn btn-sm" href="<?= base_url('admin/accounts/' . $account['id'] . '/edit') ?>">Edit</a>
+                                    <a class="btn btn-sm icon-btn" href="<?= base_url('admin/accounts/' . $account['id'] . '/edit') ?>" title="Edit account" aria-label="Edit account">
+                                        <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                                    </a>
 
                                     <?php if ($isCurrentUser): ?>
 
@@ -652,7 +658,9 @@ $collegeCount = count($colleges);
 
                                             <?= csrf_field() ?>
 
-                                            <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                                            <button type="submit" class="btn btn-sm btn-danger icon-btn" title="Remove account" aria-label="Remove account">
+                                                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                            </button>
 
                                         </form>
 

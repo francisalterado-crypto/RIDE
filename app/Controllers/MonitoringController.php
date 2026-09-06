@@ -60,9 +60,19 @@ final class MonitoringController
             $submitters = User::researchSubmitters($scopeProjectType);
         }
 
+        $scopeLabel = match ($scopeProjectType) {
+            'research' => 'Research',
+            'extension' => 'Extension',
+            default => 'All Proposal',
+        };
+        $roleTitle = MonitoringRoles::roleTitle();
+        $pageHeading = $scopeLabel . ' Monitoring';
+        $pageSubtitle = 'Signed in as ' . $roleTitle
+            . ($user['college_name'] && $scopeProjectType === null && !MonitoringRoles::isVpride() ? ' · ' . $user['college_name'] : '');
+
         view('monitoring.index', [
             'user' => $user,
-            'roleTitle' => MonitoringRoles::roleTitle(),
+            'roleTitle' => $roleTitle,
             'stats' => $stats,
             'submissions' => $submissions,
             'pendingAction' => $pendingAction,
@@ -75,6 +85,9 @@ final class MonitoringController
             'isDirectorResearch' => MonitoringRoles::isDirectorResearch(),
             'isDirectorExtension' => MonitoringRoles::isDirectorExtension(),
             'scopeProjectType' => $scopeProjectType,
+            'pageTitle' => $pageHeading . ' — RIDE IMS',
+            'pageHeading' => $pageHeading,
+            'pageSubtitle' => $pageSubtitle,
         ]);
     }
 }

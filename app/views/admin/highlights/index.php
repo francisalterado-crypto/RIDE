@@ -163,10 +163,14 @@ $pageSubtitle = 'Manage vision, mission, and picture activities shown on the pub
               <input type="hidden" name="direction" value="1">
               <button type="submit" class="btn btn-outline btn-sm" title="Move down" <?= $index === count($slides) - 1 ? 'disabled' : '' ?>>&#9660;</button>
             </form>
-            <a href="<?= base_url('admin/highlights?edit=' . $slideId) ?>" class="btn btn-outline btn-sm">Edit</a>
+            <a href="<?= base_url('admin/highlights?edit=' . $slideId) ?>" class="btn btn-outline btn-sm icon-btn" title="Edit slide" aria-label="Edit slide">
+              <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+            </a>
             <form method="post" action="<?= base_url('admin/highlights/' . $slideId . '/delete') ?>" style="display:inline;" onsubmit="return confirm('Delete this highlight slide?');">
               <?= csrf_field() ?>
-              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              <button type="submit" class="btn btn-danger btn-sm icon-btn" title="Delete slide" aria-label="Delete slide">
+                <i class="fas fa-trash-alt" aria-hidden="true"></i>
+              </button>
             </form>
           </div>
 

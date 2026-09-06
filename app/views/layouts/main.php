@@ -409,8 +409,12 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <?php if ($msg = flash('error')): ?>
                     <div class="alert alert-error"><?= htmlspecialchars($msg) ?></div>
                 <?php endif; ?>
-                <?php /** @var string $contentView */ ?>
-                <?php require $contentView; ?>
+                <?php if (isset($pageContent)): ?>
+                    <?= $pageContent ?>
+                <?php else: ?>
+                    <?php /** @var string $contentView */ ?>
+                    <?php require $contentView; ?>
+                <?php endif; ?>
             </div>
         </main>
     </div>
@@ -420,8 +424,12 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
     $authFlashError = flash('error');
     ?>
     <?php if ($isAuthStandalone): ?>
-        <?php /** @var string $contentView */ ?>
-        <?php require $contentView; ?>
+        <?php if (isset($pageContent)): ?>
+            <?= $pageContent ?>
+        <?php else: ?>
+            <?php /** @var string $contentView */ ?>
+            <?php require $contentView; ?>
+        <?php endif; ?>
     <?php else: ?>
         <main class="auth-main">
             <?php if ($authFlashSuccess): ?>
@@ -430,8 +438,12 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
             <?php if ($authFlashError): ?>
                 <div class="alert alert-error"><?= htmlspecialchars($authFlashError) ?></div>
             <?php endif; ?>
-            <?php /** @var string $contentView */ ?>
-            <?php require $contentView; ?>
+            <?php if (isset($pageContent)): ?>
+                <?= $pageContent ?>
+            <?php else: ?>
+                <?php /** @var string $contentView */ ?>
+                <?php require $contentView; ?>
+            <?php endif; ?>
         </main>
     <?php endif; ?>
 <?php endif; ?>
