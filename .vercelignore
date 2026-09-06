@@ -4,6 +4,7 @@
 .cursor
 .java-client
 java-client
+scripts
 *.log
 storage/projects
 storage/avatars
@@ -12,3 +13,4 @@ storage/scholarly
 agent-transcripts
 node_modules
 .vercel
+README.md
