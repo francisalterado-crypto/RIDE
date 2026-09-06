@@ -213,19 +213,19 @@ final class MysqlToPgsql
         $joinAlias = $head[4];
 
         $rest = substr($sql, strlen($head[0]));
-        $setPos = stripos($rest, ' SET ');
-        if ($setPos === false) {
+        $setPos = self::topLevelKeywordPos($rest, 'SET');
+        if ($setPos === null) {
             return $sql;
         }
 
         $onClause = trim(substr($rest, 0, $setPos));
-        $afterSet = trim(substr($rest, $setPos + 5));
-        $wherePos = self::topLevelWherePos($afterSet);
+        $afterSet = trim(substr($rest, $setPos + 3));
+        $wherePos = self::topLevelKeywordPos($afterSet, 'WHERE');
         if ($wherePos !== null) {
-            $setClause = trim(substr($afterSet, 0, $wherePos));
-            $whereClause = trim(substr($afterSet, $wherePos + 6));
+            $setClause = rtrim(trim(substr($afterSet, 0, $wherePos)), ';');
+            $whereClause = rtrim(trim(substr($afterSet, $wherePos + 5)), ';');
         } else {
-            $setClause = trim($afterSet);
+            $setClause = rtrim(trim($afterSet), ';');
             $whereClause = '';
         }
 
@@ -240,18 +240,25 @@ final class MysqlToPgsql
         return $sql;
     }
 
-    private static function topLevelWherePos(string $sql): ?int
+    private static function topLevelKeywordPos(string $sql, string $keyword): ?int
     {
         $depth = 0;
         $length = strlen($sql);
-        for ($i = 0; $i < $length - 6; $i++) {
+        $keyword = strtoupper($keyword);
+        $keywordLength = strlen($keyword);
+
+        for ($i = 0; $i <= $length - $keywordLength; $i++) {
             $ch = $sql[$i];
             if ($ch === '(') {
                 $depth++;
             } elseif ($ch === ')') {
                 $depth--;
-            } elseif ($depth === 0 && strcasecmp(substr($sql, $i, 7), ' WHERE ') === 0) {
-                return $i;
+            } elseif ($depth === 0 && strtoupper(substr($sql, $i, $keywordLength)) === $keyword) {
+                $before = $i === 0 ? ' ' : $sql[$i - 1];
+                $after = ($i + $keywordLength >= $length) ? ' ' : $sql[$i + $keywordLength];
+                if (ctype_space($before) && ctype_space($after)) {
+                    return $i;
+                }
             }
         }
 
