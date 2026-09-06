@@ -47,6 +47,10 @@ final class MysqlToPgsql
             $sql = self::convertTypes($sql);
         }
 
+        if (preg_match('/^UPDATE\s+/i', $sql) === 1) {
+            $sql = self::convertUpdateJoin($sql);
+        }
+
         return trim($sql);
     }
 
@@ -195,6 +199,33 @@ final class MysqlToPgsql
         }
 
         return null;
+    }
+
+    private static function convertUpdateJoin(string $sql): string
+    {
+        if (preg_match(
+            '/^UPDATE\s+(\w+)\s+(\w+)\s+INNER\s+JOIN\s+(\w+)\s+(\w+)\s+ON\s+(.+?)\s+SET\s+(.+?)(?:\s+WHERE\s+(.+))?$/is',
+            $sql,
+            $m
+        ) !== 1) {
+            return $sql;
+        }
+
+        $targetTable = $m[1];
+        $targetAlias = $m[2];
+        $joinTable = $m[3];
+        $joinAlias = $m[4];
+        $onClause = trim($m[5]);
+        $setClause = preg_replace('/\b' . preg_quote($targetAlias, '/') . '\./', '', trim($m[6])) ?? trim($m[6]);
+        $whereClause = isset($m[7]) ? trim($m[7]) : '';
+        $whereClause = preg_replace('/\b' . preg_quote($targetAlias, '/') . '\./', '', $whereClause) ?? $whereClause;
+
+        $sql = "UPDATE {$targetTable} {$targetAlias} SET {$setClause} FROM {$joinTable} {$joinAlias} WHERE {$onClause}";
+        if ($whereClause !== '') {
+            $sql .= ' AND ' . $whereClause;
+        }
+
+        return $sql;
     }
 
     private static function convertTypes(string $sql): string
