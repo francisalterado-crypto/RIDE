@@ -121,13 +121,14 @@ final class Database
             self::$pdo->exec(
                 'CREATE TABLE IF NOT EXISTS php_sessions (
                     id VARCHAR(128) PRIMARY KEY,
-                    data BYTEA NOT NULL,
+                    data TEXT NOT NULL,
                     last_activity INTEGER NOT NULL
                 )'
             );
             self::$pdo->exec(
                 'CREATE INDEX IF NOT EXISTS idx_php_sessions_last_activity ON php_sessions (last_activity)'
             );
+            self::migratePgsqlSessionColumnToText();
 
             return;
         }
@@ -140,6 +141,25 @@ final class Database
                 INDEX idx_php_sessions_last_activity (last_activity)
             ) ENGINE=InnoDB'
         );
+    }
+
+    private static function migratePgsqlSessionColumnToText(): void
+    {
+        if (self::$pdo === null || self::$driver !== 'pgsql') {
+            return;
+        }
+
+        $stmt = self::$pdo->query(
+            "SELECT data_type FROM information_schema.columns
+             WHERE table_schema = 'public' AND table_name = 'php_sessions' AND column_name = 'data'
+             LIMIT 1"
+        );
+        if ($stmt === false || $stmt->fetchColumn() !== 'bytea') {
+            return;
+        }
+
+        self::$pdo->exec('DELETE FROM php_sessions');
+        self::$pdo->exec('ALTER TABLE php_sessions ALTER COLUMN data TYPE TEXT USING convert_from(data, \'UTF8\')');
     }
 
     private static function ensureSchemaMigrationsTable(): void

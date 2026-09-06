@@ -29,7 +29,25 @@ final class PdoSessionHandler implements SessionHandlerInterface
         $stmt->execute([$id]);
         $data = $stmt->fetchColumn();
 
-        return is_string($data) ? $data : '';
+        if ($data === false || $data === null) {
+            return '';
+        }
+
+        if (is_resource($data)) {
+            $data = stream_get_contents($data);
+        }
+
+        if (!is_string($data) || $data === '') {
+            return '';
+        }
+
+        if ($data[0] === '\\' && str_starts_with($data, '\\x')) {
+            $decoded = hex2bin(substr($data, 2));
+
+            return is_string($decoded) ? $decoded : '';
+        }
+
+        return $data;
     }
 
     public function write(string $id, string $data): bool
