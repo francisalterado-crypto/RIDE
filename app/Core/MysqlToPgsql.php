@@ -172,6 +172,9 @@ final class MysqlToPgsql
         if ($table === 'user_roles' && in_array('user_id', $columns, true) && in_array('role_id', $columns, true)) {
             return 'user_id, role_id';
         }
+        if ($table === 'role_permissions' && in_array('role_id', $columns, true) && in_array('permission_id', $columns, true)) {
+            return 'role_id, permission_id';
+        }
         if (in_array('setting_key', $columns, true)) {
             return 'setting_key';
         }
