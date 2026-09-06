@@ -203,21 +203,33 @@ final class MysqlToPgsql
 
     private static function convertUpdateJoin(string $sql): string
     {
-        if (preg_match(
-            '/^UPDATE\s+(\w+)\s+(\w+)\s+INNER\s+JOIN\s+(\w+)\s+(\w+)\s+ON\s+(.+?)\s+SET\s+(.+?)(?:\s+WHERE\s+(.+))?$/is',
-            $sql,
-            $m
-        ) !== 1) {
+        if (!preg_match('/^UPDATE\s+(\w+)\s+(\w+)\s+INNER\s+JOIN\s+(\w+)\s+(\w+)\s+ON\s+/is', $sql, $head)) {
             return $sql;
         }
 
-        $targetTable = $m[1];
-        $targetAlias = $m[2];
-        $joinTable = $m[3];
-        $joinAlias = $m[4];
-        $onClause = trim($m[5]);
-        $setClause = preg_replace('/\b' . preg_quote($targetAlias, '/') . '\./', '', trim($m[6])) ?? trim($m[6]);
-        $whereClause = isset($m[7]) ? trim($m[7]) : '';
+        $targetTable = $head[1];
+        $targetAlias = $head[2];
+        $joinTable = $head[3];
+        $joinAlias = $head[4];
+
+        $rest = substr($sql, strlen($head[0]));
+        $setPos = stripos($rest, ' SET ');
+        if ($setPos === false) {
+            return $sql;
+        }
+
+        $onClause = trim(substr($rest, 0, $setPos));
+        $afterSet = trim(substr($rest, $setPos + 5));
+        $wherePos = self::topLevelWherePos($afterSet);
+        if ($wherePos !== null) {
+            $setClause = trim(substr($afterSet, 0, $wherePos));
+            $whereClause = trim(substr($afterSet, $wherePos + 6));
+        } else {
+            $setClause = trim($afterSet);
+            $whereClause = '';
+        }
+
+        $setClause = preg_replace('/\b' . preg_quote($targetAlias, '/') . '\./', '', $setClause) ?? $setClause;
         $whereClause = preg_replace('/\b' . preg_quote($targetAlias, '/') . '\./', '', $whereClause) ?? $whereClause;
 
         $sql = "UPDATE {$targetTable} {$targetAlias} SET {$setClause} FROM {$joinTable} {$joinAlias} WHERE {$onClause}";
@@ -226,6 +238,24 @@ final class MysqlToPgsql
         }
 
         return $sql;
+    }
+
+    private static function topLevelWherePos(string $sql): ?int
+    {
+        $depth = 0;
+        $length = strlen($sql);
+        for ($i = 0; $i < $length - 6; $i++) {
+            $ch = $sql[$i];
+            if ($ch === '(') {
+                $depth++;
+            } elseif ($ch === ')') {
+                $depth--;
+            } elseif ($depth === 0 && strcasecmp(substr($sql, $i, 7), ' WHERE ') === 0) {
+                return $i;
+            }
+        }
+
+        return null;
     }
 
     private static function convertTypes(string $sql): string
