@@ -233,13 +233,19 @@ final class Database
             return;
         }
         self::execSql($schema);
+        self::runSeeds();
+    }
 
+    private static function runSeeds(): void
+    {
         $seedPath = BASE_PATH . '/database/seeds.sql';
-        if (is_file($seedPath)) {
-            $seeds = file_get_contents($seedPath);
-            if ($seeds !== false) {
-                self::execSql($seeds);
-            }
+        if (!is_file($seedPath)) {
+            return;
+        }
+
+        $seeds = file_get_contents($seedPath);
+        if ($seeds !== false) {
+            self::execSql($seeds);
         }
     }
 
@@ -251,7 +257,31 @@ final class Database
 
         if (!self::hasTable('users')) {
             self::runMigrations();
+
+            return;
         }
+
+        if (self::needsBaseSeed()) {
+            $schema = file_get_contents(BASE_PATH . '/database/schema.sql');
+            if ($schema !== false) {
+                self::execSql($schema);
+            }
+            self::runSeeds();
+        }
+    }
+
+    private static function needsBaseSeed(): bool
+    {
+        if (!self::hasTable('permissions')) {
+            return true;
+        }
+
+        $stmt = self::$pdo->query('SELECT COUNT(*) FROM permissions');
+        if ($stmt === false) {
+            return true;
+        }
+
+        return (int) $stmt->fetchColumn() === 0;
     }
 
     private static function hasTable(string $name): bool
