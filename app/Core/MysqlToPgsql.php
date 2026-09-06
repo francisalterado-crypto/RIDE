@@ -166,6 +166,12 @@ final class MysqlToPgsql
     /** @param list<string> $columns */
     private static function insertConflictTarget(string $table, array $columns): ?string
     {
+        if ($table === 'roles' && in_array('slug', $columns, true)) {
+            return 'slug';
+        }
+        if ($table === 'permissions' && in_array('slug', $columns, true)) {
+            return 'slug';
+        }
         if (in_array('id', $columns, true)) {
             return 'id';
         }
