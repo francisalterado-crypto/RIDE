@@ -71,7 +71,7 @@ final class Extension
                AND p.status IN ('ongoing','completed','approved')
                AND cb.period_year >= " . Sql::currentYear() . ' - ?
              GROUP BY p.id, cb.period_year
-             ORDER BY cb.period_year DESC, p.title"
+             ORDER BY cb.period_year DESC, p.title'
         );
         $stmt->execute([$years - 1]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
