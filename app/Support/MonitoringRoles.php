@@ -220,7 +220,7 @@ final class MonitoringRoles
 
 
 
-        if (self::isCoordinatorResearch() || self::isCoordinatorExtension()) {
+        if (self::isCoordinatorResearch() || self::isCoordinatorExtension() || self::isExtensionWorker()) {
 
             $user = Auth::user();
 

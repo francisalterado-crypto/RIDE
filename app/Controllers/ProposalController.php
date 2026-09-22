@@ -6876,7 +6876,7 @@ final class ProposalController
         if (MonitoringRoles::isVpride() || Auth::hasRole('ride_reporter')) {
             return $scopeType !== null ? Proposal::all(null, $scopeType) : Proposal::all();
         }
-        if (MonitoringRoles::isCoordinatorResearch() || MonitoringRoles::isCoordinatorExtension()) {
+        if (MonitoringRoles::isCoordinatorResearch() || MonitoringRoles::isCoordinatorExtension() || MonitoringRoles::isExtensionWorker()) {
             if (!($user['college_id'] ?? null)) {
                 return [];
             }
