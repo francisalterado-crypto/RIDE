@@ -47,17 +47,26 @@ function app_base_url(): string
         return $cached;
     }
 
-    if (is_vercel()) {
-        $proto = (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https');
+    $envUrl = (string) (getenv('APP_URL') ?: '');
+    if ($envUrl !== '') {
+        $cached = rtrim($envUrl, '/');
+
+        return $cached;
+    }
+
+    $forwardedHost = (string) ($_SERVER['HTTP_X_FORWARDED_HOST'] ?? '');
+    $host = $forwardedHost !== '' ? $forwardedHost : (string) ($_SERVER['HTTP_HOST'] ?? '');
+    $isLocalHost = $host === '' || str_starts_with($host, 'localhost') || str_starts_with($host, '127.0.0.1');
+
+    if (!$isLocalHost) {
+        $proto = (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? (is_vercel() ? 'https' : ($_SERVER['REQUEST_SCHEME'] ?? 'http')));
         if (str_contains($proto, ',')) {
             $proto = trim(explode(',', $proto)[0]);
         }
-        $host = (string) ($_SERVER['HTTP_HOST'] ?? getenv('VERCEL_URL') ?: '');
-        if ($host !== '') {
-            $cached = $proto . '://' . $host;
+        $configPath = is_vercel() ? '' : rtrim((string) (parse_url((string) config('app.url', ''), PHP_URL_PATH) ?? ''), '/');
+        $cached = $proto . '://' . $host . $configPath;
 
-            return $cached;
-        }
+        return $cached;
     }
 
     $cached = rtrim((string) config('app.url', ''), '/');
