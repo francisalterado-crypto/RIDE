@@ -91,7 +91,7 @@ final class DashboardController
             : [];
 
         $facultyReportingNotice = null;
-        if ($isFaculty) {
+        if ($isFaculty || MonitoringRoles::isExtensionWorker()) {
             $currentPeriod = QuarterlyReporting::currentPeriodKey();
             $facultyReportingNotice = [
                 'scheduleNotice' => FacultyFormDeadlines::scheduleNoticeText(),

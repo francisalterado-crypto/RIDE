@@ -178,7 +178,7 @@ final class MonitoringRoles
 
     {
 
-        if (self::isDirectorExtension() || self::isCoordinatorExtension()) {
+        if (self::isDirectorExtension() || self::isCoordinatorExtension() || self::isExtensionWorker()) {
 
             return 'extension';
 
