@@ -97,6 +97,7 @@ final class ProposalController
                 'pageHeading' => 'Research Extension',
                 'pageSubtitle' => 'Complete the Office of Extension Services program/project proposal (WPU-QSF-RIDE-ESO-03).',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
+                'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
             ]);
             return;
         }
@@ -3578,6 +3579,7 @@ final class ProposalController
                 'pageHeading' => 'Research Extension',
                 'pageSubtitle' => 'Update your Extension Program/Project Proposal before saving or resubmitting.',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
+                'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
             ]);
             return;
         }
@@ -3786,7 +3788,7 @@ final class ProposalController
     private function validatedInput(?array $proposal = null): array
     {
         if (proposal_nav_scope() === 'extension' || ($proposal !== null && proposal_is_wpu_funded_extension($proposal))) {
-            return $this->validatedWpuFundedExtensionInput();
+            return $this->validatedWpuFundedExtensionInput($proposal);
         }
 
         $structuredSummary = [
@@ -3837,9 +3839,12 @@ final class ProposalController
     }
 
     /** @return array<string, mixed> */
-    private function validatedWpuFundedExtensionInput(): array
+    private function validatedWpuFundedExtensionInput(?array $proposal = null): array
     {
         $sourceOfFund = trim($_POST['source_of_fund'] ?? '');
+        $durationStartDate = trim($_POST['duration_start_date'] ?? '');
+        $durationEndDate = trim($_POST['duration_end_date'] ?? '');
+        $durationInclusiveDates = $this->formatDurationInclusiveDates($durationStartDate, $durationEndDate, $proposal);
         $structuredSummary = [
             'form_type' => 'extension_program_proposal',
             'version' => 2,
@@ -3851,7 +3856,9 @@ final class ProposalController
             'beneficiaries' => trim($_POST['beneficiaries'] ?? ''),
             'male_beneficiaries' => trim($_POST['male_beneficiaries'] ?? ''),
             'female_beneficiaries' => trim($_POST['female_beneficiaries'] ?? ''),
-            'duration_inclusive_dates' => trim($_POST['duration_inclusive_dates'] ?? ''),
+            'duration_start_date' => $durationStartDate,
+            'duration_end_date' => $durationEndDate,
+            'duration_inclusive_dates' => $durationInclusiveDates,
             'location' => trim($_POST['location'] ?? ''),
             'budget' => trim($_POST['budget'] ?? ''),
             'source_of_fund' => $sourceOfFund,
@@ -6290,6 +6297,57 @@ final class ProposalController
     }
 
     /** @return list<array{id: int, label: string, name: string, college_name: string, department: string, department_label: string}> */
+    private function formatDurationInclusiveDates(string $startDate, string $endDate, ?array $proposal): string
+    {
+        $format = static function (string $isoDate): ?string {
+            $parsed = \DateTimeImmutable::createFromFormat('Y-m-d', $isoDate);
+
+            return $parsed instanceof \DateTimeImmutable ? $parsed->format('F j, Y') : null;
+        };
+
+        $start = $startDate !== '' ? $format($startDate) : null;
+        $end = $endDate !== '' ? $format($endDate) : null;
+
+        if ($start !== null && $end !== null) {
+            return $start === $end ? $start : $start . ' to ' . $end;
+        }
+        if ($start !== null) {
+            return $start;
+        }
+        if ($end !== null) {
+            return $end;
+        }
+
+        if ($proposal !== null && !empty($proposal['summary'])) {
+            $existingSummary = json_decode((string) $proposal['summary'], true);
+            if (is_array($existingSummary)) {
+                return trim((string) ($existingSummary['duration_inclusive_dates'] ?? ''));
+            }
+        }
+
+        return '';
+    }
+
+    /** @return list<string> */
+    private function collegeExtensionProgramOptions(): array
+    {
+        $programs = [];
+        foreach (Proposal::all(null, 'extension') as $proposal) {
+            if (!proposal_is_wpu_funded_extension($proposal)) {
+                continue;
+            }
+            $summary = json_decode((string) ($proposal['summary'] ?? ''), true);
+            $program = is_array($summary) ? trim((string) ($summary['college_extension_program'] ?? '')) : '';
+            if ($program !== '') {
+                $programs[$program] = $program;
+            }
+        }
+        $programs = array_values($programs);
+        sort($programs, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return $programs;
+    }
+
     private function facultyTeamOptions(): array
     {
         $options = [];

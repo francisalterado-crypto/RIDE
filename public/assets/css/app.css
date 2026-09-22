@@ -2225,6 +2225,22 @@ th { background: #f9fafb; font-size: 0.85rem; }
     font-weight: 700;
 }
 
+.eso-duration-range {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.eso-duration-range input[type="date"] {
+    flex: 1;
+    min-width: 0;
+}
+
+.eso-duration-range-sep {
+    flex-shrink: 0;
+    color: var(--muted, #6b7280);
+}
+
 .eso-signoff-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

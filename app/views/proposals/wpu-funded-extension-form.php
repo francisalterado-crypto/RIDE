@@ -14,6 +14,7 @@ $pageSubtitle = $isEdit
 $user = \App\Core\Auth::user() ?? [];
 $colleges = $colleges ?? [];
 $facultyTeamOptions = $facultyTeamOptions ?? [];
+$collegeExtensionProgramOptions = $collegeExtensionProgramOptions ?? [];
 
 $summaryData = [];
 if (!empty($proposal['summary'])) {
@@ -98,6 +99,8 @@ $beneficiariesValue = $field('beneficiaries');
 $maleBeneficiariesValue = $field('male_beneficiaries');
 $femaleBeneficiariesValue = $field('female_beneficiaries');
 $durationValue = $field('duration_inclusive_dates');
+$durationStartValue = $field('duration_start_date');
+$durationEndValue = $field('duration_end_date');
 $locationValue = $field('location');
 $budgetValue = $field('budget', $field('program_summary_total_amount'));
 $sourceOfFundValue = $field('source_of_fund', $field('program_summary_total_source', (string) ($proposal['funding_source'] ?? '')));
@@ -243,7 +246,12 @@ if ($budgetLineGroups === []) {
             <tr>
                 <th>College Extension Program</th>
                 <td colspan="3">
-                    <input name="college_extension_program" value="<?= htmlspecialchars($collegeProgramValue) ?>" placeholder="Enter the college extension program">
+                    <input name="college_extension_program" list="eso-college-program-options" value="<?= htmlspecialchars($collegeProgramValue) ?>" placeholder="Select or enter the college extension program" autocomplete="off">
+                    <datalist id="eso-college-program-options">
+                        <?php foreach ($collegeExtensionProgramOptions as $programOption): ?>
+                            <option value="<?= htmlspecialchars($programOption) ?>">
+                        <?php endforeach; ?>
+                    </datalist>
                 </td>
             </tr>
             <tr>
@@ -255,7 +263,17 @@ if ($budgetLineGroups === []) {
             <tr>
                 <th>Members/Trainers</th>
                 <td colspan="3">
-                    <textarea name="members_trainers" class="proposal-textarea proposal-textarea-compact" rows="3" data-autoresize placeholder="List the members and trainers"><?= htmlspecialchars($membersTrainersValue) ?></textarea>
+                    <div class="eso-members-trainers-picker">
+                        <input type="text" id="eso-members-trainers-search" list="eso-registered-user-options" placeholder="Type a registered user's name to add…" autocomplete="off">
+                        <datalist id="eso-registered-user-options">
+                            <?php foreach ($facultyTeamOptions as $facultyOption): ?>
+                                <option value="<?= htmlspecialchars((string) $facultyOption['name']) ?>">
+                            <?php endforeach; ?>
+                        </datalist>
+                        <button type="button" class="btn btn-outline btn-sm" id="eso-members-trainers-add">Add</button>
+                    </div>
+                    <textarea name="members_trainers" id="eso-members-trainers" class="proposal-textarea proposal-textarea-compact" rows="3" data-autoresize placeholder="List the members and trainers"><?= htmlspecialchars($membersTrainersValue) ?></textarea>
+                    <p class="proposal-section-note">Pick a suggested name to append it, or type directly in the box above for people not registered in the portal.</p>
                 </td>
             </tr>
             <tr>
@@ -301,7 +319,14 @@ if ($budgetLineGroups === []) {
             <tr>
                 <th>Duration / Inclusive Dates</th>
                 <td colspan="3">
-                    <input name="duration_inclusive_dates" value="<?= htmlspecialchars($durationValue) ?>" placeholder="e.g. June 1–2, 2025 or June 2026 to May 2027">
+                    <div class="eso-duration-range">
+                        <input type="date" name="duration_start_date" value="<?= htmlspecialchars($durationStartValue) ?>" aria-label="Start date">
+                        <span class="eso-duration-range-sep">to</span>
+                        <input type="date" name="duration_end_date" value="<?= htmlspecialchars($durationEndValue) ?>" aria-label="End date">
+                    </div>
+                    <?php if ($durationValue !== '' && $durationStartValue === '' && $durationEndValue === ''): ?>
+                        <p class="proposal-section-note">Previously entered as: <?= htmlspecialchars($durationValue) ?>. Pick dates above to replace it.</p>
+                    <?php endif; ?>
                 </td>
             </tr>
             <tr>
@@ -1190,6 +1215,23 @@ if ($budgetLineGroups === []) {
         wrap.appendChild(group);
         bindBudgetGroup(group);
         reindexBudgetGroups();
+    });
+
+    const membersTrainersSearch = document.getElementById('eso-members-trainers-search');
+    const membersTrainersTextarea = document.getElementById('eso-members-trainers');
+    document.getElementById('eso-members-trainers-add')?.addEventListener('click', () => {
+        const name = membersTrainersSearch?.value.trim();
+        if (!name || !membersTrainersTextarea) {
+            return;
+        }
+        const existing = membersTrainersTextarea.value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        if (!existing.includes(name)) {
+            existing.push(name);
+        }
+        membersTrainersTextarea.value = existing.join('\n');
+        membersTrainersTextarea.dispatchEvent(new Event('input'));
+        membersTrainersSearch.value = '';
+        membersTrainersSearch.focus();
     });
 
     bindAutoResize(document);
