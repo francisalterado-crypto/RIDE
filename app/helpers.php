@@ -107,6 +107,10 @@ function nav_active(string $path): bool
 /** @return 'research'|'extension'|null Null when nav scope does not apply (non-faculty). */
 function proposal_nav_scope(): ?string
 {
+    if (\App\Core\Auth::hasRole('extension_worker')) {
+        return 'extension';
+    }
+
     if (!\App\Core\Auth::hasRole('faculty')) {
         return null;
     }
@@ -173,11 +177,11 @@ function proposal_nav_redirect_suffix(?string $scope = null): string
 
 function proposal_nav_group_label(): string
 {
-    if (\App\Support\MonitoringRoles::isCoordinatorExtension()) {
-        return 'Extension Requirements';
+    if (\App\Support\MonitoringRoles::isCoordinatorExtension() || \App\Support\MonitoringRoles::isExtensionWorker()) {
+        return 'Extension Services';
     }
 
-    return 'Research Proposal';
+    return 'Research and Development';
 }
 
 function proposal_nav_submenu_label(string $label): string

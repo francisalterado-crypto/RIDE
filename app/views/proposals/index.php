@@ -15,8 +15,8 @@ $pageSubtitle = $isVprideRegistry
 <div class="page-actions-bar">
     <?php if (!$isVprideRegistry): ?>
         <?php if (\App\Core\Auth::hasRole('faculty')): ?>
-        <a class="btn btn-accent" href="<?= base_url('proposals/create' . proposal_nav_scope_query('research')) ?>">Research Proposal</a>
-        <a class="btn btn-accent" href="<?= base_url('proposals/create' . proposal_nav_scope_query('extension')) ?>">Research Extension</a>
+        <a class="btn btn-accent" href="<?= base_url('proposals/create' . proposal_nav_scope_query('research')) ?>">Research and Development Proposal</a>
+        <a class="btn btn-accent" href="<?= base_url('proposals/create' . proposal_nav_scope_query('extension')) ?>">Extension Services Proposal</a>
         <?php elseif (!MonitoringRoles::isCoordinatorExtension()): ?>
         <a class="btn btn-accent" href="<?= base_url('proposals/create') ?>"><?= htmlspecialchars(proposal_nav_group_label()) ?></a>
         <?php endif; ?>
@@ -51,10 +51,7 @@ $pageSubtitle = $isVprideRegistry
 
         <?php if ($proposalCount === 0): ?>
             <div class="proposal-empty-state">
-                <p>No proposals found.</p>
-                <?php if (!$isVprideRegistry && !MonitoringRoles::isCoordinatorExtension()): ?>
-                <a class="btn btn-accent" href="<?= base_url('proposals/create') ?>">Create the first proposal</a>
-                <?php endif; ?>
+                <p>No proposals found.<?= (!$isVprideRegistry && !MonitoringRoles::isCoordinatorExtension()) ? ' Use the button above to create one.' : '' ?></p>
             </div>
         <?php else: ?>
             <div class="proposal-table-wrap proposal-registry-table-wrap">

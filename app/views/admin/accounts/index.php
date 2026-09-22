@@ -438,6 +438,21 @@ $collegeCount = count($colleges);
 
 
 
+                <div class="accounts-form-field">
+
+                    <label for="college_cluster_id">Cluster</label>
+
+                    <select id="college_cluster_id" name="cluster_id">
+                        <option value="">No cluster</option>
+                        <?php foreach ($clusters as $cluster): ?>
+                            <option value="<?= (int) $cluster['id'] ?>"><?= htmlspecialchars((string) $cluster['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+
+                </div>
+
+
+
                 <div class="accounts-form-actions accounts-form-field-span-2">
 
                     <button type="submit" class="btn btn-accent">Add College</button>
@@ -466,6 +481,8 @@ $collegeCount = count($colleges);
 
                                 <th>Name</th>
 
+                                <th>Cluster</th>
+
                                 <th class="col-actions">Actions</th>
 
                             </tr>
@@ -481,6 +498,8 @@ $collegeCount = count($colleges);
                                 <td><code><?= htmlspecialchars((string) $college['code']) ?></code></td>
 
                                 <td><?= htmlspecialchars((string) $college['name']) ?></td>
+
+                                <td><?= htmlspecialchars((string) ($college['cluster_name'] ?? '—')) ?></td>
 
                                 <td class="col-actions">
 
@@ -528,7 +547,68 @@ $collegeCount = count($colleges);
 
     </div>
 
+    <div class="card accounts-cluster-card">
+        <h2>Cluster Settings</h2>
+        <p class="muted">Group colleges into clusters (e.g. Cluster 1 = CET, CAS). Field extensionists and monitoring views are scoped by these groups.</p>
 
+        <form method="post" action="<?= base_url('admin/accounts/clusters') ?>" class="accounts-form-grid accounts-cluster-add-form">
+            <?= csrf_field() ?>
+            <div class="accounts-form-field">
+                <label for="cluster_name">Cluster Name</label>
+                <input id="cluster_name" name="cluster_name" value="<?= old('cluster_name') ?>" required maxlength="100" placeholder="e.g. Cluster 4">
+            </div>
+            <div class="accounts-form-actions">
+                <button type="submit" class="btn btn-accent">Add Cluster</button>
+            </div>
+        </form>
+
+        <?php if ($clusters === []): ?>
+            <p class="muted accounts-empty-note">No clusters added yet.</p>
+        <?php else: ?>
+            <div class="accounts-table-wrap accounts-cluster-table-wrap">
+                <table class="accounts-table accounts-cluster-table">
+                    <thead>
+                        <tr>
+                            <th>Cluster</th>
+                            <th>Colleges</th>
+                            <th class="col-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($clusters as $cluster): ?>
+                        <?php
+                        $memberNames = array_values(array_map(
+                            static fn (array $c): string => (string) $c['name'],
+                            array_filter($colleges, static fn (array $c): bool => (int) ($c['cluster_id'] ?? 0) === (int) $cluster['id'])
+                        ));
+                        ?>
+                        <tr>
+                            <td><?= htmlspecialchars((string) $cluster['name']) ?></td>
+                            <td><?= $memberNames !== [] ? htmlspecialchars(implode(', ', $memberNames)) : '—' ?></td>
+                            <td class="col-actions">
+                                <div class="accounts-row-actions">
+                                    <a class="btn btn-sm icon-btn" href="<?= base_url('admin/accounts/clusters/' . $cluster['id'] . '/edit') ?>" title="Edit cluster" aria-label="Edit cluster">
+                                        <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                                    </a>
+                                    <form
+                                        method="post"
+                                        action="<?= base_url('admin/accounts/clusters/' . $cluster['id'] . '/delete') ?>"
+                                        onsubmit="return confirm('Delete this cluster? Its colleges will become unassigned.');"
+                                    >
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="btn btn-sm btn-danger icon-btn" title="Delete cluster" aria-label="Delete cluster">
+                                            <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <div class="card accounts-list-card">
 
@@ -620,6 +700,8 @@ $collegeCount = count($colleges);
 
                             (string) ($account['college_name'] ?? ''),
 
+                            (string) ($account['cluster_name'] ?? ''),
+
                             (string) ($account['program'] ?? ''),
 
                         ]));
@@ -634,7 +716,12 @@ $collegeCount = count($colleges);
 
                             <td><?= htmlspecialchars((string) ($account['role_names'] ?? '—')) ?></td>
 
-                            <td><?= htmlspecialchars((string) ($account['college_name'] ?? 'University-wide')) ?></td>
+                            <td>
+                                <?= htmlspecialchars((string) ($account['college_name'] ?? 'University-wide')) ?>
+                                <?php if (!empty($account['cluster_name'])): ?>
+                                    <span class="muted">(<?= htmlspecialchars((string) $account['cluster_name']) ?>)</span>
+                                <?php endif; ?>
+                            </td>
 
                             <td class="col-program" title="<?= htmlspecialchars((string) ($account['program'] ?? '')) ?>"><?= htmlspecialchars((string) ($account['program'] ?? '—')) ?></td>
 

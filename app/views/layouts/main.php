@@ -76,10 +76,10 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <div class="nav-section">
                     <div class="nav-section-label">Monitoring</div>
                     <a href="<?= base_url('monitoring?scope=research') ?>" class="nav-item<?= monitoring_nav_active('research') ? ' active' : '' ?>">
-                        <i class="fas fa-flask"></i> <span>Research Monitoring</span>
+                        <i class="fas fa-flask"></i> <span>Research and Development</span>
                     </a>
                     <a href="<?= base_url('monitoring?scope=extension') ?>" class="nav-item<?= monitoring_nav_active('extension') ? ' active' : '' ?>">
-                        <i class="fas fa-hands-helping"></i> <span>Extension Monitoring</span>
+                        <i class="fas fa-hands-helping"></i> <span>Extension Services</span>
                     </a>
                     <?php if (\App\Support\FacultyFormDeadlines::canManage()): ?>
                     <a href="<?= base_url('settings/faculty-deadlines') ?>" class="nav-item<?= nav_active('settings/faculty-deadlines') ? ' active' : '' ?>">
@@ -273,9 +273,25 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <div class="nav-submenu" id="research-proposal-submenu">
                     <?php
                     $menuScope = (\App\Support\MonitoringRoles::isCoordinatorExtension()
-                        || \App\Support\MonitoringRoles::isDirectorExtension())
+                        || \App\Support\MonitoringRoles::isDirectorExtension()
+                        || \App\Support\MonitoringRoles::isExtensionWorker())
                         ? 'extension'
                         : 'research';
+                    require APP_PATH . '/views/layouts/_proposal-nav-submenu.php';
+                    ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php if ($isFacultyAccount && $showResearchProposalNav): ?>
+                <div class="nav-group nav-group-collapsible" id="research-extension-nav" data-nav-collapsible>
+                    <button type="button" class="nav-item nav-item-toggle<?= $researchExtensionNavActive ? ' active' : '' ?>" id="research-extension-nav-toggle" aria-expanded="true" aria-controls="research-extension-submenu">
+                        <i class="fas fa-hands-helping" aria-hidden="true"></i>
+                        <span>Extension Services</span>
+                        <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="nav-submenu" id="research-extension-submenu">
+                    <?php
+                    $menuScope = 'extension';
                     require APP_PATH . '/views/layouts/_proposal-nav-submenu.php';
                     ?>
                     </div>
@@ -307,21 +323,6 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <?php
                     $menuScope = 'research';
                     require APP_PATH . '/views/layouts/_terminal-report-nav-submenu.php';
-                    ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-                <?php if ($isFacultyAccount && $showResearchProposalNav): ?>
-                <div class="nav-group nav-group-collapsible" id="research-extension-nav" data-nav-collapsible>
-                    <button type="button" class="nav-item nav-item-toggle<?= $researchExtensionNavActive ? ' active' : '' ?>" id="research-extension-nav-toggle" aria-expanded="true" aria-controls="research-extension-submenu">
-                        <i class="fas fa-hands-helping" aria-hidden="true"></i>
-                        <span>Research Extension</span>
-                        <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
-                    </button>
-                    <div class="nav-submenu" id="research-extension-submenu">
-                    <?php
-                    $menuScope = 'extension';
-                    require APP_PATH . '/views/layouts/_proposal-nav-submenu.php';
                     ?>
                     </div>
                 </div>

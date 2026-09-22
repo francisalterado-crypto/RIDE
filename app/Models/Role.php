@@ -16,6 +16,7 @@ final class Role
             'coordinator_extension',
             'dean',
             'faculty',
+            'extension_worker',
             'external_partner',
         ];
     }

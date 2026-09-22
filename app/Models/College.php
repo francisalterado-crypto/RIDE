@@ -11,30 +11,40 @@ final class College
     /** @return list<array> */
     public static function all(): array
     {
-        return Database::pdo()->query('SELECT * FROM colleges ORDER BY name')->fetchAll() ?: [];
+        return Database::pdo()->query(
+            'SELECT colleges.*, clusters.name AS cluster_name
+             FROM colleges
+             LEFT JOIN clusters ON clusters.id = colleges.cluster_id
+             ORDER BY colleges.name'
+        )->fetchAll() ?: [];
     }
 
     public static function findById(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare('SELECT * FROM colleges WHERE id = ? LIMIT 1');
+        $stmt = Database::pdo()->prepare(
+            'SELECT colleges.*, clusters.name AS cluster_name
+             FROM colleges
+             LEFT JOIN clusters ON clusters.id = colleges.cluster_id
+             WHERE colleges.id = ? LIMIT 1'
+        );
         $stmt->execute([$id]);
         $row = $stmt->fetch();
 
         return $row ?: null;
     }
 
-    public static function create(string $code, string $name): int
+    public static function create(string $code, string $name, ?int $clusterId = null): int
     {
-        $stmt = Database::pdo()->prepare('INSERT INTO colleges (code, name) VALUES (?, ?)');
-        $stmt->execute([$code, $name]);
+        $stmt = Database::pdo()->prepare('INSERT INTO colleges (code, name, cluster_id) VALUES (?, ?, ?)');
+        $stmt->execute([$code, $name, $clusterId]);
 
         return (int) Database::pdo()->lastInsertId();
     }
 
-    public static function update(int $id, string $code, string $name): bool
+    public static function update(int $id, string $code, string $name, ?int $clusterId = null): bool
     {
-        $stmt = Database::pdo()->prepare('UPDATE colleges SET code = ?, name = ? WHERE id = ?');
-        $stmt->execute([$code, $name, $id]);
+        $stmt = Database::pdo()->prepare('UPDATE colleges SET code = ?, name = ?, cluster_id = ? WHERE id = ?');
+        $stmt->execute([$code, $name, $clusterId, $id]);
 
         return $stmt->rowCount() > 0;
     }

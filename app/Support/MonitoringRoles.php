@@ -30,6 +30,8 @@ final class MonitoringRoles
 
     public const DIRECTOR_EXTENSION = 'director_extension';
 
+    public const EXTENSION_WORKER = 'extension_worker';
+
 
 
     /** @var list<string> */
@@ -140,6 +142,16 @@ final class MonitoringRoles
 
 
 
+    public static function isExtensionWorker(): bool
+
+    {
+
+        return Auth::hasRole(self::EXTENSION_WORKER);
+
+    }
+
+
+
     public static function isUniversityWide(): bool
 
     {
@@ -210,7 +222,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isDirectorExtension() || self::isCoordinatorExtension();
+        return self::isDirectorExtension() || self::isCoordinatorExtension() || self::isExtensionWorker();
 
     }
 
@@ -416,7 +428,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 
@@ -426,7 +438,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 
@@ -436,7 +448,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 
@@ -446,7 +458,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 
@@ -456,7 +468,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 
@@ -476,7 +488,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 
@@ -486,7 +498,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 
@@ -496,7 +508,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 
@@ -506,7 +518,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
+        return self::isExtensionScoped();
 
     }
 

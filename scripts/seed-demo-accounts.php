@@ -24,6 +24,7 @@ $roleMap = [
     'College Dean' => 'dean',
     'Faculty (Research)' => 'faculty',
     'Faculty (Extension)' => 'faculty',
+    'Extension Worker' => 'extension_worker',
 ];
 
 $collegeMap = ['CET' => 1, 'CAS' => 2, 'CBM' => 3];

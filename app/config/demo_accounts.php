@@ -24,6 +24,7 @@ return [
     ['email' => 'dean.cet@ride.local', 'password' => 'password123', 'role' => 'College Dean', 'name' => 'Patricia Ong', 'college' => 'CET'],
     ['email' => 'faculty.research.cet@ride.local', 'password' => 'password123', 'role' => 'Faculty (Research)', 'name' => 'John Cruz', 'college' => 'CET', 'program' => 'BS in Civil Engineering'],
     ['email' => 'faculty.extension.cet@ride.local', 'password' => 'password123', 'role' => 'Faculty (Extension)', 'name' => 'Nina Bautista', 'college' => 'CET', 'program' => 'BS in Electrical Engineering'],
+    ['email' => 'extensionworker.cet@ride.local', 'password' => 'password123', 'role' => 'Extension Worker', 'name' => 'Rafael Ilagan', 'college' => 'CET', 'program' => 'BS in Electrical Engineering'],
 
     // CAS
     ['email' => 'coord.research.cas@ride.local', 'password' => 'password123', 'role' => 'Coordinator of Research', 'name' => 'Elena Ramos', 'college' => 'CAS'],
@@ -31,6 +32,7 @@ return [
     ['email' => 'dean.cas@ride.local', 'password' => 'password123', 'role' => 'College Dean', 'name' => 'Isabel Torres', 'college' => 'CAS'],
     ['email' => 'faculty.research.cas@ride.local', 'password' => 'password123', 'role' => 'Faculty (Research)', 'name' => 'Miguel Lopez', 'college' => 'CAS', 'program' => 'BS in Social Work'],
     ['email' => 'faculty.extension.cas@ride.local', 'password' => 'password123', 'role' => 'Faculty (Extension)', 'name' => 'Sara Dela Cruz', 'college' => 'CAS', 'program' => 'Bachelor of Secondary Education'],
+    ['email' => 'extensionworker.cas@ride.local', 'password' => 'password123', 'role' => 'Extension Worker', 'name' => 'Bianca Ferrer', 'college' => 'CAS', 'program' => 'Bachelor of Secondary Education'],
 
     // CBM
     ['email' => 'coord.research.cbm@ride.local', 'password' => 'password123', 'role' => 'Coordinator of Research', 'name' => 'Daniel Tan', 'college' => 'CBM'],
@@ -38,4 +40,5 @@ return [
     ['email' => 'dean.cbm@ride.local', 'password' => 'password123', 'role' => 'College Dean', 'name' => 'Antonio Flores', 'college' => 'CBM'],
     ['email' => 'faculty.research.cbm@ride.local', 'password' => 'password123', 'role' => 'Faculty (Research)', 'name' => 'Rachel Gomez', 'college' => 'CBM', 'program' => 'BS in Business Administration'],
     ['email' => 'faculty.extension.cbm@ride.local', 'password' => 'password123', 'role' => 'Faculty (Extension)', 'name' => 'Kevin Navarro', 'college' => 'CBM', 'program' => 'BS in Hospitality Management'],
+    ['email' => 'extensionworker.cbm@ride.local', 'password' => 'password123', 'role' => 'Extension Worker', 'name' => 'Diego Ocampo', 'college' => 'CBM', 'program' => 'BS in Hospitality Management'],
 ];

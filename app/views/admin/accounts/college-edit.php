@@ -1,5 +1,6 @@
 <?php
 /** @var array<string, mixed> $college */
+/** @var list<array> $clusters */
 $pageTitle = 'Edit College — RIDE IMS';
 $pageHeading = 'Edit College';
 $pageSubtitle = 'Update the college code or name used for account assignment and proposal prefill.';
@@ -39,6 +40,16 @@ $pageSubtitle = 'Update the college code or name used for account assignment and
             maxlength="150"
             placeholder="e.g. College of Information Technology"
         >
+
+        <label for="edit_college_cluster_id">Cluster</label>
+        <select id="edit_college_cluster_id" name="cluster_id">
+            <option value="">No cluster</option>
+            <?php foreach ($clusters as $cluster): ?>
+                <option value="<?= (int) $cluster['id'] ?>"<?= (int) ($college['cluster_id'] ?? 0) === (int) $cluster['id'] ? ' selected' : '' ?>>
+                    <?= htmlspecialchars((string) $cluster['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
 
         <div class="actions">
             <button type="submit" class="btn btn-accent">Save College</button>

@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\Auth;
 use App\Models\AuditLog;
+use App\Models\Cluster;
 use App\Models\College;
 use App\Models\Role;
 use App\Models\User;
@@ -24,6 +25,7 @@ final class AccountController
             'pendingRegistrations' => User::allPendingRegistrations(),
             'roles' => Role::all(),
             'colleges' => College::all(),
+            'clusters' => Cluster::all(),
             'collegeScopedSlugs' => array_flip(Role::collegeScopedSlugs()),
             'defaultFacultyRoleId' => $facultyRole !== null ? (int) $facultyRole['id'] : 0,
             'currentUserId' => (int) ($_SESSION['user_id'] ?? 0),
@@ -428,6 +430,7 @@ final class AccountController
 
         $code = strtoupper(trim((string) ($_POST['college_code'] ?? '')));
         $name = trim((string) ($_POST['college_name'] ?? ''));
+        $clusterId = (int) ($_POST['cluster_id'] ?? 0) ?: null;
 
         if ($code === '' || $name === '') {
             set_flash('error', 'College code and name are required.');
@@ -453,7 +456,7 @@ final class AccountController
             redirect('admin/accounts');
         }
 
-        $collegeId = College::create($code, $name);
+        $collegeId = College::create($code, $name, $clusterId);
 
         AuditLog::record('college', $collegeId, 'create', [
             'code' => $code,
@@ -476,6 +479,7 @@ final class AccountController
 
         view('admin.accounts.college-edit', [
             'college' => $college,
+            'clusters' => Cluster::all(),
         ]);
     }
 
@@ -496,6 +500,7 @@ final class AccountController
 
         $code = strtoupper(trim((string) ($_POST['college_code'] ?? '')));
         $name = trim((string) ($_POST['college_name'] ?? ''));
+        $clusterId = (int) ($_POST['cluster_id'] ?? 0) ?: null;
 
         $_SESSION['_old'] = [
             'edit_college_code' => $code,
@@ -522,7 +527,7 @@ final class AccountController
             redirect('admin/accounts/colleges/' . $id . '/edit');
         }
 
-        College::update($id, $code, $name);
+        College::update($id, $code, $name, $clusterId);
 
         AuditLog::record('college', $id, 'update', [
             'code' => $code,
@@ -568,6 +573,127 @@ final class AccountController
         ]);
 
         set_flash('success', 'College deleted successfully.');
+        redirect('admin/accounts');
+    }
+
+    public function storeCluster(): void
+    {
+        $this->assertAdmin();
+
+        if (!verify_csrf()) {
+            set_flash('error', 'Invalid session. Please try again.');
+            redirect('admin/accounts');
+        }
+
+        $name = trim((string) ($_POST['cluster_name'] ?? ''));
+
+        if ($name === '') {
+            set_flash('error', 'Cluster name is required.');
+            redirect('admin/accounts');
+        }
+
+        if (strlen($name) > 100) {
+            set_flash('error', 'Cluster name must be 100 characters or less.');
+            redirect('admin/accounts');
+        }
+
+        if (Cluster::nameExists($name)) {
+            set_flash('error', 'That cluster name is already in use.');
+            redirect('admin/accounts');
+        }
+
+        $clusterId = Cluster::create($name);
+
+        AuditLog::record('cluster', $clusterId, 'create', ['name' => $name]);
+
+        set_flash('success', 'Cluster added successfully.');
+        redirect('admin/accounts');
+    }
+
+    public function editCluster(int $id): void
+    {
+        $this->assertAdmin();
+
+        $cluster = Cluster::findById($id);
+        if ($cluster === null) {
+            set_flash('error', 'Cluster not found.');
+            redirect('admin/accounts');
+        }
+
+        view('admin.accounts.cluster-edit', [
+            'cluster' => $cluster,
+            'colleges' => College::all(),
+            'memberCollegeIds' => array_map(static fn (array $c): int => (int) $c['id'], Cluster::colleges($id)),
+        ]);
+    }
+
+    public function updateCluster(int $id): void
+    {
+        $this->assertAdmin();
+
+        if (!verify_csrf()) {
+            set_flash('error', 'Invalid session. Please try again.');
+            redirect('admin/accounts/clusters/' . $id . '/edit');
+        }
+
+        $cluster = Cluster::findById($id);
+        if ($cluster === null) {
+            set_flash('error', 'Cluster not found.');
+            redirect('admin/accounts');
+        }
+
+        $name = trim((string) ($_POST['cluster_name'] ?? ''));
+
+        if ($name === '') {
+            set_flash('error', 'Cluster name is required.');
+            redirect('admin/accounts/clusters/' . $id . '/edit');
+        }
+
+        if (strlen($name) > 100) {
+            set_flash('error', 'Cluster name must be 100 characters or less.');
+            redirect('admin/accounts/clusters/' . $id . '/edit');
+        }
+
+        if (Cluster::nameExists($name, $id)) {
+            set_flash('error', 'That cluster name is already in use.');
+            redirect('admin/accounts/clusters/' . $id . '/edit');
+        }
+
+        $collegeIds = array_map('intval', (array) ($_POST['college_ids'] ?? []));
+
+        Cluster::update($id, $name);
+        Cluster::syncColleges($id, $collegeIds);
+
+        AuditLog::record('cluster', $id, 'update', [
+            'name' => $name,
+            'previous_name' => $cluster['name'],
+            'college_ids' => $collegeIds,
+        ]);
+
+        set_flash('success', 'Cluster updated successfully.');
+        redirect('admin/accounts/clusters/' . $id . '/edit');
+    }
+
+    public function destroyCluster(int $id): void
+    {
+        $this->assertAdmin();
+
+        if (!verify_csrf()) {
+            set_flash('error', 'Invalid session. Please try again.');
+            redirect('admin/accounts');
+        }
+
+        $cluster = Cluster::findById($id);
+        if ($cluster === null) {
+            set_flash('error', 'Cluster not found.');
+            redirect('admin/accounts');
+        }
+
+        Cluster::delete($id);
+
+        AuditLog::record('cluster', $id, 'delete', ['name' => $cluster['name']]);
+
+        set_flash('success', 'Cluster deleted successfully. Its colleges are now unassigned.');
         redirect('admin/accounts');
     }
 

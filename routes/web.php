@@ -212,6 +212,10 @@ $router->post('/admin/accounts/colleges/default-centers', [AccountController::cl
 $router->get('/admin/accounts/colleges/{id}/edit', [AccountController::class, 'editCollege'], $admin);
 $router->post('/admin/accounts/colleges/{id}/update', [AccountController::class, 'updateCollege'], $admin);
 $router->post('/admin/accounts/colleges/{id}/delete', [AccountController::class, 'destroyCollege'], $admin);
+$router->post('/admin/accounts/clusters', [AccountController::class, 'storeCluster'], $admin);
+$router->get('/admin/accounts/clusters/{id}/edit', [AccountController::class, 'editCluster'], $admin);
+$router->post('/admin/accounts/clusters/{id}/update', [AccountController::class, 'updateCluster'], $admin);
+$router->post('/admin/accounts/clusters/{id}/delete', [AccountController::class, 'destroyCluster'], $admin);
 $router->get('/admin/accounts/{id}/edit', [AccountController::class, 'edit'], $admin);
 $router->post('/admin/accounts/{id}/update', [AccountController::class, 'update'], $admin);
 $router->post('/admin/accounts/{id}/reset-password', [AccountController::class, 'resetPassword'], $admin);

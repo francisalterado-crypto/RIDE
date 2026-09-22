@@ -15,15 +15,16 @@ final class User
     {
         $stmt = Database::pdo()->query(
             'SELECT u.id, u.email, u.first_name, u.last_name, u.college_id, u.program, u.campus_id, u.created_at,
-                    c.name AS college_name,
+                    c.name AS college_name, cl.name AS cluster_name,
                     ' . Sql::groupConcat('r.name', ', ', 'r.name', true) . ' AS role_names,
                     ' . Sql::groupConcat('r.slug', ', ', 'r.name', true) . ' AS role_slugs
              FROM users u
              LEFT JOIN colleges c ON c.id = u.college_id
+             LEFT JOIN clusters cl ON cl.id = c.cluster_id
              LEFT JOIN user_roles ur ON ur.user_id = u.id
              LEFT JOIN roles r ON r.id = ur.role_id
              WHERE u.is_active = 1
-             GROUP BY u.id, u.email, u.first_name, u.last_name, u.college_id, u.program, u.campus_id, u.created_at, c.name
+             GROUP BY u.id, u.email, u.first_name, u.last_name, u.college_id, u.program, u.campus_id, u.created_at, c.name, cl.name
              ORDER BY u.created_at DESC, u.id DESC'
         );
 
