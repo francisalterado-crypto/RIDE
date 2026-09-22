@@ -121,6 +121,14 @@ $statusLabels = [
   .graph-dashboard .status-badge i { margin-right: 4px; font-size: .7rem; }
   @media (max-width: 1180px) { .graph-dashboard .grid { grid-template-columns: repeat(2,1fr); } .graph-dashboard .double-chart-grid { grid-template-columns: 1fr; } }
   @media (max-width: 700px) { .graph-dashboard { padding: 14px; } .graph-dashboard .grid { grid-template-columns: 1fr; } }
+  .dashboard-tab-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .dashboard-tab-btn {
+    border: none; cursor: pointer; padding: 10px 18px; border-radius: 40px; font-weight: 600;
+    font-size: 0.85rem; background: #fff; color: #4f6f8f; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .dashboard-tab-btn.active { background: var(--tab-accent, #2B5A8C); color: #fff; }
+  .dashboard-panel[hidden] { display: none; }
 </style>
 
 <div class="graph-dashboard">
@@ -157,7 +165,42 @@ $statusLabels = [
     </div>
   </div>
 
-  <?php foreach ($dashboardSections as $section): ?>
-    <?php require APP_PATH . '/views/dashboard/_analytics-section.php'; ?>
+  <?php if ($splitDashboard && count($dashboardSections) > 1): ?>
+    <div class="dashboard-tab-bar" role="tablist">
+      <?php foreach (array_values($dashboardSections) as $tabIndex => $section): ?>
+        <button
+          type="button"
+          class="dashboard-tab-btn<?= $tabIndex === 0 ? ' active' : '' ?>"
+          style="--tab-accent: <?= htmlspecialchars((string) ($section['accent'] ?? '#2B5A8C')) ?>;"
+          data-dashboard-tab-btn="<?= htmlspecialchars((string) ($section['key'] ?? '')) ?>"
+        >
+          <i class="fas <?= htmlspecialchars((string) ($section['icon'] ?? 'fa-chart-line')) ?>"></i>
+          <?= htmlspecialchars((string) ($section['title'] ?? '')) ?>
+        </button>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
+
+  <?php foreach ($dashboardSections as $panelIndex => $section): ?>
+    <div class="dashboard-panel" data-dashboard-panel="<?= htmlspecialchars((string) ($section['key'] ?? '')) ?>"<?= ($splitDashboard && count($dashboardSections) > 1 && $panelIndex !== array_key_first($dashboardSections)) ? ' hidden' : '' ?>>
+      <?php require APP_PATH . '/views/dashboard/_analytics-section.php'; ?>
+    </div>
   <?php endforeach; ?>
 </div>
+
+<?php if ($splitDashboard && count($dashboardSections) > 1): ?>
+<script>
+  (function () {
+    var buttons = document.querySelectorAll('[data-dashboard-tab-btn]');
+    var panels = document.querySelectorAll('[data-dashboard-panel]');
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = btn.getAttribute('data-dashboard-tab-btn');
+        buttons.forEach(function (b) { b.classList.toggle('active', b === btn); });
+        panels.forEach(function (p) { p.hidden = p.getAttribute('data-dashboard-panel') !== target; });
+        window.dispatchEvent(new Event('resize'));
+      });
+    });
+  })();
+</script>
+<?php endif; ?>

@@ -74,14 +74,15 @@ final class DashboardController
             ];
         }
 
+        $isOwnScoped = $isFaculty || MonitoringRoles::isExtensionWorker();
         $overdueMilestones = Milestone::overdueForUser(
-            $all ? null : ($collegeId && !Auth::hasRole('faculty') ? $collegeId : null),
-            Auth::hasRole('faculty') ? (int) $user['id'] : null,
+            $all ? null : ($collegeId && !$isOwnScoped ? $collegeId : null),
+            $isOwnScoped ? (int) $user['id'] : null,
             $all
         );
         $overdueReports = ProgressReport::overdue(
-            Auth::hasRole('faculty') ? (int) $user['id'] : null,
-            $collegeId && !$all && !Auth::hasRole('faculty') ? $collegeId : null
+            $isOwnScoped ? (int) $user['id'] : null,
+            $collegeId && !$all && !$isOwnScoped ? $collegeId : null
         );
         $latestAdminMessage = AdminMessage::latest();
         $globalMessage = (string) ($latestAdminMessage['message'] ?? 'Please check this page regularly for the latest dashboard announcements and updates.');
