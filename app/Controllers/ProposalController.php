@@ -6876,10 +6876,20 @@ final class ProposalController
         if (MonitoringRoles::isVpride() || Auth::hasRole('ride_reporter')) {
             return $scopeType !== null ? Proposal::all(null, $scopeType) : Proposal::all();
         }
+        if (MonitoringRoles::isCoordinatorResearch() || MonitoringRoles::isCoordinatorExtension()) {
+            if (!($user['college_id'] ?? null)) {
+                return [];
+            }
+
+            return array_values(array_filter(
+                Proposal::forCollege((int) $user['college_id']),
+                static fn (array $proposal): bool => (string) ($proposal['project_type'] ?? '') === $scopeType
+            ));
+        }
         if ($scopeType !== null) {
             return Proposal::all(null, $scopeType);
         }
-        if (Auth::hasRole('coordinator_research', 'coordinator_extension', 'dean') && ($user['college_id'] ?? null)) {
+        if (Auth::hasRole('dean') && ($user['college_id'] ?? null)) {
             return Proposal::forCollege((int) $user['college_id']);
         }
 

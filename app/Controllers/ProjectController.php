@@ -25,9 +25,11 @@ final class ProjectController
         $scopeType = MonitoringRoles::proposalScopeType();
         if (MonitoringRoles::isVpride() || Auth::hasRole('ride_reporter')) {
             $projects = $scopeType !== null ? Proposal::ongoing(null, null, $scopeType) : Proposal::ongoing();
+        } elseif (MonitoringRoles::isCoordinatorResearch() || MonitoringRoles::isCoordinatorExtension()) {
+            $projects = $user['college_id'] ? Proposal::ongoing((int) $user['college_id'], null, $scopeType) : [];
         } elseif ($scopeType !== null) {
             $projects = Proposal::ongoing(null, null, $scopeType);
-        } elseif (Auth::hasRole('coordinator_research', 'coordinator_extension', 'dean') && $user['college_id']) {
+        } elseif (Auth::hasRole('dean') && $user['college_id']) {
             $projects = Proposal::ongoing((int) $user['college_id']);
         } else {
             $projects = Proposal::ongoing(null, (int) $user['id']);

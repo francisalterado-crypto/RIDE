@@ -212,7 +212,25 @@ final class MonitoringRoles
 
 
 
-        return (string) ($proposal['project_type'] ?? '') === $scope;
+        if ((string) ($proposal['project_type'] ?? '') !== $scope) {
+
+            return false;
+
+        }
+
+
+
+        if (self::isCoordinatorResearch() || self::isCoordinatorExtension()) {
+
+            $user = Auth::user();
+
+            return $user !== null && (int) ($user['college_id'] ?? 0) === (int) ($proposal['college_id'] ?? 0);
+
+        }
+
+
+
+        return true;
 
     }
 
