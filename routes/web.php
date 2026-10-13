@@ -9,6 +9,7 @@ use App\Controllers\AdminScholarlyController;
 use App\Controllers\HighlightController;
 use App\Controllers\DashboardController;
 use App\Controllers\FacultyDeadlineSettingsController;
+use App\Controllers\FormTemplateController;
 use App\Controllers\DirectMessageController;
 use App\Controllers\MonitoringController;
 use App\Controllers\NotificationController;
@@ -83,11 +84,7 @@ $router->get('/proposals/create/technical-advisory', [ProposalController::class,
 $router->get('/proposals/create/extension-linkages', [ProposalController::class, 'createExtensionLinkages'], $auth);
 $router->get('/proposals/create/outreach-activities', [ProposalController::class, 'createOutreachActivities'], $auth);
 $router->get('/proposals/create/technology-adoption', [ProposalController::class, 'createTechnologyAdoption'], $auth);
-$router->get('/proposals/create/accomplishment-report', [ProposalController::class, 'createAccomplishmentReport'], $auth);
-$router->get('/proposals/create/technical-advisory-ar', [ProposalController::class, 'createTechnicalAdvisoryAr'], $auth);
-$router->get('/proposals/create/outreach-activities-ar', [ProposalController::class, 'createOutreachActivitiesAr'], $auth);
 $router->get('/proposals/create/ebalwasyon-ng-gawain', [ProposalController::class, 'createEbalwasyonNgGawain'], $auth);
-$router->get('/proposals/create/attendance-sheet', [ProposalController::class, 'createAttendanceSheet'], $auth);
 $router->get('/proposals/create/required-files', [ProposalController::class, 'createRequiredFiles'], $auth);
 $router->post('/proposals/manuscript', [ProposalController::class, 'storeManuscript'], $auth);
 $router->post('/proposals/completed-researches', [ProposalController::class, 'storeCompletedResearches'], $auth);
@@ -119,11 +116,7 @@ $router->post('/proposals/technical-advisory', [ProposalController::class, 'stor
 $router->post('/proposals/extension-linkages', [ProposalController::class, 'storeExtensionLinkages'], $auth);
 $router->post('/proposals/outreach-activities', [ProposalController::class, 'storeOutreachActivities'], $auth);
 $router->post('/proposals/technology-adoption', [ProposalController::class, 'storeTechnologyAdoption'], $auth);
-$router->post('/proposals/accomplishment-report', [ProposalController::class, 'storeAccomplishmentReport'], $auth);
-$router->post('/proposals/technical-advisory-ar', [ProposalController::class, 'storeTechnicalAdvisoryAr'], $auth);
-$router->post('/proposals/outreach-activities-ar', [ProposalController::class, 'storeOutreachActivitiesAr'], $auth);
 $router->post('/proposals/ebalwasyon-ng-gawain', [ProposalController::class, 'storeEbalwasyonNgGawain'], $auth);
-$router->post('/proposals/attendance-sheet', [ProposalController::class, 'storeAttendanceSheet'], $auth);
 $router->post('/proposals/preview/extension-program', [ProposalController::class, 'previewWpuFundedExtension'], $auth);
 $router->post('/proposals', [ProposalController::class, 'store'], $auth);
 $router->get('/proposals/{id}', [ProposalController::class, 'show'], $auth);
@@ -161,11 +154,7 @@ $router->post('/proposals/{id}/technical-advisory', [ProposalController::class, 
 $router->post('/proposals/{id}/extension-linkages', [ProposalController::class, 'updateExtensionLinkages'], $auth);
 $router->post('/proposals/{id}/outreach-activities', [ProposalController::class, 'updateOutreachActivities'], $auth);
 $router->post('/proposals/{id}/technology-adoption', [ProposalController::class, 'updateTechnologyAdoption'], $auth);
-$router->post('/proposals/{id}/accomplishment-report', [ProposalController::class, 'updateAccomplishmentReport'], $auth);
-$router->post('/proposals/{id}/technical-advisory-ar', [ProposalController::class, 'updateTechnicalAdvisoryAr'], $auth);
-$router->post('/proposals/{id}/outreach-activities-ar', [ProposalController::class, 'updateOutreachActivitiesAr'], $auth);
 $router->post('/proposals/{id}/ebalwasyon-ng-gawain', [ProposalController::class, 'updateEbalwasyonNgGawain'], $auth);
-$router->post('/proposals/{id}/attendance-sheet', [ProposalController::class, 'updateAttendanceSheet'], $auth);
 $router->post('/proposals/{id}/update', [ProposalController::class, 'update'], $auth);
 $router->post('/proposals/{id}/submit', [ProposalController::class, 'submit'], $auth);
 $router->post('/proposals/{id}/delete', [ProposalController::class, 'destroy'], $auth);
@@ -190,6 +179,9 @@ $router->post('/projects/{id}/documents/{docId}/delete', [ProjectController::cla
 $router->post('/projects/{id}/innovation', [ProjectController::class, 'storeInnovation'], $auth);
 $router->post('/projects/{id}/extension', [ProjectController::class, 'storeExtension'], $auth);
 $router->get('/reports/extension-beneficiaries', [ProjectController::class, 'accreditationReport'], $auth);
+
+$router->get('/forms', [FormTemplateController::class, 'index'], $auth);
+$router->get('/forms/{id}/download', [FormTemplateController::class, 'download'], $auth);
 
 $router->get('/notifications/{id}/read', [NotificationController::class, 'markRead'], $auth);
 
@@ -232,6 +224,12 @@ $router->post('/admin/scholarly/presentations', [AdminScholarlyController::class
 $router->get('/admin/scholarly/attachments/{id}', [AdminScholarlyController::class, 'downloadAttachment'], $admin);
 $router->post('/admin/scholarly/papers/{id}/delete', [AdminScholarlyController::class, 'destroyPaper'], $admin);
 $router->post('/admin/scholarly/presentations/{id}/delete', [AdminScholarlyController::class, 'destroyPresentation'], $admin);
+
+$router->get('/admin/form-templates', [FormTemplateController::class, 'adminIndex'], $admin);
+$router->post('/admin/form-templates', [FormTemplateController::class, 'store'], $admin);
+$router->post('/admin/form-templates/{id}/update', [FormTemplateController::class, 'update'], $admin);
+$router->post('/admin/form-templates/{id}/move', [FormTemplateController::class, 'move'], $admin);
+$router->post('/admin/form-templates/{id}/delete', [FormTemplateController::class, 'destroy'], $admin);
 
 $router->get('/admin/highlights', [HighlightController::class, 'index'], $admin);
 $router->post('/admin/highlights/settings', [HighlightController::class, 'updateSettings'], $admin);

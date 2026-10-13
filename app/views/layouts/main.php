@@ -72,6 +72,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <a href="<?= base_url('reports/extension-beneficiaries') ?>" class="nav-item<?= nav_active('reports') ? ' active' : '' ?>">
                         <i class="fas fa-chart-pie"></i> <span>Reports</span>
                     </a>
+                    <a href="<?= base_url('forms') ?>" class="nav-item<?= nav_active('forms') ? ' active' : '' ?>">
+                        <i class="fas fa-file-download"></i> <span>Downloadable Forms</span>
+                    </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-label">Monitoring</div>
@@ -103,6 +106,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 </a>
                 <a href="<?= base_url('projects') ?>" class="nav-item<?= nav_active('projects') ? ' active' : '' ?>">
                     <i class="fas fa-project-diagram"></i> <span>Projects</span>
+                </a>
+                <a href="<?= base_url('forms') ?>" class="nav-item<?= nav_active('forms') ? ' active' : '' ?>">
+                    <i class="fas fa-file-download"></i> <span>Downloadable Forms</span>
                 </a>
                 <?php
                 $newProposalActive = nav_active('proposals/create');
@@ -143,11 +149,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 $extensionLinkagesNavActive = nav_active('proposals/create/extension-linkages');
                 $outreachActivitiesNavActive = nav_active('proposals/create/outreach-activities');
                 $technologyAdoptionNavActive = nav_active('proposals/create/technology-adoption');
-                $accomplishmentReportNavActive = nav_active('proposals/create/accomplishment-report');
-                $technicalAdvisoryArNavActive = nav_active('proposals/create/technical-advisory-ar');
-                $outreachActivitiesArNavActive = nav_active('proposals/create/outreach-activities-ar');
                 $ebalwasyonNgGawainNavActive = nav_active('proposals/create/ebalwasyon-ng-gawain');
-                $attendanceSheetNavActive = nav_active('proposals/create/attendance-sheet');
                 $requiredFilesNavActive = nav_active('proposals/create/required-files')
                     || preg_match('#^proposals/\d+/edit/required-files$#', request_path()) === 1;
                 $applicantNavActive = nav_active('proposals/create')
@@ -175,11 +177,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     && !$extensionLinkagesNavActive
                     && !$outreachActivitiesNavActive
                     && !$technologyAdoptionNavActive
-                    && !$accomplishmentReportNavActive
-                    && !$technicalAdvisoryArNavActive
-                    && !$outreachActivitiesArNavActive
                     && !$ebalwasyonNgGawainNavActive
-                    && !$attendanceSheetNavActive
                     && !$requiredFilesNavActive;
                 $proposalNavItemsActive = $newProposalActive || $requiredFilesNavActive
                     || $manuscriptNavActive || $completedResearchesNavActive || $ongoingResearchesNavActive
@@ -194,9 +192,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     || $progressReportNavActive
                     || $obrMatrixNavActive
                     || $trainingsConductedNavActive || $technicalAdvisoryNavActive || $extensionLinkagesNavActive
-                    || $outreachActivitiesNavActive || $technologyAdoptionNavActive || $accomplishmentReportNavActive
-                    || $technicalAdvisoryArNavActive || $outreachActivitiesArNavActive || $ebalwasyonNgGawainNavActive
-                    || $attendanceSheetNavActive;
+                    || $outreachActivitiesNavActive || $technologyAdoptionNavActive || $ebalwasyonNgGawainNavActive;
                 $isFacultyAccount = \App\Core\Auth::hasRole('faculty');
                 $showManuscriptNav = \App\Support\MonitoringRoles::canAccessManuscript();
                 $showCompletedResearchesNav = \App\Support\MonitoringRoles::canAccessCompletedResearches();
@@ -229,11 +225,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 $showExtensionLinkagesNav = \App\Support\MonitoringRoles::canAccessExtensionLinkages();
                 $showOutreachActivitiesNav = \App\Support\MonitoringRoles::canAccessOutreachActivities();
                 $showTechnologyAdoptionNav = \App\Support\MonitoringRoles::canAccessTechnologyAdoption();
-                $showAccomplishmentReportNav = \App\Support\MonitoringRoles::canAccessAccomplishmentReport();
-                $showTechnicalAdvisoryArNav = \App\Support\MonitoringRoles::canAccessTechnicalAdvisoryAr();
-                $showOutreachActivitiesArNav = \App\Support\MonitoringRoles::canAccessOutreachActivitiesAr();
                 $showEbalwasyonNgGawainNav = \App\Support\MonitoringRoles::canAccessEbalwasyonNgGawain();
-                $showAttendanceSheetNav = \App\Support\MonitoringRoles::canAccessAttendanceSheet();
                 $showConsolidatedReportsNav = \App\Support\MonitoringRoles::isCoordinatorResearch();
                 $showResearchProposalNav = !\App\Support\MonitoringRoles::isVpride()
                     && !$showConsolidatedReportsNav
@@ -327,7 +319,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </div>
                 </div>
                 <?php endif; ?>
-                <?php if (\App\Core\Auth::hasRole('ride_reporter') && !$isVprideAccount): ?>
+                <?php if ((\App\Core\Auth::hasRole('ride_reporter') || \App\Support\MonitoringRoles::isDirectorExtension()) && !$isVprideAccount): ?>
                     <a href="<?= base_url('reports/extension-beneficiaries') ?>" class="nav-item<?= nav_active('reports') ? ' active' : '' ?>">
                         <i class="fas fa-chart-pie"></i> <span>Reports</span>
                     </a>
@@ -342,6 +334,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </a>
                     <a href="<?= base_url('admin/highlights') ?>" class="nav-item<?= nav_active('admin/highlights') ? ' active' : '' ?>">
                         <i class="fas fa-images"></i> <span>Login Highlights</span>
+                    </a>
+                    <a href="<?= base_url('admin/form-templates') ?>" class="nav-item<?= nav_active('admin/form-templates') ? ' active' : '' ?>">
+                        <i class="fas fa-file-upload"></i> <span>Form Templates</span>
                     </a>
                 <?php endif; ?>
                 <?php if (\App\Core\Auth::hasRole('faculty')): ?>

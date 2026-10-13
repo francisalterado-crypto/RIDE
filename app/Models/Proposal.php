@@ -221,7 +221,10 @@ final class Proposal
         if (!$proposal) {
             return;
         }
-        $step = MonitoringRoles::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
+        // Coordinator-filed college reports skip the coordinator's own endorsement step.
+        $step = proposal_is_coordinator_submitted_report($proposal)
+            ? MonitoringRoles::DEAN
+            : MonitoringRoles::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
         $stmt = Database::pdo()->prepare(
             'UPDATE proposals SET status = \'submitted\', current_step = ?, submitted_at = NOW() WHERE id = ?'
         );

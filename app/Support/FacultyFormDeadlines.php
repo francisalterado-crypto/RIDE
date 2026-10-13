@@ -66,7 +66,14 @@ final class FacultyFormDeadlines
     public static function canManage(): bool
     {
         return MonitoringRoles::isVpride()
-            || MonitoringRoles::isDirectorResearch();
+            || MonitoringRoles::isDirectorResearch()
+            || MonitoringRoles::isDirectorExtension();
+    }
+
+    /** Submitters bound by declared deadlines: faculty and extension workers (who file the ESO quarterly forms). */
+    public static function appliesToCurrentUser(): bool
+    {
+        return Auth::hasRole('faculty', MonitoringRoles::EXTENSION_WORKER);
     }
 
     public static function isDeclared(): bool
@@ -109,7 +116,7 @@ final class FacultyFormDeadlines
     /** Faculty may not change reporting period once admins saved deadlines for this form type. */
     public static function locksFacultyReportingPeriod(?string $formType = null): bool
     {
-        if (!self::isDeclared() || !Auth::hasRole('faculty')) {
+        if (!self::isDeclared() || !self::appliesToCurrentUser()) {
             return false;
         }
 

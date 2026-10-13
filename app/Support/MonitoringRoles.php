@@ -492,47 +492,7 @@ final class MonitoringRoles
 
 
 
-    public static function canAccessAccomplishmentReport(): bool
-
-    {
-
-        return self::isExtensionScoped() || Auth::hasRole('faculty');
-
-    }
-
-
-
-    public static function canAccessTechnicalAdvisoryAr(): bool
-
-    {
-
-        return self::isExtensionScoped();
-
-    }
-
-
-
-    public static function canAccessOutreachActivitiesAr(): bool
-
-    {
-
-        return self::isExtensionScoped();
-
-    }
-
-
-
     public static function canAccessEbalwasyonNgGawain(): bool
-
-    {
-
-        return self::isExtensionScoped();
-
-    }
-
-
-
-    public static function canAccessAttendanceSheet(): bool
 
     {
 

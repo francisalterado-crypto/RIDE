@@ -127,11 +127,7 @@ function proposal_nav_scope(): ?string
         'proposals/create/extension-linkages',
         'proposals/create/outreach-activities',
         'proposals/create/technology-adoption',
-        'proposals/create/accomplishment-report',
-        'proposals/create/technical-advisory-ar',
-        'proposals/create/outreach-activities-ar',
         'proposals/create/ebalwasyon-ng-gawain',
-        'proposals/create/attendance-sheet',
     ] as $extensionPath) {
         if ($path === $extensionPath || str_starts_with($path, $extensionPath . '/')) {
             return 'extension';
@@ -666,6 +662,15 @@ function proposal_is_attendance_sheet(?array $proposal): bool
     return proposal_form_type($proposal) === 'attendance_sheet';
 }
 
+/** Forms replaced by admin-managed downloadable templates; legacy records stay viewable but read-only. */
+function proposal_is_retired_downloadable_form(?array $proposal): bool
+{
+    return proposal_is_accomplishment_report($proposal)
+        || proposal_is_technical_advisory_ar($proposal)
+        || proposal_is_outreach_activities_ar($proposal)
+        || proposal_is_attendance_sheet($proposal);
+}
+
 /** @return array<string, string> */
 function attendance_sheet_sex_options(): array
 {
@@ -857,6 +862,20 @@ function proposal_uses_faculty_submitted_monitoring_workflow(?array $proposal): 
         || proposal_is_obr_matrix($proposal);
 }
 
+/** Quarterly report filed by the college coordinator of its track (routes College Dean → Director → VPRIDE). */
+function proposal_is_coordinator_submitted_report(?array $proposal): bool
+{
+    if (!is_array($proposal)
+        || !proposal_is_quarterly_researches_report($proposal)
+        || proposal_uses_faculty_submitted_monitoring_workflow($proposal)) {
+        return false;
+    }
+
+    $coordinatorRole = \App\Support\MonitoringRoles::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
+
+    return in_array($coordinatorRole, \App\Models\User::roleSlugs((int) ($proposal['user_id'] ?? 0)), true);
+}
+
 function proposal_form_type(?array $proposal): string
 {
     if (!is_array($proposal) || empty($proposal['summary'])) {
@@ -1035,8 +1054,7 @@ function proposal_workflow_steps(?array $proposal): array
     $isTerminalReport = proposal_is_terminal_report($proposal);
     $isTerminalReportAssessment = proposal_is_terminal_report_assessment_form($proposal);
     $isObrMatrix = proposal_is_obr_matrix($proposal);
-    $isCoordinatorSubmittedReport = proposal_is_quarterly_researches_report($proposal)
-        && !proposal_uses_faculty_submitted_monitoring_workflow($proposal);
+    $isCoordinatorSubmittedReport = proposal_is_coordinator_submitted_report($proposal);
     $reviewSteps = $isCoordinatorSubmittedReport
         ? [
             \App\Support\MonitoringRoles::DEAN,
@@ -1071,7 +1089,7 @@ function proposal_workflow_steps(?array $proposal): array
     $steps = [[
         'key' => 'applicant',
         'title' => $isCoordinatorSubmittedReport
-            ? 'College R&D Coordinator'
+            ? ($isExtension ? 'College Extension Coordinator' : 'College R&D Coordinator')
             : ($isManuscript
             ? 'Lead Researcher'
             : ($isExtension ? 'Faculty Extension Worker' : 'Faculty Researcher')),
@@ -1080,7 +1098,8 @@ function proposal_workflow_steps(?array $proposal): array
             $isTerminalReport => 'Submit terminal report',
             $isTerminalReportAssessment => 'Submit terminal report assessment form',
             $isObrMatrix => 'Submit OBR matrix',
-            $isCoordinatorSubmittedReport => 'Submit quarterly researches report',
+            $isExtension && proposal_is_quarterly_researches_report($proposal) => 'Submit quarterly extension report',
+            proposal_is_quarterly_researches_report($proposal) => 'Submit quarterly researches report',
             $isManuscript => 'Submit manuscript writing proposal',
             $isExtension => 'Submit extension proposal',
             default => 'Submit research proposal',

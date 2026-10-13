@@ -194,33 +194,6 @@ final class ProposalController
             return;
         }
 
-        if (proposal_is_accomplishment_report($proposal)) {
-            view('proposals.required-files-form', [
-                'proposal' => $proposal,
-                'requiredFileList' => $this->accomplishmentReportRequiredFileCategories(),
-                'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->accomplishmentReportRequiredFileCategories()),
-            ]);
-            return;
-        }
-
-        if (proposal_is_technical_advisory_ar($proposal)) {
-            view('proposals.required-files-form', [
-                'proposal' => $proposal,
-                'requiredFileList' => $this->technicalAdvisoryArRequiredFileCategories(),
-                'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->technicalAdvisoryArRequiredFileCategories()),
-            ]);
-            return;
-        }
-
-        if (proposal_is_outreach_activities_ar($proposal)) {
-            view('proposals.required-files-form', [
-                'proposal' => $proposal,
-                'requiredFileList' => $this->outreachActivitiesArRequiredFileCategories(),
-                'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->outreachActivitiesArRequiredFileCategories()),
-            ]);
-            return;
-        }
-
         if ($this->isStandaloneProposalForm($proposal)) {
             http_response_code(403);
             view('errors.403');
@@ -320,57 +293,6 @@ final class ProposalController
                 (int) Auth::user()['id'],
                 false,
                 $this->technologyAdoptionRequiredFileCategories()
-            );
-            AuditLog::record('proposal', $id, 'required_files_updated');
-            if ($uploadErrors === []) {
-                set_flash('success', 'Supporting documents saved.');
-            } else {
-                set_flash('error', 'Some supporting documents were not uploaded: ' . implode(' ', $uploadErrors));
-            }
-            redirect('proposals/' . $id . '/edit/required-files');
-            return;
-        }
-
-        if (proposal_is_accomplishment_report($proposal)) {
-            $uploadErrors = $this->storeRequiredFiles(
-                $id,
-                (int) Auth::user()['id'],
-                false,
-                $this->accomplishmentReportRequiredFileCategories()
-            );
-            AuditLog::record('proposal', $id, 'required_files_updated');
-            if ($uploadErrors === []) {
-                set_flash('success', 'Supporting documents saved.');
-            } else {
-                set_flash('error', 'Some supporting documents were not uploaded: ' . implode(' ', $uploadErrors));
-            }
-            redirect('proposals/' . $id . '/edit/required-files');
-            return;
-        }
-
-        if (proposal_is_technical_advisory_ar($proposal)) {
-            $uploadErrors = $this->storeRequiredFiles(
-                $id,
-                (int) Auth::user()['id'],
-                false,
-                $this->technicalAdvisoryArRequiredFileCategories()
-            );
-            AuditLog::record('proposal', $id, 'required_files_updated');
-            if ($uploadErrors === []) {
-                set_flash('success', 'Supporting documents saved.');
-            } else {
-                set_flash('error', 'Some supporting documents were not uploaded: ' . implode(' ', $uploadErrors));
-            }
-            redirect('proposals/' . $id . '/edit/required-files');
-            return;
-        }
-
-        if (proposal_is_outreach_activities_ar($proposal)) {
-            $uploadErrors = $this->storeRequiredFiles(
-                $id,
-                (int) Auth::user()['id'],
-                false,
-                $this->outreachActivitiesArRequiredFileCategories()
             );
             AuditLog::record('proposal', $id, 'required_files_updated');
             if ($uploadErrors === []) {
@@ -1091,54 +1013,6 @@ final class ProposalController
         ]);
     }
 
-    public function createAccomplishmentReport(): void
-    {
-        if (!$this->allowAccomplishmentReportAccess()) {
-            return;
-        }
-
-        $user = Auth::user();
-        view('proposals.accomplishment-report-form', [
-            'proposal' => null,
-            'colleges' => College::all(),
-            'collegeName' => $this->collegeNameForUser($user),
-            'requiredFileList' => $this->accomplishmentReportRequiredFileCategories(),
-            'requiredDocuments' => [],
-        ]);
-    }
-
-    public function createTechnicalAdvisoryAr(): void
-    {
-        if (!$this->allowTechnicalAdvisoryArAccess()) {
-            return;
-        }
-
-        $user = Auth::user();
-        view('proposals.technical-advisory-ar-form', [
-            'proposal' => null,
-            'colleges' => College::all(),
-            'collegeName' => $this->collegeNameForUser($user),
-            'requiredFileList' => $this->technicalAdvisoryArRequiredFileCategories(),
-            'requiredDocuments' => [],
-        ]);
-    }
-
-    public function createOutreachActivitiesAr(): void
-    {
-        if (!$this->allowOutreachActivitiesArAccess()) {
-            return;
-        }
-
-        $user = Auth::user();
-        view('proposals.outreach-activities-ar-form', [
-            'proposal' => null,
-            'colleges' => College::all(),
-            'collegeName' => $this->collegeNameForUser($user),
-            'requiredFileList' => $this->outreachActivitiesArRequiredFileCategories(),
-            'requiredDocuments' => [],
-        ]);
-    }
-
     public function createEbalwasyonNgGawain(): void
     {
         if (!$this->allowEbalwasyonNgGawainAccess()) {
@@ -1153,23 +1027,6 @@ final class ProposalController
             'pageTitle' => 'New Ebalwasyon ng Gawain — RIDE IMS',
             'pageHeading' => 'Ebalwasyon ng Gawain',
             'pageSubtitle' => 'Complete the activity evaluation (WPU-QSF-RIDE-ESO-16).',
-        ]);
-    }
-
-    public function createAttendanceSheet(): void
-    {
-        if (!$this->allowAttendanceSheetAccess()) {
-            return;
-        }
-
-        $user = Auth::user();
-        view('proposals.attendance-sheet-form', [
-            'proposal' => null,
-            'colleges' => College::all(),
-            'collegeName' => $this->collegeNameForUser($user),
-            'pageTitle' => 'New Attendance Sheet — RIDE IMS',
-            'pageHeading' => 'Attendance Sheet',
-            'pageSubtitle' => 'Complete the attendance form (WPU-QSF-RIDE-ESO-17).',
         ]);
     }
 
@@ -1587,117 +1444,6 @@ final class ProposalController
         redirect('proposals/' . $id . '/edit');
     }
 
-    public function storeAccomplishmentReport(): void
-    {
-        if (!$this->allowAccomplishmentReportAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/create/accomplishment-report');
-        }
-
-        $user = Auth::user();
-        $data = $this->validatedAccomplishmentReportInput();
-        $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
-        $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
-
-        if ($data['college_id'] === 0) {
-            set_flash('error', 'College is required.');
-            redirect('proposals/create/accomplishment-report');
-        }
-
-        $id = Proposal::create($data);
-        AuditLog::record('proposal', $id, 'created');
-        $uploadErrors = $this->storeAccomplishmentReportSupportingDocuments($id, (int) $user['id']);
-        if ($uploadErrors === []) {
-            set_flash('success', 'Accomplishment Report saved as draft.');
-        } else {
-            set_flash(
-                'success',
-                'Accomplishment Report saved as draft. Some supporting documents were not uploaded: '
-                . implode(' ', $uploadErrors)
-            );
-        }
-        redirect('proposals/' . $id . '/edit');
-    }
-
-    public function storeTechnicalAdvisoryAr(): void
-    {
-        if (!$this->allowTechnicalAdvisoryArAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/create/technical-advisory-ar');
-        }
-
-        $user = Auth::user();
-        $data = $this->validatedTechnicalAdvisoryArInput();
-        $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
-        $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
-
-        if ($data['college_id'] === 0) {
-            set_flash('error', 'College is required.');
-            redirect('proposals/create/technical-advisory-ar');
-        }
-
-        $id = Proposal::create($data);
-        AuditLog::record('proposal', $id, 'created');
-        $uploadErrors = $this->storeTechnicalAdvisoryArSupportingDocuments($id, (int) $user['id']);
-        if ($uploadErrors === []) {
-            set_flash('success', 'Technical Advisory AR saved as draft.');
-        } else {
-            set_flash(
-                'success',
-                'Technical Advisory AR saved as draft. Some supporting documents were not uploaded: '
-                . implode(' ', $uploadErrors)
-            );
-        }
-        redirect('proposals/' . $id . '/edit');
-    }
-
-    public function storeOutreachActivitiesAr(): void
-    {
-        if (!$this->allowOutreachActivitiesArAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/create/outreach-activities-ar');
-        }
-
-        $user = Auth::user();
-        $data = $this->validatedOutreachActivitiesArInput();
-        $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
-        $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
-
-        if ($data['college_id'] === 0) {
-            set_flash('error', 'College is required.');
-            redirect('proposals/create/outreach-activities-ar');
-        }
-
-        $id = Proposal::create($data);
-        AuditLog::record('proposal', $id, 'created');
-        $uploadErrors = $this->storeOutreachActivitiesArSupportingDocuments($id, (int) $user['id']);
-        if ($uploadErrors === []) {
-            set_flash('success', 'Outreach Activities AR saved as draft.');
-        } else {
-            set_flash(
-                'success',
-                'Outreach Activities AR saved as draft. Some supporting documents were not uploaded: '
-                . implode(' ', $uploadErrors)
-            );
-        }
-        redirect('proposals/' . $id . '/edit');
-    }
-
     public function storeEbalwasyonNgGawain(): void
     {
         if (!$this->allowEbalwasyonNgGawainAccess()) {
@@ -1723,34 +1469,6 @@ final class ProposalController
         $id = Proposal::create($data);
         AuditLog::record('proposal', $id, 'created');
         set_flash('success', 'Ebalwasyon ng Gawain saved as draft.');
-        redirect('proposals/' . $id . '/edit');
-    }
-
-    public function storeAttendanceSheet(): void
-    {
-        if (!$this->allowAttendanceSheetAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/create/attendance-sheet');
-        }
-
-        $user = Auth::user();
-        $data = $this->validatedAttendanceSheetInput();
-        $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
-        $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
-
-        if ($data['college_id'] === 0) {
-            set_flash('error', 'College is required.');
-            redirect('proposals/create/attendance-sheet');
-        }
-
-        $id = Proposal::create($data);
-        AuditLog::record('proposal', $id, 'created');
-        set_flash('success', 'Attendance sheet saved as draft.');
         redirect('proposals/' . $id . '/edit');
     }
 
@@ -2209,114 +1927,6 @@ final class ProposalController
         redirect('proposals/' . $id . '/edit');
     }
 
-    public function updateAccomplishmentReport(int $id): void
-    {
-        if (!$this->allowAccomplishmentReportAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/' . $id . '/edit');
-        }
-
-        $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || !proposal_is_accomplishment_report($proposal)) {
-            http_response_code(403);
-            view('errors.403');
-            return;
-        }
-
-        Proposal::update($id, $this->validatedAccomplishmentReportInput($proposal));
-        AuditLog::record('proposal', $id, 'updated');
-        $uploadErrors = $this->storeAccomplishmentReportSupportingDocuments($id, (int) Auth::user()['id']);
-        if ($uploadErrors !== []) {
-            AuditLog::record('proposal', $id, 'supporting_documents_updated');
-        }
-        if ($uploadErrors === []) {
-            set_flash('success', 'Accomplishment Report updated.');
-        } else {
-            set_flash(
-                'success',
-                'Accomplishment Report updated. Some supporting documents were not uploaded: '
-                . implode(' ', $uploadErrors)
-            );
-        }
-        redirect('proposals/' . $id . '/edit');
-    }
-
-    public function updateTechnicalAdvisoryAr(int $id): void
-    {
-        if (!$this->allowTechnicalAdvisoryArAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/' . $id . '/edit');
-        }
-
-        $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || !proposal_is_technical_advisory_ar($proposal)) {
-            http_response_code(403);
-            view('errors.403');
-            return;
-        }
-
-        Proposal::update($id, $this->validatedTechnicalAdvisoryArInput($proposal));
-        AuditLog::record('proposal', $id, 'updated');
-        $uploadErrors = $this->storeTechnicalAdvisoryArSupportingDocuments($id, (int) Auth::user()['id']);
-        if ($uploadErrors !== []) {
-            AuditLog::record('proposal', $id, 'supporting_documents_updated');
-        }
-        if ($uploadErrors === []) {
-            set_flash('success', 'Technical Advisory AR updated.');
-        } else {
-            set_flash(
-                'success',
-                'Technical Advisory AR updated. Some supporting documents were not uploaded: '
-                . implode(' ', $uploadErrors)
-            );
-        }
-        redirect('proposals/' . $id . '/edit');
-    }
-
-    public function updateOutreachActivitiesAr(int $id): void
-    {
-        if (!$this->allowOutreachActivitiesArAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/' . $id . '/edit');
-        }
-
-        $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || !proposal_is_outreach_activities_ar($proposal)) {
-            http_response_code(403);
-            view('errors.403');
-            return;
-        }
-
-        Proposal::update($id, $this->validatedOutreachActivitiesArInput($proposal));
-        AuditLog::record('proposal', $id, 'updated');
-        $uploadErrors = $this->storeOutreachActivitiesArSupportingDocuments($id, (int) Auth::user()['id']);
-        if ($uploadErrors !== []) {
-            AuditLog::record('proposal', $id, 'supporting_documents_updated');
-        }
-        if ($uploadErrors === []) {
-            set_flash('success', 'Outreach Activities AR updated.');
-        } else {
-            set_flash(
-                'success',
-                'Outreach Activities AR updated. Some supporting documents were not uploaded: '
-                . implode(' ', $uploadErrors)
-            );
-        }
-        redirect('proposals/' . $id . '/edit');
-    }
-
     public function updateEbalwasyonNgGawain(int $id): void
     {
         if (!$this->allowEbalwasyonNgGawainAccess()) {
@@ -2338,30 +1948,6 @@ final class ProposalController
         Proposal::update($id, $this->validatedEbalwasyonNgGawainInput($proposal));
         AuditLog::record('proposal', $id, 'updated');
         set_flash('success', 'Ebalwasyon ng Gawain updated.');
-        redirect('proposals/' . $id . '/edit');
-    }
-
-    public function updateAttendanceSheet(int $id): void
-    {
-        if (!$this->allowAttendanceSheetAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/' . $id . '/edit');
-        }
-
-        $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || !proposal_is_attendance_sheet($proposal)) {
-            http_response_code(403);
-            view('errors.403');
-            return;
-        }
-
-        Proposal::update($id, $this->validatedAttendanceSheetInput($proposal));
-        AuditLog::record('proposal', $id, 'updated');
-        set_flash('success', 'Attendance sheet updated.');
         redirect('proposals/' . $id . '/edit');
     }
 
@@ -3063,7 +2649,7 @@ final class ProposalController
         view('proposals.accomplishment-report-show', [
             'proposal' => $proposal,
             'comments' => Proposal::comments($id),
-            'canEdit' => $this->canEdit($proposal),
+            'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
@@ -3077,7 +2663,7 @@ final class ProposalController
         view('proposals.technical-advisory-ar-show', [
             'proposal' => $proposal,
             'comments' => Proposal::comments($id),
-            'canEdit' => $this->canEdit($proposal),
+            'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
@@ -3091,7 +2677,7 @@ final class ProposalController
         view('proposals.outreach-activities-ar-show', [
             'proposal' => $proposal,
             'comments' => Proposal::comments($id),
-            'canEdit' => $this->canEdit($proposal),
+            'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
@@ -3120,7 +2706,7 @@ final class ProposalController
         view('proposals.attendance-sheet-show', [
             'proposal' => $proposal,
             'comments' => Proposal::comments($id),
-            'canEdit' => $this->canEdit($proposal),
+            'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
@@ -3261,7 +2847,7 @@ final class ProposalController
     public function edit(int $id): void
     {
         $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal)) {
+        if (!$proposal || !$this->canEdit($proposal) || proposal_is_retired_downloadable_form($proposal)) {
             http_response_code(403);
             view('errors.403');
             return;
@@ -3436,45 +3022,6 @@ final class ProposalController
             ]);
             return;
         }
-        if (proposal_is_accomplishment_report($proposal)) {
-            view('proposals.accomplishment-report-form', [
-                'proposal' => $proposal,
-                'colleges' => College::all(),
-                'collegeName' => (string) ($proposal['college_name'] ?? ''),
-                'requiredFileList' => $this->accomplishmentReportRequiredFileCategories(),
-                'requiredDocuments' => $this->requiredDocumentsByKey(
-                    (int) $proposal['id'],
-                    $this->accomplishmentReportRequiredFileCategories()
-                ),
-            ]);
-            return;
-        }
-        if (proposal_is_technical_advisory_ar($proposal)) {
-            view('proposals.technical-advisory-ar-form', [
-                'proposal' => $proposal,
-                'colleges' => College::all(),
-                'collegeName' => (string) ($proposal['college_name'] ?? ''),
-                'requiredFileList' => $this->technicalAdvisoryArRequiredFileCategories(),
-                'requiredDocuments' => $this->requiredDocumentsByKey(
-                    (int) $proposal['id'],
-                    $this->technicalAdvisoryArRequiredFileCategories()
-                ),
-            ]);
-            return;
-        }
-        if (proposal_is_outreach_activities_ar($proposal)) {
-            view('proposals.outreach-activities-ar-form', [
-                'proposal' => $proposal,
-                'colleges' => College::all(),
-                'collegeName' => (string) ($proposal['college_name'] ?? ''),
-                'requiredFileList' => $this->outreachActivitiesArRequiredFileCategories(),
-                'requiredDocuments' => $this->requiredDocumentsByKey(
-                    (int) $proposal['id'],
-                    $this->outreachActivitiesArRequiredFileCategories()
-                ),
-            ]);
-            return;
-        }
         if (proposal_is_ebalwasyon_ng_gawain($proposal)) {
             view('proposals.ebalwasyon-ng-gawain-form', [
                 'proposal' => $proposal,
@@ -3483,17 +3030,6 @@ final class ProposalController
                 'pageTitle' => 'Edit Ebalwasyon ng Gawain — RIDE IMS',
                 'pageHeading' => 'Ebalwasyon ng Gawain',
                 'pageSubtitle' => 'Update the activity evaluation before saving or resubmitting.',
-            ]);
-            return;
-        }
-        if (proposal_is_attendance_sheet($proposal)) {
-            view('proposals.attendance-sheet-form', [
-                'proposal' => $proposal,
-                'colleges' => College::all(),
-                'collegeName' => (string) ($proposal['college_name'] ?? ''),
-                'pageTitle' => 'Edit Attendance Sheet — RIDE IMS',
-                'pageHeading' => 'Attendance Sheet',
-                'pageSubtitle' => 'Update the attendance form before saving or resubmitting.',
             ]);
             return;
         }
@@ -3655,7 +3191,7 @@ final class ProposalController
             redirect('proposals/' . $id . '/edit');
         }
         $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal)) {
+        if (!$proposal || !$this->canEdit($proposal) || proposal_is_retired_downloadable_form($proposal)) {
             http_response_code(403);
             view('errors.403');
             return;
@@ -4785,112 +4321,6 @@ final class ProposalController
         ];
     }
 
-    private function validatedAccomplishmentReportInput(?array $existingProposal = null): array
-    {
-        $collegeName = trim((string) ($_POST['college_name'] ?? ''));
-        $title = trim((string) ($_POST['title'] ?? ''));
-        if ($title === '') {
-            $title = 'Accomplishment Report';
-            if ($collegeName !== '') {
-                $title .= ' — ' . $collegeName;
-            }
-        }
-
-        $structuredSummary = [
-            'form_type' => 'accomplishment_report',
-            'version' => 1,
-            'college_name' => $collegeName,
-            'report_title' => $title,
-            'authors' => trim((string) ($_POST['authors'] ?? '')),
-            'keywords' => trim((string) ($_POST['keywords'] ?? '')),
-            'introduction' => trim((string) ($_POST['introduction'] ?? '')),
-            'methodology' => trim((string) ($_POST['methodology'] ?? '')),
-            'results' => trim((string) ($_POST['results'] ?? '')),
-            'table_caption' => trim((string) ($_POST['table_caption'] ?? '')),
-            'figure_caption' => trim((string) ($_POST['figure_caption'] ?? '')),
-            'references' => trim((string) ($_POST['references'] ?? '')),
-            'acknowledgement' => trim((string) ($_POST['acknowledgement'] ?? '')),
-        ];
-
-        return [
-            'title' => $title,
-            'summary' => json_encode($structuredSummary, JSON_UNESCAPED_SLASHES) ?: '',
-            'project_type' => 'extension',
-            'funding_source' => '',
-            'risk_level' => 'low',
-            'ethics_required' => false,
-        ];
-    }
-
-    /** @param array<string, mixed>|null $existingProposal */
-    private function validatedTechnicalAdvisoryArInput(?array $existingProposal = null): array
-    {
-        $collegeName = trim((string) ($_POST['college_name'] ?? ''));
-        $advisory = trim((string) ($_POST['technical_advisory_conducted'] ?? ''));
-        $title = $advisory !== '' ? $advisory : 'Technical Advisory AR';
-        if ($collegeName !== '' && $advisory === '') {
-            $title .= ' — ' . $collegeName;
-        }
-
-        $structuredSummary = [
-            'form_type' => 'technical_advisory_ar',
-            'version' => 1,
-            'college_name' => $collegeName,
-            'technical_advisory_conducted' => $advisory,
-            'client_name_type' => trim((string) ($_POST['client_name_type'] ?? '')),
-            'venue' => trim((string) ($_POST['venue'] ?? '')),
-            'advisory_date' => trim((string) ($_POST['advisory_date'] ?? '')),
-            'report' => trim((string) ($_POST['report'] ?? '')),
-            'resource_person_name' => trim((string) ($_POST['resource_person_name'] ?? '')),
-        ];
-
-        return [
-            'title' => $title,
-            'summary' => json_encode($structuredSummary, JSON_UNESCAPED_SLASHES) ?: '',
-            'project_type' => 'extension',
-            'funding_source' => '',
-            'risk_level' => 'low',
-            'ethics_required' => false,
-        ];
-    }
-
-    /** @param array<string, mixed>|null $existingProposal */
-    private function validatedOutreachActivitiesArInput(?array $existingProposal = null): array
-    {
-        $collegeName = trim((string) ($_POST['college_name'] ?? ''));
-        $activityTitle = trim((string) ($_POST['outreach_activity_title'] ?? ''));
-        $title = $activityTitle !== '' ? $activityTitle : 'Outreach Activities AR';
-        if ($collegeName !== '' && $activityTitle === '') {
-            $title .= ' — ' . $collegeName;
-        }
-
-        $beneficiaries = trim((string) ($_POST['beneficiaries_count'] ?? ''));
-        if ($beneficiaries !== '' && !preg_match('/^\d+$/', $beneficiaries)) {
-            $beneficiaries = '';
-        }
-
-        $structuredSummary = [
-            'form_type' => 'outreach_activities_ar',
-            'version' => 1,
-            'college_name' => $collegeName,
-            'outreach_activity_title' => $activityTitle,
-            'beneficiaries_count' => $beneficiaries,
-            'venue' => trim((string) ($_POST['venue'] ?? '')),
-            'activity_date' => trim((string) ($_POST['activity_date'] ?? '')),
-            'narrative_report' => trim((string) ($_POST['narrative_report'] ?? '')),
-            'resource_person_name' => trim((string) ($_POST['resource_person_name'] ?? '')),
-        ];
-
-        return [
-            'title' => $title,
-            'summary' => json_encode($structuredSummary, JSON_UNESCAPED_SLASHES) ?: '',
-            'project_type' => 'extension',
-            'funding_source' => '',
-            'risk_level' => 'low',
-            'ethics_required' => false,
-        ];
-    }
-
     /** @param array<string, mixed>|null $existingProposal */
     private function validatedEbalwasyonNgGawainInput(?array $existingProposal = null): array
     {
@@ -4932,38 +4362,6 @@ final class ProposalController
             'ratings' => $ratings,
             'karagdagang_komento' => trim((string) ($_POST['karagdagang_komento'] ?? '')),
             'lagda' => trim((string) ($_POST['lagda'] ?? '')),
-        ];
-
-        return [
-            'title' => $title,
-            'summary' => json_encode($structuredSummary, JSON_UNESCAPED_SLASHES) ?: '',
-            'project_type' => 'extension',
-            'funding_source' => '',
-            'risk_level' => 'low',
-            'ethics_required' => false,
-        ];
-    }
-
-    /** @param array<string, mixed>|null $existingProposal */
-    private function validatedAttendanceSheetInput(?array $existingProposal = null): array
-    {
-        $collegeName = trim((string) ($_POST['college_name'] ?? ''));
-        $activityTitle = trim((string) ($_POST['activity_title'] ?? ''));
-        $title = $activityTitle !== '' ? $activityTitle : 'Attendance Sheet';
-        if ($collegeName !== '' && $activityTitle === '') {
-            $title .= ' — ' . $collegeName;
-        }
-
-        $structuredSummary = [
-            'form_type' => 'attendance_sheet',
-            'version' => 1,
-            'college_name' => $collegeName,
-            'activity_title' => $activityTitle,
-            'venue' => trim((string) ($_POST['venue'] ?? '')),
-            'activity_date' => trim((string) ($_POST['activity_date'] ?? '')),
-            'time_am' => trim((string) ($_POST['time_am'] ?? '')),
-            'time_pm' => trim((string) ($_POST['time_pm'] ?? '')),
-            'attendees' => $this->validatedAttendanceSheetRows($_POST['attendees'] ?? []),
         ];
 
         return [
@@ -5702,51 +5100,6 @@ final class ProposalController
                     continue;
                 }
                 if ((string) $value !== '') {
-                    $hasContent = true;
-                    break;
-                }
-            }
-
-            if ($hasContent) {
-                $validated[] = $entry;
-            }
-        }
-
-        return $validated;
-    }
-
-    /** @return list<array<string, string>> */
-    private function validatedAttendanceSheetRows(mixed $rows): array
-    {
-        if (!is_array($rows)) {
-            return [];
-        }
-
-        $sexOptions = array_keys(attendance_sheet_sex_options());
-        $validated = [];
-        foreach ($rows as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-
-            $sex = trim((string) ($row['sex'] ?? ''));
-            if (!in_array($sex, $sexOptions, true)) {
-                $sex = '';
-            }
-
-            $entry = [
-                'name' => trim((string) ($row['name'] ?? '')),
-                'position' => trim((string) ($row['position'] ?? '')),
-                'sex' => $sex,
-                'contact_number' => trim((string) ($row['contact_number'] ?? '')),
-                'office' => trim((string) ($row['office'] ?? '')),
-                'email' => trim((string) ($row['email'] ?? '')),
-                'signature' => trim((string) ($row['signature'] ?? '')),
-            ];
-
-            $hasContent = false;
-            foreach ($entry as $value) {
-                if ($value !== '') {
                     $hasContent = true;
                     break;
                 }
@@ -6834,53 +6187,9 @@ final class ProposalController
         return false;
     }
 
-    private function allowAccomplishmentReportAccess(): bool
-    {
-        if (MonitoringRoles::canAccessAccomplishmentReport()) {
-            return true;
-        }
-
-        http_response_code(403);
-        view('errors.403');
-        return false;
-    }
-
-    private function allowTechnicalAdvisoryArAccess(): bool
-    {
-        if (MonitoringRoles::canAccessTechnicalAdvisoryAr()) {
-            return true;
-        }
-
-        http_response_code(403);
-        view('errors.403');
-        return false;
-    }
-
-    private function allowOutreachActivitiesArAccess(): bool
-    {
-        if (MonitoringRoles::canAccessOutreachActivitiesAr()) {
-            return true;
-        }
-
-        http_response_code(403);
-        view('errors.403');
-        return false;
-    }
-
     private function allowEbalwasyonNgGawainAccess(): bool
     {
         if (MonitoringRoles::canAccessEbalwasyonNgGawain()) {
-            return true;
-        }
-
-        http_response_code(403);
-        view('errors.403');
-        return false;
-    }
-
-    private function allowAttendanceSheetAccess(): bool
-    {
-        if (MonitoringRoles::canAccessAttendanceSheet()) {
             return true;
         }
 
@@ -7214,39 +6523,6 @@ final class ProposalController
             $userId,
             false,
             $this->technologyAdoptionRequiredFileCategories()
-        );
-    }
-
-    /** @return list<string> */
-    private function storeAccomplishmentReportSupportingDocuments(int $proposalId, int $userId): array
-    {
-        return $this->storeRequiredFiles(
-            $proposalId,
-            $userId,
-            false,
-            $this->accomplishmentReportRequiredFileCategories()
-        );
-    }
-
-    /** @return list<string> */
-    private function storeTechnicalAdvisoryArSupportingDocuments(int $proposalId, int $userId): array
-    {
-        return $this->storeRequiredFiles(
-            $proposalId,
-            $userId,
-            false,
-            $this->technicalAdvisoryArRequiredFileCategories()
-        );
-    }
-
-    /** @return list<string> */
-    private function storeOutreachActivitiesArSupportingDocuments(int $proposalId, int $userId): array
-    {
-        return $this->storeRequiredFiles(
-            $proposalId,
-            $userId,
-            false,
-            $this->outreachActivitiesArRequiredFileCategories()
         );
     }
 

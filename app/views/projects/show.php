@@ -221,7 +221,7 @@ if ($extension) $tabs['extension'] = 'Extension';
     <h3>Extension Impact</h3>
     <p>Total beneficiaries: <strong><?= (int) $extension['summary']['total_beneficiaries'] ?></strong>,
        People trained: <strong><?= (int) $extension['summary']['people_trained'] ?></strong></p>
-    <?php if ($canManage): include __DIR__ . '/_extension-form.php'; endif; ?>
+    <?php if ($canManageExtension): include __DIR__ . '/_extension-form.php'; endif; ?>
 </div>
 <?php
     $extSections = [

@@ -7,18 +7,18 @@
         <option value="impact_metrics">Impact Metrics</option>
     </select>
     <div id="ext-beneficiary">
-        <label>Group name</label><input name="group_name">
+        <label>Group name</label><input name="group_name" maxlength="255">
         <label>Beneficiary count</label><input type="number" name="beneficiary_count" min="0" value="0">
         <label>Location</label><input name="location">
-        <label>Year</label><input type="number" name="period_year" value="<?= date('Y') ?>">
+        <label>Year</label><input type="number" name="beneficiary_year" min="1900" max="2100" value="<?= date('Y') ?>">
     </div>
     <div id="ext-mou" style="display:none;">
-        <label>Partner name</label><input name="partner_name">
+        <label>Partner name</label><input name="partner_name" maxlength="255">
         <label>Valid from</label><input type="date" name="valid_from">
         <label>Valid until</label><input type="date" name="valid_until">
     </div>
     <div id="ext-impact" style="display:none;">
-        <label>Year</label><input type="number" name="period_year" value="<?= date('Y') ?>">
+        <label>Year</label><input type="number" name="impact_year" min="1900" max="2100" value="<?= date('Y') ?>">
         <label>People trained</label><input type="number" name="people_trained" min="0" value="0">
         <label>Income generated</label><input type="number" step="0.01" name="income_generated" value="0">
         <label>Households served</label><input type="number" name="households_served" min="0" value="0">

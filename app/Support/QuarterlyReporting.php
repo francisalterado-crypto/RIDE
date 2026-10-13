@@ -205,7 +205,7 @@ final class QuarterlyReporting
 
     public static function assertSubmissionOpen(): void
     {
-        if (!\App\Core\Auth::hasRole('faculty') || FacultyFormDeadlines::isSubmissionOpen()) {
+        if (!FacultyFormDeadlines::appliesToCurrentUser() || FacultyFormDeadlines::isSubmissionOpen()) {
             return;
         }
 

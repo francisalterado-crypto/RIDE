@@ -142,7 +142,7 @@ final class ApiController
     public function extensionBeneficiaries(): void
     {
         $this->requireApiAuth();
-        if (!MonitoringRoles::isVpride() && !Auth::hasRole('ride_reporter')) {
+        if (!MonitoringRoles::isVpride() && !Auth::hasRole('ride_reporter') && !MonitoringRoles::isDirectorExtension()) {
             json_response(['error' => 'Forbidden'], 403);
         }
         $years = (int) ($_GET['years'] ?? 3);

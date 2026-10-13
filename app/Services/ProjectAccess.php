@@ -33,7 +33,7 @@ final class ProjectAccess
         if (MonitoringRoles::proposalScopeType() !== null && MonitoringRoles::canViewProposal($proposal)) {
             return $proposal;
         }
-        if (Auth::hasRole('coordinator_research', 'coordinator_extension', 'dean') && (int) $user['college_id'] === (int) $proposal['college_id']) {
+        if (Auth::hasRole('dean') && (int) $user['college_id'] === (int) $proposal['college_id']) {
             return $proposal;
         }
         if ((int) $proposal['user_id'] === (int) $user['id']) {
@@ -61,6 +61,22 @@ final class ProjectAccess
             return true;
         }
         return (int) $proposal['user_id'] === (int) $user['id'];
+    }
+
+    /** Beneficiary / MOU / impact records: project owner plus in-scope Extension Services staff. */
+    public static function canManageExtensionRecords(array $proposal): bool
+    {
+        if (($proposal['project_type'] ?? '') !== 'extension' || !self::isMonitoring($proposal)) {
+            return false;
+        }
+        if (self::canManage($proposal)) {
+            return true;
+        }
+
+        return (MonitoringRoles::isDirectorExtension()
+                || MonitoringRoles::isCoordinatorExtension()
+                || MonitoringRoles::isExtensionWorker())
+            && MonitoringRoles::canViewProposal($proposal);
     }
 
     public static function isMonitoring(array $proposal): bool

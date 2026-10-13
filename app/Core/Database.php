@@ -111,6 +111,7 @@ final class Database
         self::applyMigrationFile('phase23');
         self::applyMigrationFile('phase24');
         self::applyMigrationFile('phase25');
+        self::applyMigrationFile('phase26');
     }
 
     public static function ensureSessionsTable(): void

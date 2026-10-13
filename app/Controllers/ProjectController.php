@@ -61,6 +61,7 @@ final class ProjectController
             'project' => $proposal,
             'tab' => $tab,
             'canManage' => ProjectAccess::canManage($proposal),
+            'canManageExtension' => ProjectAccess::canManageExtensionRecords($proposal),
             'milestones' => Milestone::forProposal($id),
             'reports' => ProgressReport::forProposal($id),
             'documents' => Document::forProposal($id, $selectedDocumentCategory),
@@ -309,27 +310,113 @@ final class ProjectController
             redirect('projects/' . $id . '?tab=extension');
         }
         $proposal = ProjectAccess::denyUnlessView($id);
-        if (!$proposal || !ProjectAccess::canManage($proposal) || $proposal['project_type'] !== 'extension') {
+        if (!$proposal || !ProjectAccess::canManageExtensionRecords($proposal)) {
             http_response_code(403);
             view('errors.403');
             return;
         }
-        $type = $_POST['record_type'] ?? '';
-        Extension::create($type, $id, $_POST);
+        // POST values are title-cased globally in bootstrap; record types are lowercase table names.
+        $type = strtolower(trim((string) ($_POST['record_type'] ?? '')));
+        $data = $this->validatedExtensionRecord($type);
+        if (is_string($data)) {
+            set_flash('error', $data);
+            redirect('projects/' . $id . '?tab=extension');
+        }
+        Extension::create($type, $id, $data);
+        AuditLog::record('proposal', $id, 'extension_record_added', ['record_type' => $type]);
         set_flash('success', 'Extension record added.');
         redirect('projects/' . $id . '?tab=extension');
     }
 
+    /** @return array<string, mixed>|string Clean record data, or an error message. */
+    private function validatedExtensionRecord(string $type): array|string
+    {
+        $text = static fn(string $key): string => trim((string) ($_POST[$key] ?? ''));
+        $count = static function (string $key): ?int {
+            $value = filter_var($_POST[$key] ?? 0, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+            return $value === false ? null : $value;
+        };
+        $year = static function (string $key): ?int {
+            $value = filter_var($_POST[$key] ?? '', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1900, 'max_range' => 2100]]);
+            return $value === false ? null : $value;
+        };
+        $date = static function (string $key) use ($text): string|false|null {
+            $value = $text($key);
+            if ($value === '') {
+                return null;
+            }
+            $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+            return $parsed !== false && $parsed->format('Y-m-d') === $value ? $value : false;
+        };
+
+        switch ($type) {
+            case 'community_beneficiaries':
+                $groupName = $text('group_name');
+                $beneficiaries = $count('beneficiary_count');
+                $periodYear = $year('beneficiary_year');
+                if ($groupName === '' || mb_strlen($groupName) > 255) {
+                    return 'Group name is required (255 characters max).';
+                }
+                if ($beneficiaries === null || $periodYear === null) {
+                    return 'Enter a valid beneficiary count and year.';
+                }
+                return [
+                    'group_name' => $groupName,
+                    'beneficiary_count' => $beneficiaries,
+                    'location' => $text('location') ?: null,
+                    'period_year' => $periodYear,
+                    'notes' => null,
+                ];
+            case 'partner_mous':
+                $partnerName = $text('partner_name');
+                $validFrom = $date('valid_from');
+                $validUntil = $date('valid_until');
+                if ($partnerName === '' || mb_strlen($partnerName) > 255) {
+                    return 'Partner name is required (255 characters max).';
+                }
+                if ($validFrom === false || $validUntil === false) {
+                    return 'Enter valid MOU dates.';
+                }
+                if ($validFrom !== null && $validUntil !== null && $validUntil < $validFrom) {
+                    return 'MOU "valid until" date cannot be before "valid from".';
+                }
+                return [
+                    'partner_name' => $partnerName,
+                    'valid_from' => $validFrom,
+                    'valid_until' => $validUntil,
+                    'notes' => null,
+                ];
+            case 'impact_metrics':
+                $periodYear = $year('impact_year');
+                $trained = $count('people_trained');
+                $households = $count('households_served');
+                $income = filter_var($_POST['income_generated'] ?? 0, FILTER_VALIDATE_FLOAT);
+                if ($periodYear === null || $trained === null || $households === null || $income === false || $income < 0) {
+                    return 'Enter a valid year and non-negative impact figures.';
+                }
+                return [
+                    'period_year' => $periodYear,
+                    'people_trained' => $trained,
+                    'income_generated' => $income,
+                    'households_served' => $households,
+                    'notes' => null,
+                ];
+            default:
+                return 'Choose a valid record type.';
+        }
+    }
+
     public function accreditationReport(): void
     {
-        if (!MonitoringRoles::isVpride() && !Auth::hasRole('ride_reporter')) {
+        $extensionOnly = !MonitoringRoles::isVpride() && !Auth::hasRole('ride_reporter');
+        if ($extensionOnly && !MonitoringRoles::isDirectorExtension()) {
             http_response_code(403);
             view('errors.403');
             return;
         }
         $years = (int) ($_GET['years'] ?? 3);
         $selectedFormType = trim((string) ($_GET['form_type'] ?? ''));
-        $selectedProjectType = trim((string) ($_GET['project_type'] ?? ''));
+        $selectedProjectType = $extensionOnly ? 'extension' : trim((string) ($_GET['project_type'] ?? ''));
         $selectedStatus = trim((string) ($_GET['status'] ?? ''));
         $selectedCollege = trim((string) ($_GET['college'] ?? ''));
         $search = trim((string) ($_GET['q'] ?? ''));
@@ -344,6 +431,12 @@ final class ProjectController
             $sortDir = 'desc';
         }
         $proposalRows = Proposal::all();
+        if ($extensionOnly) {
+            $proposalRows = array_values(array_filter(
+                $proposalRows,
+                static fn (array $proposal): bool => ($proposal['project_type'] ?? '') === 'extension'
+            ));
+        }
         $proposalDetails = array_map(function (array $proposal): array {
             $summary = json_decode((string) ($proposal['summary'] ?? ''), true);
             if (!is_array($summary)) {
