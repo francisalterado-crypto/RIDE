@@ -98,6 +98,7 @@ final class ProposalController
                 'pageSubtitle' => 'Complete the Office of Extension Services program/project proposal (WPU-QSF-RIDE-ESO-03).',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
                 'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
+                'deanNamesByCollege' => $this->deanNamesByCollege(),
             ]);
             return;
         }
@@ -2801,6 +2802,60 @@ final class ProposalController
         ]);
     }
 
+    /** Printable paper layout of a saved ESO-03 proposal (print / save as PDF). */
+    public function printProposal(int $id): void
+    {
+        $proposal = $this->authorizeView($id);
+        if (!$proposal) {
+            return;
+        }
+        if (!proposal_is_wpu_funded_extension($proposal)) {
+            redirect('proposals/' . $id);
+        }
+
+        $this->renderWpuFundedExtensionPrint($proposal, false);
+    }
+
+    /** Print preview of the ESO-03 form's current, unsaved values. */
+    public function previewWpuFundedExtension(): void
+    {
+        if (!verify_csrf()) {
+            http_response_code(419);
+            echo 'Invalid session. Reload the form and try again.';
+            return;
+        }
+
+        $existing = null;
+        $id = (int) ($_POST['preview_proposal_id'] ?? 0);
+        if ($id > 0) {
+            $existing = $this->authorizeView($id);
+            if (!$existing) {
+                return;
+            }
+        }
+
+        $user = Auth::user() ?? [];
+        $data = $this->validatedWpuFundedExtensionInput($existing);
+        $proposal = array_merge($existing ?? [
+            'status' => 'draft',
+            'project_code' => '',
+            'current_step' => '',
+            'college_name' => (string) ($user['college_name'] ?? ''),
+        ], [
+            'title' => $data['title'],
+            'summary' => $data['summary'],
+            'funding_source' => $data['funding_source'],
+        ]);
+
+        $this->renderWpuFundedExtensionPrint($proposal, true);
+    }
+
+    private function renderWpuFundedExtensionPrint(array $proposal, bool $isUnsavedPreview): void
+    {
+        $stepLabel = MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? ''));
+        require APP_PATH . '/views/proposals/wpu-funded-extension-print.php';
+    }
+
     private function showManuscript(int $id, array $proposal): void
     {
         view('proposals.manuscript-show', [
@@ -3580,6 +3635,7 @@ final class ProposalController
                 'pageSubtitle' => 'Update your Extension Program/Project Proposal before saving or resubmitting.',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
                 'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
+                'deanNamesByCollege' => $this->deanNamesByCollege(),
             ]);
             return;
         }
@@ -6328,10 +6384,40 @@ final class ProposalController
         return '';
     }
 
+    /** @return array<string, string> college name => active dean's full name */
+    private function deanNamesByCollege(): array
+    {
+        $deans = [];
+        foreach (College::all() as $college) {
+            $name = trim((string) ($college['name'] ?? ''));
+            $dean = $name !== '' ? User::findActiveByRoleAndCollege('dean', (int) $college['id']) : null;
+            if ($dean) {
+                $deans[$name] = trim($dean['first_name'] . ' ' . $dean['last_name']);
+            }
+        }
+
+        return $deans;
+    }
+
     /** @return list<string> */
     private function collegeExtensionProgramOptions(): array
     {
+        // Sample programs per college so the picker isn't empty on a fresh install;
+        // programs typed into past ESO proposals are merged in below.
         $programs = [];
+        foreach ([
+            'Engineering Solutions For Rural Water And Energy Access (CET)',
+            'Digital Literacy And ICT Skills For Communities (CCAS)',
+            'Community Arts And Cultural Heritage Program (CCAS)',
+            'Micro-Enterprise And Tourism Livelihood Development (CBEHM)',
+            'Sustainable Agriculture And Agroforestry Extension (CAFES)',
+            'Local Governance And Community Development Capacity Building (CPACD)',
+            'Literacy And Teacher Enhancement Program (CED)',
+            'Community Safety And Crime Prevention Awareness (CCJE)',
+            'Coastal Resource Management And Sustainable Fisheries (CFINS)',
+        ] as $sample) {
+            $programs[$sample] = $sample;
+        }
         foreach (Proposal::all(null, 'extension') as $proposal) {
             if (!proposal_is_wpu_funded_extension($proposal)) {
                 continue;

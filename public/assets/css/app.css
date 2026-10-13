@@ -1271,10 +1271,11 @@ th { background: #f9fafb; font-size: 0.85rem; }
 
 .proposal-workflow-step-head {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column-reverse;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.4rem;
     margin-bottom: 0.35rem;
+    min-width: 0;
 }
 
 .proposal-workflow-step-head strong {
@@ -1283,7 +1284,9 @@ th { background: #f9fafb; font-size: 0.85rem; }
 }
 
 .proposal-workflow-badge {
-    flex-shrink: 0;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.3;
     font-size: 0.72rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -4622,4 +4625,452 @@ th { background: #f9fafb; font-size: 0.85rem; }
         grid-template-columns: 1fr;
         gap: 1rem;
     }
+}
+
+/* ========= WEB FORM (card-based input UI, e.g. ESO-03 extension proposal) ========= */
+.webform {
+    --wf-radius: 12px;
+    --wf-input-border: #cfdbe4;
+    --wf-focus: #14b8a6;
+    --wf-soft: #f7fafc;
+    width: 100%;
+    color: var(--text);
+}
+.webform input,
+.webform select,
+.webform textarea {
+    margin: 0;
+    min-height: 0;
+    border: 1px solid var(--wf-input-border);
+    border-radius: 8px;
+    background: #fff;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+.webform textarea { resize: vertical; overflow: hidden; }
+.webform input::placeholder,
+.webform textarea::placeholder { color: #9aa9bb; text-transform: none; }
+.webform input:focus,
+.webform select:focus,
+.webform textarea:focus {
+    outline: none;
+    border-color: var(--wf-focus);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.22);
+}
+.webform input[readonly] { background: var(--wf-soft); color: var(--muted); }
+.webform label {
+    display: block;
+    margin: 0 0 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+}
+.webform .webform-req { color: var(--danger); }
+.webform-hint { margin: -0.15rem 0 0.45rem; font-size: 0.8rem; color: var(--muted); }
+.webform-field .webform-hint:last-child { margin: 0.35rem 0 0; }
+
+.webform-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: var(--wf-radius);
+    background: linear-gradient(135deg, var(--primary) 0%, #134e5e 100%);
+    color: #fff;
+}
+.webform-eyebrow { margin: 0 0 0.25rem; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.webform-hero-title { margin: 0 0 0.35rem; font-size: 1.35rem; color: #fff; }
+.webform-hero-text { margin: 0; font-size: 0.88rem; color: #cfe3ea; max-width: 46rem; }
+.webform-hero .webform-preview-btn { flex-shrink: 0; color: #fff; border-color: rgba(255, 255, 255, 0.55); white-space: nowrap; border-radius: 8px; }
+.webform-hero .webform-preview-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+.webform-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.55rem;
+    margin-bottom: 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--wf-radius);
+    scrollbar-width: none;
+}
+.webform-steps::-webkit-scrollbar { display: none; }
+.webform-steps a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+    padding: 0.35rem 0.7rem 0.35rem 0.4rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.webform-steps a span {
+    display: inline-grid;
+    place-items: center;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: #e2edf2;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.webform-steps a:hover { background: #fff; color: var(--primary); }
+
+.webform-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--wf-radius);
+    padding: 1.35rem 1.5rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(15, 43, 61, 0.05);
+    scroll-margin-top: 1rem;
+}
+.webform-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    margin-bottom: 1.15rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--border);
+}
+.webform-card-head h2 { margin: 0; font-size: 1.1rem; color: var(--primary); }
+.webform-card-head p { margin: 0.2rem 0 0; font-size: 0.85rem; color: var(--muted); }
+.webform-card-num {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.webform-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.1rem;
+}
+.webform-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.webform-field { min-width: 0; }
+.webform-card > .webform-field + .webform-field,
+.webform-card > .webform-field + .webform-subsection { margin-top: 1.1rem; }
+.webform-field--full { grid-column: 1 / -1; }
+.webform-field--split { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+.webform-inline { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+.webform-inline input { flex: 1; }
+.webform-inline .btn { flex-shrink: 0; border-radius: 8px; }
+
+.webform-affix {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--wf-input-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+.webform-affix:focus-within { border-color: var(--wf-focus); box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.22); }
+.webform-affix span {
+    display: grid;
+    place-items: center;
+    padding: 0 0.7rem;
+    background: var(--wf-soft);
+    border-right: 1px solid var(--wf-input-border);
+    color: var(--muted);
+    font-weight: 600;
+}
+.webform .webform-affix input,
+.webform .webform-affix input:focus { border: 0; border-radius: 0; box-shadow: none; }
+
+.webform-subsection { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border); }
+.webform-subsection h3 { margin: 0 0 0.25rem; font-size: 0.98rem; color: var(--primary); }
+.webform-card-head + .webform-subsection { margin-top: 0; padding-top: 0; border-top: 0; }
+.webform-subsection > .webform-hint { margin: 0 0 0.85rem; }
+
+.webform-panel {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--wf-soft);
+}
+.webform-panel .webform-field + .webform-field { margin-top: 0.75rem; }
+.webform-panel-title { margin: 0 0 0.75rem; font-size: 0.85rem; font-weight: 700; color: var(--primary); }
+.webform .eso-faculty-picker { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.webform .eso-faculty-picker > .btn { align-self: flex-start; border-radius: 8px; }
+.webform .webform-listbox { padding: 0.35rem; font-size: 0.88rem; }
+.webform-listbox optgroup { font-weight: 700; color: var(--primary); font-size: 0.8rem; }
+.webform-listbox option { padding: 0.3rem 0.4rem; font-weight: 400; color: var(--text); border-radius: 4px; }
+
+.webform-repeater { display: flex; flex-direction: column; gap: 0.85rem; counter-reset: wf-item; }
+.webform-item {
+    position: relative;
+    padding: 1rem 1.1rem 1.1rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    background: #fbfdfe;
+    counter-increment: wf-item;
+}
+.webform-item-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.webform-item-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.webform-item-label::after { content: " #" counter(wf-item); }
+.webform-item-head .eso-remove-row { margin-left: auto; }
+
+.webform-icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.webform-icon-btn:hover { color: var(--danger); background: #fee2e2; border-color: #fecaca; }
+
+.webform-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.6rem;
+    border: 1.5px dashed #b6c8d4;
+    border-radius: 10px;
+    background: transparent;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.webform-add-btn:hover { border-color: var(--accent-hover); background: #f0fdfa; color: #0f766e; }
+
+.webform-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.webform-table { width: 100%; min-width: 560px; border-collapse: collapse; table-layout: fixed; background: #fff; }
+.webform-table th {
+    padding: 0.6rem;
+    background: var(--wf-soft);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+}
+.webform-table td { padding: 0.4rem; border-bottom: 1px solid #eef3f6; vertical-align: top; }
+.webform-table tbody tr:last-child td { border-bottom: 0; }
+.webform-table input,
+.webform-table textarea { padding: 0.45rem 0.55rem; font-size: 0.88rem; }
+.webform-table .webform-table-action { width: 2.75rem; text-align: center; vertical-align: middle; }
+.webform .webform-num { text-align: right; font-variant-numeric: tabular-nums; }
+.webform .eso-line-total { background: var(--wf-soft); color: var(--text); font-weight: 600; border-color: transparent; }
+.webform-table .eso-subtotal-row td { background: #f0fdfa; border-top: 1px solid var(--border); vertical-align: middle; }
+.webform-subtotal-label { text-align: right; font-weight: 700; font-size: 0.85rem; color: var(--primary); }
+.webform .eso-subtotal-row .eso-group-subtotal { background: transparent; border-color: transparent; color: #0f766e; font-weight: 700; font-size: 0.95rem; }
+
+.webform-budget-group-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.75rem; }
+.webform .webform-budget-group-title { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0; }
+.webform-budget-group-title > span { font-size: 0.98rem; font-weight: 700; color: var(--primary); }
+.webform .webform-budget-group-title input { flex: 1; width: auto; min-width: 12rem; font-weight: 600; }
+.webform #eso-add-budget-group { margin-top: 1.25rem; border-radius: 8px; }
+.webform-budget-group-head .btn { border-radius: 8px; flex-shrink: 0; }
+
+.webform .proposal-workflow-section .proposal-subtitle { font-family: inherit; font-size: 1.1rem; color: var(--primary); margin-bottom: 0.75rem; }
+.webform-actionbar {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    margin-top: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--wf-radius);
+}
+.webform-actionbar .btn { border-radius: 8px; }
+
+@media (max-width: 760px) {
+    .webform-hero { flex-direction: column; padding: 1.1rem; }
+    .webform-card { padding: 1.1rem 1rem 1.2rem; }
+    .webform-grid,
+    .webform-grid--3 { grid-template-columns: 1fr; }
+    .webform-actionbar .btn { flex: 1; text-align: center; }
+}
+
+/* Web form: styled suggestion dropdown (replaces native datalist UI) */
+.webform input[data-combobox] {
+    padding-right: 2.2rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235b6e8c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+}
+.webform input[data-combobox][aria-expanded="true"] {
+    border-color: var(--accent-hover);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.22);
+}
+.webform-combo-panel {
+    position: fixed;
+    z-index: 1000;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 0.35rem;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(15, 43, 61, 0.18);
+    font-size: 0.9rem;
+}
+.webform-combo-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.65rem;
+    border-radius: 7px;
+    color: var(--text);
+    cursor: pointer;
+}
+.webform-combo-option:hover,
+.webform-combo-option.is-active { background: #f0fdfa; }
+.webform-combo-option.is-active { box-shadow: inset 0 0 0 1px var(--accent); }
+.webform-combo-option.is-selected { font-weight: 600; }
+.webform-combo-option .fa-check { margin-left: 0.25rem; color: #0f766e; font-size: 0.8rem; }
+.webform-combo-label { flex: 1; min-width: 0; line-height: 1.35; }
+.webform-combo-label mark { background: #ccfbf1; color: inherit; border-radius: 2px; padding: 0 1px; }
+.webform-combo-meta {
+    flex-shrink: 0;
+    max-width: 45%;
+    padding: 0.12rem 0.5rem;
+    border-radius: 999px;
+    background: #eef3f6;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.webform-combo-empty { padding: 0.6rem 0.65rem; color: var(--muted); font-size: 0.85rem; }
+
+/* Web form: computed hints, validation, checklist, autosave, restore banner */
+.webform-calc {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.45rem 0 0;
+    font-size: 0.82rem;
+    color: #0f766e;
+}
+.webform-grid > .webform-calc { margin-top: -0.5rem; }
+.webform-calc--warn { color: var(--warn); }
+.webform-calc--total {
+    justify-content: flex-end;
+    margin-top: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    background: #f0fdfa;
+    color: var(--primary);
+    font-size: 0.9rem;
+}
+.webform-link-btn {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    color: #0f766e;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.webform .is-invalid,
+.webform .webform-affix:has(.is-invalid) { border-color: var(--danger) !important; box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.12) !important; }
+.webform-error { margin: 0.35rem 0 0; font-size: 0.8rem; font-weight: 600; color: var(--danger); }
+
+.webform-steps a.is-done { color: #0f766e; }
+.webform-steps a.is-done span { background: #ccfbf1; color: transparent; position: relative; }
+.webform-steps a.is-done span::after {
+    content: "\2713";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #0f766e;
+    font-size: 0.75rem;
+}
+
+.webform-checklist {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid #fde68a;
+    border-radius: var(--wf-radius);
+    background: #fffbeb;
+    font-size: 0.85rem;
+    color: #92400e;
+}
+.webform-checklist:empty { display: none; }
+.webform-checklist-title { font-weight: 600; margin-right: 0.25rem; }
+.webform-checklist a {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid #fcd34d;
+    color: #92400e;
+    font-weight: 500;
+    text-decoration: none;
+}
+.webform-checklist a:hover { background: #fef3c7; }
+.webform-checklist-note { margin-left: auto; font-size: 0.78rem; color: #a16207; }
+.webform-checklist.is-complete { border-color: #86efac; background: #ecfdf5; color: #166534; font-weight: 600; }
+
+.webform-actionbar { align-items: center; }
+.webform-autosave { margin-right: auto; font-size: 0.82rem; color: var(--muted); }
+.webform-autosave.is-warn { color: var(--warn); }
+.webform-autosave.is-error { color: var(--danger); font-weight: 600; }
+
+.webform-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid #93c5fd;
+    border-radius: var(--wf-radius);
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-size: 0.88rem;
+}
+.webform-banner[hidden] { display: none; }
+.webform-banner > i { font-size: 1.2rem; }
+.webform-banner-text { flex: 1; display: flex; flex-direction: column; gap: 0.1rem; }
+.webform-banner-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+.webform-banner-actions .btn { border-radius: 8px; }
+
+@media (max-width: 760px) {
+    .webform-banner { flex-wrap: wrap; }
+    .webform-checklist-note { margin-left: 0; }
+    .webform-autosave { flex-basis: 100%; }
 }

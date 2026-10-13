@@ -124,8 +124,10 @@ $router->post('/proposals/technical-advisory-ar', [ProposalController::class, 's
 $router->post('/proposals/outreach-activities-ar', [ProposalController::class, 'storeOutreachActivitiesAr'], $auth);
 $router->post('/proposals/ebalwasyon-ng-gawain', [ProposalController::class, 'storeEbalwasyonNgGawain'], $auth);
 $router->post('/proposals/attendance-sheet', [ProposalController::class, 'storeAttendanceSheet'], $auth);
+$router->post('/proposals/preview/extension-program', [ProposalController::class, 'previewWpuFundedExtension'], $auth);
 $router->post('/proposals', [ProposalController::class, 'store'], $auth);
 $router->get('/proposals/{id}', [ProposalController::class, 'show'], $auth);
+$router->get('/proposals/{id}/print', [ProposalController::class, 'printProposal'], $auth);
 $router->get('/proposals/{id}/edit', [ProposalController::class, 'edit'], $auth);
 $router->get('/proposals/{id}/edit/required-files', [ProposalController::class, 'editRequiredFiles'], $auth);
 $router->post('/proposals/{id}/required-files', [ProposalController::class, 'updateRequiredFiles'], $auth);
