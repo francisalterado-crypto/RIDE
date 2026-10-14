@@ -19,8 +19,8 @@ $pageTitle = htmlspecialchars($proposal['title']) . ' — RIDE IMS';
 $pageHeading = 'Consolidated Ongoing Researches';
 
 $pageSubtitle = proposal_is_vpride_consolidated_ongoing_researches($proposal)
-    ? 'University-wide consolidation of faculty ongoing researches approved by the Director of Research.'
-    : 'College consolidation of faculty ongoing researches approved by the Director of Research.';
+    ? 'University-wide consolidation of faculty ongoing researches approved by the RDO Director.'
+    : 'College consolidation of faculty ongoing researches approved by the RDO Director.';
 
 
 

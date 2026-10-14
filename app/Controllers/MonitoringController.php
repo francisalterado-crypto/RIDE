@@ -27,8 +27,14 @@ final class MonitoringController
         if (MonitoringRoles::isVpride()) {
             $requestedScope = trim((string) ($_GET['scope'] ?? ''));
             if ($requestedScope === '') {
-                redirect(base_url('monitoring?scope=research'));
+                redirect('monitoring?scope=research');
             }
+            if (in_array($requestedScope, ['research', 'extension'], true)) {
+                $scopeProjectType = $requestedScope;
+            }
+        } elseif ($scopeProjectType === null && MonitoringRoles::isDean()) {
+            // Deans cover both tracks; they may narrow the page to one.
+            $requestedScope = trim((string) ($_GET['scope'] ?? ''));
             if (in_array($requestedScope, ['research', 'extension'], true)) {
                 $scopeProjectType = $requestedScope;
             }
@@ -50,7 +56,7 @@ final class MonitoringController
         } elseif (MonitoringRoles::isCoordinatorExtension()) {
             $pendingAction = Proposal::pendingAtStep(MonitoringRoles::COORDINATOR_EXTENSION, $collegeId, 'extension');
         } elseif (MonitoringRoles::isDean()) {
-            $pendingAction = Proposal::pendingAtStep(MonitoringRoles::DEAN, $collegeId);
+            $pendingAction = Proposal::pendingAtStep(MonitoringRoles::DEAN, $collegeId, $scopeProjectType);
         } elseif (MonitoringRoles::isDirectorResearch()) {
             $pendingAction = Proposal::pendingAtStep(MonitoringRoles::DIRECTOR_RESEARCH, null, 'research');
         } elseif (MonitoringRoles::isDirectorExtension()) {

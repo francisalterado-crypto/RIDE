@@ -9,12 +9,12 @@ $pageTitle = 'Proposals — RIDE IMS';
 $pageHeading = 'Proposals';
 $pageSubtitle = $isVprideRegistry
     ? 'University-wide proposal registry — search, review, and manage submissions.'
-    : 'Review draft, submitted, and approved research applications in the same paper-style format.';
+    : 'Your draft, submitted, and approved proposals in one place.';
 ?>
 
 <div class="page-actions-bar">
     <?php if (!$isVprideRegistry): ?>
-        <?php if (\App\Core\Auth::hasRole('faculty')): ?>
+        <?php if (proposal_nav_has_dual_menu()): ?>
         <a class="btn btn-accent" href="<?= base_url('proposals/create' . proposal_nav_scope_query('research')) ?>">Research and Development Proposal</a>
         <a class="btn btn-accent" href="<?= base_url('proposals/create' . proposal_nav_scope_query('extension')) ?>">Extension Services Proposal</a>
         <?php elseif (!MonitoringRoles::isCoordinatorExtension()): ?>
@@ -23,17 +23,17 @@ $pageSubtitle = $isVprideRegistry
     <?php endif; ?>
 </div>
 
-<div class="proposal-paper proposal-paper-list proposal-registry">
-    <section class="proposal-section">
-        <div class="proposal-registry-header">
+<div class="card list-card proposal-registry">
+    <section>
+        <div class="list-card-head">
             <div>
-                <h2 class="proposal-section-title">Proposal Registry</h2>
-                <p class="proposal-section-note" id="proposal-registry-count">
+                <h2>Proposal Registry</h2>
+                <p id="proposal-registry-count">
                     <?= $proposalCount ?> record<?= $proposalCount === 1 ? '' : 's' ?>
                 </p>
             </div>
             <?php if ($proposalCount > 0): ?>
-            <div class="proposal-registry-toolbar">
+            <div class="proposal-registry-toolbar list-search">
                 <label class="proposal-registry-search-label" for="proposal-registry-search">
                     <i class="fas fa-search" aria-hidden="true"></i>
                     <span class="sr-only">Search proposals</span>
@@ -54,8 +54,8 @@ $pageSubtitle = $isVprideRegistry
                 <p>No proposals found.<?= (!$isVprideRegistry && !MonitoringRoles::isCoordinatorExtension()) ? ' Use the button above to create one.' : '' ?></p>
             </div>
         <?php else: ?>
-            <div class="proposal-table-wrap proposal-registry-table-wrap">
-                <table class="proposal-table proposal-registry-table" id="proposal-registry-table">
+            <div class="data-table-wrap proposal-registry-table-wrap">
+                <table class="data-table proposal-registry-table" id="proposal-registry-table">
                     <thead>
                         <tr>
                             <th class="col-code">Code</th>
@@ -96,17 +96,19 @@ $pageSubtitle = $isVprideRegistry
                             && in_array((string) ($p['status'] ?? ''), ['submitted', 'under_review'], true);
                         $canForceDelete = $canForceManage
                             && in_array((string) ($p['status'] ?? ''), ['draft', 'returned', 'submitted', 'under_review', 'suspended'], true);
-                        $currentStep = MonitoringRoles::stepLabel((string) ($p['current_step'] ?? '—'));
+                        $currentStep = !empty($p['current_step'])
+                            ? MonitoringRoles::stepLabel((string) $p['current_step'])
+                            : (in_array((string) ($p['status'] ?? ''), ['draft', 'returned'], true) ? 'Not submitted yet' : '');
                         ?>
                         <tr data-search="<?= htmlspecialchars($searchText) ?>">
-                            <td class="col-code"><code class="proposal-registry-code"><?= htmlspecialchars($p['project_code'] ?? '—') ?></code></td>
+                            <td class="col-code"><?php if (!empty($p['project_code'])): ?><code class="proposal-registry-code"><?= htmlspecialchars((string) $p['project_code']) ?></code><?php else: ?><span class="data-table-muted">Not assigned</span><?php endif; ?></td>
                             <td class="col-title">
-                                <span class="proposal-registry-title" title="<?= htmlspecialchars((string) $p['title']) ?>">
+                                <a class="proposal-registry-title" href="<?= base_url('proposals/' . $p['id']) ?>" title="<?= htmlspecialchars((string) $p['title']) ?>">
                                     <?= htmlspecialchars((string) $p['title']) ?>
-                                </span>
+                                </a>
                             </td>
                             <?php if ($isVprideRegistry): ?>
-                            <td class="col-college"><?= htmlspecialchars((string) ($p['college_name'] ?? '—')) ?></td>
+                            <td class="col-college"><?= htmlspecialchars((string) ($p['college_name'] ?? '')) ?></td>
                             <?php endif; ?>
                             <td class="col-type"><?= htmlspecialchars(ucfirst((string) $p['project_type'])) ?></td>
                             <td class="col-researcher"><?= htmlspecialchars($leadName) ?></td>
@@ -124,7 +126,7 @@ $pageSubtitle = $isVprideRegistry
                                     <?= htmlspecialchars(status_label((string) $p['status'])) ?>
                                 </span>
                             </td>
-                            <td class="col-step"><?= htmlspecialchars($currentStep) ?></td>
+                            <td class="col-step<?= empty($p['current_step']) ? ' data-table-muted' : '' ?>"><?= htmlspecialchars($currentStep) ?></td>
                             <td class="col-actions">
                                 <div class="proposal-registry-actions" role="group" aria-label="Proposal actions">
                                     <a

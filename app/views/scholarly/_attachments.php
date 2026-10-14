@@ -14,7 +14,7 @@
                 <?php if ($canManage): ?>
                     <form method="post" action="<?= base_url('scholarly/attachments/' . (int) $attachment['id'] . '/delete') ?>" style="display:inline;" onsubmit="return confirm('Remove this supporting document?');">
                         <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-sm btn-danger" style="margin-left: 0.25rem;">×</button>
+                        <button type="submit" class="btn btn-sm btn-outline" style="margin-left: 0.25rem;" aria-label="Remove this document">Remove</button>
                     </form>
                 <?php endif; ?>
             </li>

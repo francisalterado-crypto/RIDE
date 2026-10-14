@@ -27,7 +27,7 @@ $summaryField = static function (string $key, string $legacyKey = '') use ($summ
 
 $display = static function (string $value): string {
     $trimmed = trim($value);
-    return $trimmed !== '' ? nl2br(htmlspecialchars($trimmed)) : '—';
+    return $trimmed !== '' ? nl2br(htmlspecialchars($trimmed)) : '';
 };
 
 $legacyLeaderName = trim(implode(' ', array_filter([
@@ -159,7 +159,7 @@ $budgetLineGroups = $rowsOrEmpty($summaryData['budget_line_groups'] ?? []);
 
         <h3 class="proposal-subtitle">D. Partnership</h3>
         <?php if ($partnerships === []): ?>
-            <p>—</p>
+            <p class="proposal-section-note">None provided.</p>
         <?php else: ?>
             <div class="proposal-table-wrap">
                 <table class="proposal-table">
@@ -187,7 +187,7 @@ $budgetLineGroups = $rowsOrEmpty($summaryData['budget_line_groups'] ?? []);
 
         <h3 class="proposal-subtitle">E. Duties and Responsibilities of the Project Team Members</h3>
         <?php if ($teamDuties === []): ?>
-            <p>—</p>
+            <p class="proposal-section-note">None provided.</p>
         <?php else: ?>
             <div class="proposal-table-wrap trainings-conducted-table-wrap">
                 <table class="proposal-table trainings-conducted-table eso-team-duties-table">
@@ -221,7 +221,7 @@ $budgetLineGroups = $rowsOrEmpty($summaryData['budget_line_groups'] ?? []);
     <section class="proposal-section">
         <h2 class="proposal-section-title">V. Logical Framework</h2>
         <?php if ($logicalFramework === []): ?>
-            <p>—</p>
+            <p class="proposal-section-note">None provided.</p>
         <?php else: ?>
             <div class="proposal-table-wrap trainings-conducted-table-wrap">
                 <table class="proposal-table trainings-conducted-table eso-framework-table">
@@ -267,7 +267,7 @@ $budgetLineGroups = $rowsOrEmpty($summaryData['budget_line_groups'] ?? []);
     <section class="proposal-section">
         <h2 class="proposal-section-title">VIII. Work and Financial Plan</h2>
         <?php if ($workPlan === []): ?>
-            <p>—</p>
+            <p class="proposal-section-note">None provided.</p>
         <?php else: ?>
             <div class="proposal-table-wrap trainings-conducted-table-wrap">
                 <table class="proposal-table trainings-conducted-table eso-workplan-table">
@@ -306,7 +306,7 @@ $budgetLineGroups = $rowsOrEmpty($summaryData['budget_line_groups'] ?? []);
         <h2 class="proposal-section-title">IX. Budgetary Requirements</h2>
         <h3 class="proposal-subtitle">A. General Breakdown of the Budgetary Requirements</h3>
         <?php if ($budgetGeneral === []): ?>
-            <p>—</p>
+            <p class="proposal-section-note">None provided.</p>
         <?php else: ?>
             <div class="proposal-table-wrap">
                 <table class="proposal-table">
@@ -389,17 +389,20 @@ $budgetLineGroups = $rowsOrEmpty($summaryData['budget_line_groups'] ?? []);
             <div>
                 <p class="completed-researches-signoff-label">Submitted by:</p>
                 <p><?= $display($summaryField('proponent_name')) ?></p>
-                <p class="completed-researches-signoff-role">Proponent — <?= $display($summaryField('proponent_date')) ?></p>
+                <p class="completed-researches-signoff-role">Proponent</p>
+                <p class="completed-researches-signoff-role">Date: <?= $display($summaryField('proponent_date')) ?></p>
             </div>
             <div>
                 <p class="completed-researches-signoff-label">Endorsed by:</p>
                 <p><?= $display($summaryField('dean_name')) ?></p>
-                <p class="completed-researches-signoff-role">Dean — <?= $display($summaryField('dean_date')) ?></p>
+                <p class="completed-researches-signoff-role">Dean</p>
+                <p class="completed-researches-signoff-role">Date: <?= $display($summaryField('dean_date')) ?></p>
             </div>
             <div>
                 <p class="completed-researches-signoff-label">Received by:</p>
                 <p><?= $display($summaryField('extension_admin_name')) ?></p>
-                <p class="completed-researches-signoff-role">Extension Admin Staff — <?= $display($summaryField('extension_admin_date')) ?></p>
+                <p class="completed-researches-signoff-role">Extension Admin Staff</p>
+                <p class="completed-researches-signoff-role">Date: <?= $display($summaryField('extension_admin_date')) ?></p>
             </div>
         </div>
     </section>

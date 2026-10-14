@@ -164,7 +164,7 @@ foreach ($facultyTeamOptions as $facultyOption) {
     if ($departmentKey === '') {
         $departmentKey = 'No department/program assigned';
     }
-    $groupKey = $collegeKey . ' — ' . $departmentKey;
+    $groupKey = $collegeKey . ' / ' . $departmentKey;
     $facultyGroups[$groupKey][] = $facultyOption;
     $facultyCollegeFilters[$collegeKey] = true;
     $facultyDepartmentFilters[$departmentKey] = true;
@@ -258,19 +258,18 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 
     <div class="webform-hero">
         <div>
-            <p class="webform-eyebrow">Office of Extension Services · WPU-QSF-RIDE-ESO-03</p>
+            <p class="webform-eyebrow">Office of Extension Services, Form WPU-QSF-RIDE-ESO-03</p>
             <h2 class="webform-hero-title">Extension Program/Project Proposal</h2>
-            <p class="webform-hero-text">Fill in each section below. Use <strong>Print Preview</strong> anytime to see the official paper format, print it, or save it as PDF.</p>
+            <p class="webform-hero-text">Fill out each section below. Click <strong>Print Preview</strong> at any time to see how the form will look on paper, print it, or save it as a PDF.</p>
         </div>
         <button type="submit" class="btn btn-outline webform-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formtarget="_blank" formnovalidate>
-            <i class="fa-solid fa-print"></i> Print Preview
+            Print Preview
         </button>
     </div>
 
     <div class="webform-banner" id="eso-draft-banner" role="status" hidden>
-        <i class="fa-solid fa-clock-rotate-left"></i>
         <div class="webform-banner-text">
-            <strong>Unsaved changes found.</strong>
+            <strong>You have unsaved changes.</strong>
             <span id="eso-draft-banner-detail"></span>
         </div>
         <div class="webform-banner-actions">
@@ -332,16 +331,16 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <div class="webform-field webform-field--full">
                 <label for="eso-members-trainers-search">Members / Trainers</label>
                 <div class="webform-inline">
-                    <input type="text" id="eso-members-trainers-search" list="eso-registered-user-options" placeholder="Search a registered user to add…" autocomplete="off">
+                    <input type="text" id="eso-members-trainers-search" list="eso-registered-user-options" placeholder="Type a name to search registered users" autocomplete="off">
                     <datalist id="eso-registered-user-options">
                         <?php foreach ($facultyTeamOptions as $facultyOption): ?>
                             <option value="<?= htmlspecialchars((string) $facultyOption['name']) ?>" data-meta="<?= htmlspecialchars((string) $facultyOption['college_name']) ?>">
                         <?php endforeach; ?>
                     </datalist>
-                    <button type="button" class="btn btn-outline btn-sm" id="eso-members-trainers-add"><i class="fa-solid fa-plus"></i> Add</button>
+                    <button type="button" class="btn btn-outline btn-sm" id="eso-members-trainers-add">Add</button>
                 </div>
                 <textarea name="members_trainers" id="eso-members-trainers" rows="3" data-autoresize placeholder="One name per line" aria-label="Members and trainers"><?= htmlspecialchars($membersTrainersValue) ?></textarea>
-                <p class="webform-hint">Pick a suggested name to add it, or type names directly (one per line) for people not registered in the portal.</p>
+                <p class="webform-hint">Choose a name from the suggestions to add it, or type names directly, one per line, for people who don't have an account.</p>
             </div>
             <div class="webform-field webform-field--full">
                 <label for="eso-collaborating">Collaborating Organizations</label>
@@ -467,18 +466,18 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                     </div>
                 <?php endforeach; ?>
             </div>
-            <button type="button" class="webform-add-btn" id="eso-add-partnership"><i class="fa-solid fa-plus"></i> Add partner</button>
+            <button type="button" class="webform-add-btn" id="eso-add-partnership">Add partner</button>
         </div>
 
         <div class="webform-subsection">
-            <h3>E. Project team — duties &amp; responsibilities</h3>
-            <p class="webform-hint">Add registered faculty from the directory, or add a member manually for people outside the portal.</p>
+            <h3>E. Duties and Responsibilities of the Project Team</h3>
+            <p class="webform-hint">Add faculty from the list below, or add someone manually if they don't have an account.</p>
             <?php if ($facultyTeamOptions !== []): ?>
                 <div class="webform-panel eso-faculty-picker">
                     <div class="webform-grid webform-grid--3">
                         <div class="webform-field">
                             <label for="eso-faculty-search">Search faculty</label>
-                            <input type="search" id="eso-faculty-search" placeholder="Name, college, or department…" autocomplete="off">
+                            <input type="search" id="eso-faculty-search" placeholder="Search by name, college, or department" autocomplete="off">
                         </div>
                         <div class="webform-field">
                             <label for="eso-faculty-college-filter">College</label>
@@ -514,7 +513,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                             </optgroup>
                         <?php endforeach; ?>
                     </select>
-                    <button type="button" id="eso-add-faculty-member" class="btn btn-sm"><i class="fa-solid fa-user-plus"></i> Add selected faculty to team</button>
+                    <button type="button" id="eso-add-faculty-member" class="btn btn-sm">Add selected faculty to team</button>
                 </div>
             <?php endif; ?>
 
@@ -552,7 +551,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <option value="Facilitator">
                 <option value="Documenter">
             </datalist>
-            <button type="button" class="webform-add-btn" id="eso-add-team-duty"><i class="fa-solid fa-plus"></i> Add member manually</button>
+            <button type="button" class="webform-add-btn" id="eso-add-team-duty">Add member manually</button>
         </div>
     </section>
 
@@ -562,7 +561,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <span class="webform-card-num">5</span>
             <div>
                 <h2>Logical Framework</h2>
-                <p>Trace each input through activities and outputs to the long-term impact.</p>
+                <p>Show how each input leads to activities, outputs, and long-term impact.</p>
             </div>
         </header>
         <div class="webform-repeater" id="eso-framework-body">
@@ -570,7 +569,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <div class="webform-item eso-repeater-row">
                     <div class="webform-item-head"><span class="webform-item-label">Framework entry</span><?= $removeItemButton ?></div>
                     <div class="webform-grid webform-grid--3">
-                        <div class="webform-field"><label>Inputs</label><textarea rows="2" data-autoresize data-field="inputs" name="logical_framework[<?= (int) $index ?>][inputs]" placeholder="e.g. WPU Fund – ₱5,000.00"><?= htmlspecialchars((string) ($row['inputs'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Inputs</label><textarea rows="2" data-autoresize data-field="inputs" name="logical_framework[<?= (int) $index ?>][inputs]" placeholder="e.g. WPU Fund, ₱5,000.00"><?= htmlspecialchars((string) ($row['inputs'] ?? '')) ?></textarea></div>
                         <div class="webform-field"><label>Activities</label><textarea rows="2" data-autoresize data-field="activities" name="logical_framework[<?= (int) $index ?>][activities]" placeholder="e.g. Workshops on sustainable agriculture"><?= htmlspecialchars((string) ($row['activities'] ?? '')) ?></textarea></div>
                         <div class="webform-field"><label>Outputs</label><textarea rows="2" data-autoresize data-field="outputs" name="logical_framework[<?= (int) $index ?>][outputs]" placeholder="e.g. 50 participants trained"><?= htmlspecialchars((string) ($row['outputs'] ?? '')) ?></textarea></div>
                         <div class="webform-field"><label>Effects</label><textarea rows="2" data-autoresize data-field="effects" name="logical_framework[<?= (int) $index ?>][effects]" placeholder="e.g. Increased awareness and skills"><?= htmlspecialchars((string) ($row['effects'] ?? '')) ?></textarea></div>
@@ -581,10 +580,10 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 </div>
             <?php endforeach; ?>
         </div>
-        <button type="button" class="webform-add-btn" id="eso-add-framework"><i class="fa-solid fa-plus"></i> Add framework entry</button>
+        <button type="button" class="webform-add-btn" id="eso-add-framework">Add framework entry</button>
     </section>
 
-    <!-- VI–VII. Methodology & activities -->
+    <!-- VI and VII. Methodology and activities -->
     <section class="webform-card" id="eso-sec-methodology">
         <header class="webform-card-head">
             <span class="webform-card-num">6</span>
@@ -610,7 +609,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <span class="webform-card-num">7</span>
             <div>
                 <h2>Work &amp; Financial Plan</h2>
-                <p>One entry per activity, with its schedule, people and budget.</p>
+                <p>Add one entry for each activity, with its schedule, people in charge, and budget.</p>
             </div>
         </header>
         <div class="webform-repeater" id="eso-workplan-body">
@@ -625,14 +624,14 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                         <div class="webform-field"><label>Expected output/s</label><textarea rows="2" data-autoresize data-field="outputs" name="work_plan[<?= (int) $index ?>][outputs]" placeholder="e.g. Accomplishment Report (ETR)"><?= htmlspecialchars((string) ($row['outputs'] ?? '')) ?></textarea></div>
                         <div class="webform-field"><label>Responsible persons</label><textarea rows="1" data-autoresize data-field="responsible_persons" name="work_plan[<?= (int) $index ?>][responsible_persons]" placeholder="Names or roles"><?= htmlspecialchars((string) ($row['responsible_persons'] ?? '')) ?></textarea></div>
                         <div class="webform-field webform-field--split">
-                            <div><label>Time frame</label><input data-field="time_frame" name="work_plan[<?= (int) $index ?>][time_frame]" value="<?= htmlspecialchars((string) ($row['time_frame'] ?? '')) ?>" placeholder="e.g. June 1–2, 2026"></div>
+                            <div><label>Time frame</label><input data-field="time_frame" name="work_plan[<?= (int) $index ?>][time_frame]" value="<?= htmlspecialchars((string) ($row['time_frame'] ?? '')) ?>" placeholder="e.g. June 1-2, 2026"></div>
                             <div><label>Budget needed</label><div class="webform-affix"><span>₱</span><input data-field="budget_needed" inputmode="decimal" name="work_plan[<?= (int) $index ?>][budget_needed]" value="<?= htmlspecialchars((string) ($row['budget_needed'] ?? '')) ?>" placeholder="0.00"></div></div>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
-        <button type="button" class="webform-add-btn" id="eso-add-workplan"><i class="fa-solid fa-plus"></i> Add activity</button>
+        <button type="button" class="webform-add-btn" id="eso-add-workplan">Add activity</button>
     </section>
 
     <!-- IX. Budgetary requirements -->
@@ -641,7 +640,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <span class="webform-card-num">8</span>
             <div>
                 <h2>Budgetary Requirements</h2>
-                <p>General breakdown, then line-item budgets. Totals compute automatically.</p>
+                <p>Start with the general breakdown, then list the line items. Totals are calculated for you.</p>
             </div>
         </header>
 
@@ -670,7 +669,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 </table>
             </div>
             <p class="webform-calc webform-calc--total" id="eso-general-total" hidden></p>
-            <button type="button" class="webform-add-btn" id="eso-add-budget-general"><i class="fa-solid fa-plus"></i> Add item</button>
+            <button type="button" class="webform-add-btn" id="eso-add-budget-general">Add item</button>
         </div>
 
         <div id="eso-budget-groups">
@@ -686,7 +685,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                             <input class="eso-budget-group-label" data-field="label" name="budget_line_groups[<?= (int) $groupIndex ?>][label]" value="<?= htmlspecialchars($groupLabel) ?>" aria-label="Budget name">
                         </label>
                         <?php if ($groupIndex > 0): ?>
-                            <button type="button" class="btn btn-outline btn-sm eso-remove-budget-group"><i class="fa-solid fa-trash-can"></i> Remove budget</button>
+                            <button type="button" class="btn btn-outline btn-sm eso-remove-budget-group">Remove budget</button>
                         <?php endif; ?>
                     </div>
                     <div class="webform-table-wrap">
@@ -722,12 +721,12 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                             </tbody>
                         </table>
                     </div>
-                    <button type="button" class="webform-add-btn eso-add-line-item"><i class="fa-solid fa-plus"></i> Add line item</button>
+                    <button type="button" class="webform-add-btn eso-add-line-item">Add line item</button>
                 </div>
             <?php endforeach; ?>
         </div>
         <p class="webform-calc webform-calc--total" id="eso-lineitem-grand-total" hidden></p>
-        <button type="button" class="btn btn-outline btn-sm" id="eso-add-budget-group"><i class="fa-solid fa-layer-group"></i> Add another line-item budget</button>
+        <button type="button" class="btn btn-outline btn-sm" id="eso-add-budget-group">Add another line-item budget</button>
     </section>
 
     <!-- X. References -->
@@ -750,29 +749,29 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <span class="webform-card-num">10</span>
             <div>
                 <h2>Sign-off</h2>
-                <p>Names printed on the paper form. Official approvals are also captured through the workflow after submission.</p>
+                <p>These names appear on the printed form. Official approvals are still recorded through the approval process after you submit.</p>
             </div>
         </header>
         <div class="webform-grid webform-grid--3">
             <div class="webform-panel">
-                <p class="webform-panel-title">Submitted by — Proponent</p>
+                <p class="webform-panel-title">Submitted by (Proponent)</p>
                 <div class="webform-field"><label for="eso-proponent">Name</label><input id="eso-proponent" name="proponent_name" value="<?= htmlspecialchars($proponentNameValue) ?>" placeholder="Proponent"></div>
                 <div class="webform-field"><label for="eso-proponent-date">Date</label><input id="eso-proponent-date" type="date" name="proponent_date" value="<?= htmlspecialchars($proponentDateValue) ?>"></div>
             </div>
             <div class="webform-panel">
-                <p class="webform-panel-title">Endorsed by — Dean</p>
+                <p class="webform-panel-title">Endorsed by (Dean)</p>
                 <div class="webform-field"><label for="eso-dean">Name</label><input id="eso-dean" name="dean_name" list="eso-dean-options" value="<?= htmlspecialchars($deanNameValue) ?>" placeholder="Dean" autocomplete="off">
                     <datalist id="eso-dean-options">
                         <?php foreach ($deanNamesByCollege as $deanCollege => $deanName): ?>
                             <option value="<?= htmlspecialchars($deanName) ?>" data-meta="<?= htmlspecialchars($deanCollege) ?>">
                         <?php endforeach; ?>
                     </datalist>
-                    <p class="webform-hint" id="eso-dean-hint" hidden>Filled in from the implementing college's dean account — edit if different.</p>
+                    <p class="webform-hint" id="eso-dean-hint" hidden>Taken from the implementing college's dean account. You can change it if needed.</p>
                 </div>
                 <div class="webform-field"><label for="eso-dean-date">Date</label><input id="eso-dean-date" type="date" name="dean_date" value="<?= htmlspecialchars($deanDateValue) ?>"></div>
             </div>
             <div class="webform-panel">
-                <p class="webform-panel-title">Received by — Extension Admin Staff</p>
+                <p class="webform-panel-title">Received by (Extension Admin Staff)</p>
                 <div class="webform-field"><label for="eso-admin">Name</label><input id="eso-admin" name="extension_admin_name" value="<?= htmlspecialchars($adminNameValue) ?>" placeholder="Extension admin staff"></div>
                 <div class="webform-field"><label for="eso-admin-date">Date</label><input id="eso-admin-date" type="date" name="extension_admin_date" value="<?= htmlspecialchars($adminDateValue) ?>"></div>
             </div>
@@ -783,6 +782,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         <?php
         $workflowSteps = proposal_workflow_steps($proposal ?? [
             'status' => 'draft',
+            'user_id' => (int) ($user['id'] ?? 0),
             'project_type' => 'extension',
             'summary' => json_encode(['form_type' => 'extension_program_proposal']),
             'first_name' => (string) ($user['first_name'] ?? ''),
@@ -800,9 +800,9 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id']) ?>">Cancel</a>
         <?php endif; ?>
         <button type="submit" class="btn btn-outline" formaction="<?= base_url('proposals/preview/extension-program') ?>" formtarget="_blank" formnovalidate>
-            <i class="fa-solid fa-print"></i> Print Preview
+            Print Preview
         </button>
-        <button type="submit" class="btn"><i class="fa-solid fa-floppy-disk"></i> <?= $isEdit ? 'Save Changes' : 'Save Draft' ?></button>
+        <button type="submit" class="btn"><?= $isEdit ? 'Save Changes' : 'Save Draft' ?></button>
     </div>
 </form>
 
@@ -836,7 +836,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     <div class="webform-item eso-repeater-row">
         <div class="webform-item-head"><span class="webform-item-label">Framework entry</span><?= $removeItemButton ?></div>
         <div class="webform-grid webform-grid--3">
-            <div class="webform-field"><label>Inputs</label><textarea rows="2" data-autoresize data-field="inputs" placeholder="e.g. WPU Fund – ₱5,000.00"></textarea></div>
+            <div class="webform-field"><label>Inputs</label><textarea rows="2" data-autoresize data-field="inputs" placeholder="e.g. WPU Fund, ₱5,000.00"></textarea></div>
             <div class="webform-field"><label>Activities</label><textarea rows="2" data-autoresize data-field="activities" placeholder="e.g. Workshops on sustainable agriculture"></textarea></div>
             <div class="webform-field"><label>Outputs</label><textarea rows="2" data-autoresize data-field="outputs" placeholder="e.g. 50 participants trained"></textarea></div>
             <div class="webform-field"><label>Effects</label><textarea rows="2" data-autoresize data-field="effects" placeholder="e.g. Increased awareness and skills"></textarea></div>
@@ -858,7 +858,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <div class="webform-field"><label>Expected output/s</label><textarea rows="2" data-autoresize data-field="outputs" placeholder="e.g. Accomplishment Report (ETR)"></textarea></div>
             <div class="webform-field"><label>Responsible persons</label><textarea rows="1" data-autoresize data-field="responsible_persons" placeholder="Names or roles"></textarea></div>
             <div class="webform-field webform-field--split">
-                <div><label>Time frame</label><input data-field="time_frame" placeholder="e.g. June 1–2, 2026"></div>
+                <div><label>Time frame</label><input data-field="time_frame" placeholder="e.g. June 1-2, 2026"></div>
                 <div><label>Budget needed</label><div class="webform-affix"><span>₱</span><input data-field="budget_needed" inputmode="decimal" placeholder="0.00"></div></div>
             </div>
         </div>
@@ -893,7 +893,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <span>B.<span class="eso-budget-group-number">1</span> Line-item budget of</span>
                 <input class="eso-budget-group-label" data-field="label" value="Line-Item Budget" aria-label="Budget name">
             </label>
-            <button type="button" class="btn btn-outline btn-sm eso-remove-budget-group"><i class="fa-solid fa-trash-can"></i> Remove budget</button>
+            <button type="button" class="btn btn-outline btn-sm eso-remove-budget-group">Remove budget</button>
         </div>
         <div class="webform-table-wrap">
             <table class="webform-table eso-line-item-table">
@@ -917,7 +917,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 </tbody>
             </table>
         </div>
-        <button type="button" class="webform-add-btn eso-add-line-item"><i class="fa-solid fa-plus"></i> Add line item</button>
+        <button type="button" class="webform-add-btn eso-add-line-item">Add line item</button>
     </div>
 </template>
 
@@ -1336,7 +1336,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         const list = document.getElementById(input.dataset.combobox);
         return list ? Array.from(list.options).map((option) => ({ value: option.value, meta: option.dataset.meta || '' })) : [];
     };
-    // "Program Name (CCAS)" → label + college-code chip
+    // Split "Program Name (CCAS)" into the label and a college code tag
     const splitCode = (value) => {
         const match = value.match(/^(.*?)\s*\(([A-Z]{2,8})\)$/);
         return match ? [match[1], match[2]] : [value, ''];
@@ -1393,7 +1393,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         const exact = all.some((option) => option.value.toLowerCase() === query);
         comboItems = all.filter((option) => exact || query === '' || `${option.value} ${option.meta}`.toLowerCase().includes(query)).slice(0, 60);
         comboPanel.innerHTML = comboItems.length === 0
-            ? '<div class="webform-combo-empty">No matching suggestions — what you typed will be used.</div>'
+            ? '<div class="webform-combo-empty">No matches found. You can keep what you typed.</div>'
             : comboItems.map((option, i) => {
                 const [label, code] = splitCode(option.value);
                 const meta = code || option.meta;
@@ -1401,7 +1401,6 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 return `<div class="webform-combo-option${selected ? ' is-selected' : ''}" role="option" id="eso-combo-opt-${i}" data-index="${i}" aria-selected="${selected}">`
                     + `<span class="webform-combo-label">${highlight(label, exact ? '' : query)}</span>`
                     + (meta ? `<span class="webform-combo-meta">${escapeHtml(meta)}</span>` : '')
-                    + (selected ? '<i class="fa-solid fa-check"></i>' : '')
                     + '</div>';
             }).join('');
         comboPanel.hidden = false;
@@ -1564,7 +1563,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         const male = parseInt(maleInput?.value || '', 10);
         const female = parseInt(femaleInput?.value || '', 10);
         showCalc('eso-beneficiary-total', (maleInput?.value !== '' || femaleInput?.value !== '')
-            ? `<i class="fa-solid fa-users"></i> Total beneficiaries: <strong>${((male > 0 ? male : 0) + (female > 0 ? female : 0)).toLocaleString()}</strong>`
+            ? `Total beneficiaries: <strong>${((male > 0 ? male : 0) + (female > 0 ? female : 0)).toLocaleString()}</strong>`
             : '');
 
         let durationHtml = '';
@@ -1577,7 +1576,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 if (end.getDate() + 1 < start.getDate()) {
                     months -= 1;
                 }
-                durationHtml = `<i class="fa-regular fa-calendar"></i> Duration: <strong>${plural(days, 'day')}</strong>${months >= 1 ? ` (about ${plural(months, 'month')})` : ''}`;
+                durationHtml = `Duration: <strong>${plural(days, 'day')}</strong>${months >= 1 ? ` (about ${plural(months, 'month')})` : ''}`;
             }
         }
         showCalc('eso-duration-calc', durationHtml);
@@ -1595,11 +1594,11 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             const typed = budgetInput?.value.trim() || '';
             const matches = typed !== '' && isAmount(typed) && Math.abs(parseAmount(typed) - grandTotal) < 0.005;
             if (matches) {
-                budgetHtml = '<i class="fa-solid fa-circle-check"></i> Matches the line-item budget total';
+                budgetHtml = 'Matches the total of the line-item budgets.';
             } else {
                 budgetHtml = (typed !== ''
-                    ? `<i class="fa-solid fa-triangle-exclamation"></i> Line-item budgets add up to <strong>${peso(grandTotal)}</strong>.`
-                    : `Line-item budgets add up to <strong>${peso(grandTotal)}</strong>.`)
+                    ? `The line-item budgets add up to <strong>${peso(grandTotal)}</strong>.`
+                    : `The line-item budgets add up to <strong>${peso(grandTotal)}</strong>.`)
                     + ' <button type="button" class="webform-link-btn" id="eso-use-total">Use this amount</button>';
                 budgetClass = typed !== '' ? 'webform-calc--warn' : '';
             }
@@ -1644,10 +1643,10 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         const errors = [];
         const title = form.elements.namedItem('title');
         if (title && title.value.trim() === '') {
-            errors.push(flagError(title, 'Enter a title for the proposal.'));
+            errors.push(flagError(title, 'Please enter a title.'));
         }
         if (startInput?.value && endInput?.value && endInput.value < startInput.value) {
-            errors.push(flagError(endInput, 'End date must be on or after the start date.'));
+            errors.push(flagError(endInput, 'The end date cannot be earlier than the start date.'));
         }
         [maleInput, femaleInput].forEach((input) => {
             if (!input) {
@@ -1655,13 +1654,13 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             }
             const number = Number(input.value);
             if (input.validity.badInput || (input.value !== '' && (!Number.isInteger(number) || number < 0))) {
-                errors.push(flagError(input, 'Enter a whole number (0 or more).'));
+                errors.push(flagError(input, 'Please enter a whole number (0 or higher).'));
             }
         });
         form.querySelectorAll('[name="budget"], [data-field="budget_needed"], [data-field="amount"], [data-field="qty"], [data-field="cost_unit"]').forEach((input) => {
             const value = input.value.trim();
             if (value !== '' && !isAmount(value)) {
-                errors.push(flagError(input, 'Enter a number, e.g. 1,250.00'));
+                errors.push(flagError(input, 'Please enter a valid amount, such as 1,250.00.'));
             }
         });
         return errors;
@@ -1693,10 +1692,10 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         }
         checklist.classList.toggle('is-complete', missing.length === 0);
         checklist.innerHTML = missing.length === 0
-            ? '<i class="fa-solid fa-circle-check"></i> All sections are filled in — ready to save and submit for review.'
-            : `<span class="webform-checklist-title"><i class="fa-solid fa-list-check"></i> ${sectionChecks.length - missing.length} of ${sectionChecks.length} sections complete. Still to fill:</span>`
+            ? 'All sections are filled out. You can now save and submit this proposal for review.'
+            : `<span class="webform-checklist-title">${sectionChecks.length - missing.length} of ${sectionChecks.length} sections done. Still missing:</span>`
                 + missing.map(([id, label]) => `<a href="#${id}">${escapeHtml(label)}</a>`).join('')
-                + '<span class="webform-checklist-note">You can save a draft anytime.</span>';
+                + '<span class="webform-checklist-note">You can still save this as a draft.</span>';
     };
 
     /* ---------- Autosave to this browser + restore ---------- */
@@ -1723,7 +1722,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             try {
                 window.localStorage.removeItem(draftKey);
             } catch (error) {
-                // storage unavailable — nothing to clear
+                // storage unavailable, nothing to clear
             }
         },
     };
@@ -1751,9 +1750,12 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             return;
         }
         const saved = draftStore.set({ savedAt: Date.now(), serverVersion: form.dataset.serverVersion || '', values, ...extra });
+        if (saved && form.querySelector('.is-invalid')) {
+            return; // keep the "please fix" message until the highlighted fields are corrected
+        }
         setStatus(saved
-            ? `<i class="fa-solid fa-circle-check"></i> Draft saved on this device ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
-            : '<i class="fa-solid fa-triangle-exclamation"></i> Autosave isn\'t available in this browser', saved ? '' : 'is-warn');
+            ? `Draft saved on this device at ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+            : 'Autosave is not available in this browser.', saved ? '' : 'is-warn');
     };
 
     const fitRows = (containerSelector, addButtonId, prefix, values) => {
@@ -1862,7 +1864,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         form.querySelectorAll('textarea[data-autoresize]').forEach((textarea) => textarea.dispatchEvent(new Event('input')));
         refreshAll();
         saveDraft();
-        setStatus('<i class="fa-solid fa-clock-rotate-left"></i> Unsaved changes restored — remember to save');
+        setStatus("Your unsaved changes have been restored. Don't forget to save.");
     };
 
     const banner = document.getElementById('eso-draft-banner');
@@ -1873,8 +1875,8 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         const when = new Date(draft.savedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
         const stale = draft.serverVersion !== (form.dataset.serverVersion || '');
         document.getElementById('eso-draft-banner-detail').textContent = draft.pendingSubmit
-            ? `Your last save didn't go through (${when}). Restore what you entered?`
-            : `You have changes from ${when} that weren't saved.${stale ? ' This proposal was saved again since then — restoring will replace those values in this form.' : ''}`;
+            ? `Your last save on ${when} did not go through. Would you like to restore what you entered?`
+            : `These changes are from ${when}. Would you like to restore them?${stale ? ' This proposal has been saved since then, so restoring will replace the newer values.' : ''}`;
         banner.hidden = false;
         document.getElementById('eso-draft-restore')?.addEventListener('click', () => {
             banner.hidden = true;
@@ -1917,13 +1919,13 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 
     form.addEventListener('submit', (event) => {
         if (event.submitter?.hasAttribute('formaction')) {
-            return; // Print Preview — never blocked
+            return; // Print Preview is never blocked
         }
         const errors = validateForm();
         if (errors.length > 0) {
             event.preventDefault();
             validateLive = true;
-            setStatus(`<i class="fa-solid fa-circle-exclamation"></i> Fix ${errors.length === 1 ? 'the highlighted field' : `${errors.length} highlighted fields`} before saving.`, 'is-error');
+            setStatus(`Please fix the ${errors.length === 1 ? 'highlighted field' : `${errors.length} highlighted fields`} before saving.`, 'is-error');
             errors[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
             errors[0].focus({ preventScroll: true });
             return;

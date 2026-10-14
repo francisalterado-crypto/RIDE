@@ -11,16 +11,16 @@ INSERT IGNORE INTO campuses (id, college_id, code, name) VALUES
 
 INSERT IGNORE INTO roles (id, slug, name, description) VALUES
 (1, 'ride_admin', 'RIDE Admin', 'System administrator'),
-(2, 'vpride', 'Admin / VPRIDE', 'Grants final approval after Director of Research or Director of Extension approval'),
+(2, 'vpride', 'Admin / VPRIDE', 'Grants final approval after RDO Director or ESO Director approval'),
 (3, 'ride_reporter', 'RIDE Report Generator', 'Analytics and exports'),
-(4, 'coordinator_research', 'Coordinator of Research', 'Endorses research submissions from their college and forwards to the College Dean'),
-(12, 'coordinator_extension', 'Coordinator of Extension', 'Endorses extension submissions from their college and forwards to the College Dean'),
-(5, 'dean', 'College Dean', 'Approves endorsed submissions and forwards to the Director of Research or Director of Extension'),
+(4, 'coordinator_research', 'Research Coordinator', 'Endorses research submissions from their college and forwards to the College Dean'),
+(12, 'coordinator_extension', 'Field Extensionist', 'Endorses extension submissions from their college and forwards to the College Dean'),
+(5, 'dean', 'College Dean', 'Approves endorsed submissions and forwards to the RDO Director or ESO Director'),
 (6, 'faculty', 'Faculty', 'Faculty researcher and proposal submitter'),
 (7, 'ethics_reviewer', 'Ethics Review Committee', 'Ethics review step'),
 (8, 'external_partner', 'External Partner', 'View-only collaborator'),
-(9, 'director_research', 'Director of Research', 'Approves research submissions after College Dean and forwards to VPRIDE'),
-(10, 'director_extension', 'Director of Extension', 'Approves extension submissions after College Dean and forwards to VPRIDE');
+(9, 'director_research', 'RDO Director', 'Approves research submissions after College Dean and forwards to VPRIDE'),
+(10, 'director_extension', 'ESO Director', 'Approves extension submissions after College Dean and forwards to VPRIDE');
 
 INSERT IGNORE INTO permissions (id, slug, name) VALUES
 (1, 'proposal.create', 'Create proposals'),

@@ -252,6 +252,24 @@ $isExtensionMenu = $menuScope === 'extension';
 
 <?php endif; ?>
 
+<?php
+$quarterlyReportNavActive = $navActive($trainingsConductedNavActive)
+    || $navActive($technicalAdvisoryNavActive)
+    || $navActive($extensionLinkagesNavActive)
+    || $navActive($outreachActivitiesNavActive)
+    || $navActive($technologyAdoptionNavActive);
+$groupQuarterlyReportNav = $isExtensionMenu && \App\Support\MonitoringRoles::isCoordinatorExtension()
+    && ($showTrainingsConductedNav || $showTechnicalAdvisoryNav || $showExtensionLinkagesNav || $showOutreachActivitiesNav || $showTechnologyAdoptionNav);
+?>
+<?php if ($groupQuarterlyReportNav): ?>
+<div class="nav-subgroup<?= $quarterlyReportNavActive ? ' has-active' : '' ?>" id="quarterly-report-nav" data-nav-subgroup>
+    <button type="button" class="nav-subitem nav-subgroup-toggle<?= $quarterlyReportNavActive ? ' is-current' : '' ?>" aria-expanded="true" aria-controls="quarterly-report-subitems">
+        <span>Quarterly Report</span>
+        <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
+    </button>
+    <div class="nav-subgroup-items" id="quarterly-report-subitems">
+<?php endif; ?>
+
 <?php if ($isExtensionMenu && $showTrainingsConductedNav): ?>
 
     <a href="<?= base_url('proposals/create/trainings-conducted' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($trainingsConductedNavActive) ? ' active' : '' ?>">
@@ -302,6 +320,11 @@ $isExtensionMenu = $menuScope === 'extension';
 
 <?php endif; ?>
 
+<?php if ($groupQuarterlyReportNav): ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if ($isExtensionMenu && $showEbalwasyonNgGawainNav): ?>
 
     <a href="<?= base_url('proposals/create/ebalwasyon-ng-gawain' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($ebalwasyonNgGawainNavActive) ? ' active' : '' ?>">
@@ -311,4 +334,3 @@ $isExtensionMenu = $menuScope === 'extension';
     </a>
 
 <?php endif; ?>
-

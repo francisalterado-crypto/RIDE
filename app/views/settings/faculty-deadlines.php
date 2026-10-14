@@ -16,7 +16,7 @@ $selectedGroups = array_flip($activatedGroups);
 
 <div class="card">
     <p class="muted">
-        VPRIDE and the Director of Research choose which form groups use closing deadlines and which quarter-end months apply.
+        VPRIDE and the RDO Director choose which form groups use closing deadlines and which quarter-end months apply.
         Forms without an activated deadline show <strong>No Deadline</strong> and stay open for submission.
     </p>
     <p class="muted">Current schedule: <strong><?= htmlspecialchars($deadlineSummary) ?></strong></p>

@@ -8,7 +8,7 @@ $pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Completed Researches â€
 $pageHeading = 'Consolidated Completed Researches';
 $pageSubtitle = $isEdit
     ? 'Update the consolidated completed researches report before saving or resubmitting.'
-    : 'College consolidation of faculty completed researches approved by the Director of Research (WPU-QSF-RIDE-RDO-15).';
+    : 'College consolidation of faculty completed researches approved by the RDO Director (WPU-QSF-RIDE-RDO-15).';
 $user = \App\Core\Auth::user() ?? [];
 
 /** @var array<string, list<array<string, string>>> $prefilledEntries */
@@ -97,9 +97,9 @@ $sectionRows = static function (string $key) use ($entries): array {
     </section>
 
     <?php if (\App\Services\CompletedResearchesConsolidation::entriesHaveRows($entries)): ?>
-        <p class="proposal-section-note">Rows below include faculty completed researches for your college, deposited after Director of Research approval.</p>
+        <p class="proposal-section-note">Rows below include faculty completed researches for your college, deposited after RDO Director approval.</p>
     <?php elseif (!$isEdit): ?>
-        <p class="proposal-section-note">No faculty completed researches approved by the Director of Research were found yet. They are added automatically when the Director of Research approves each report.</p>
+        <p class="proposal-section-note">No faculty completed researches approved by the RDO Director were found yet. They are added automatically when the RDO Director approves each report.</p>
     <?php endif; ?>
 
     <?php foreach ($fundingSections as $sectionKey => $sectionLabel): ?>

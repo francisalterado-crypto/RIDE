@@ -38,6 +38,8 @@ final class ScholarlyController
 
         view('scholarly.index', [
 
+            'profileUser' => \App\Core\Auth::user() ?? [],
+
             'papers' => $papers,
 
             'presentations' => $presentations,
@@ -314,6 +316,106 @@ final class ScholarlyController
 
 
 
+    public function updatePaper(int $id): void
+
+    {
+
+        if (!verify_csrf()) {
+
+            set_flash('error', 'Invalid session. Please try again.');
+
+            redirect('scholarly');
+
+        }
+
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+        $paper = PublishedPaper::find($id);
+
+        if ($paper === null || (int) $paper['user_id'] !== $userId) {
+
+            set_flash('error', 'Published paper not found.');
+
+            redirect('scholarly');
+
+        }
+
+        $data = $this->paperInput();
+
+        if ($data['title'] === '' || $data['journal_name'] === '') {
+
+            set_flash('error', 'Paper title and journal name are required.');
+
+            redirect('scholarly#paper-' . $id);
+
+        }
+
+        PublishedPaper::update($id, $data);
+
+        $this->storeAttachments(ScholarlyAttachment::TYPE_PAPER, $id, $userId, 'supporting_documents');
+
+        AuditLog::record('published_paper', $id, 'update', [
+
+            'title' => $data['title'],
+
+        ]);
+
+        set_flash('success', 'Published paper updated.');
+
+        redirect('scholarly#paper-' . $id);
+
+    }
+
+    public function updatePresentation(int $id): void
+
+    {
+
+        if (!verify_csrf()) {
+
+            set_flash('error', 'Invalid session. Please try again.');
+
+            redirect('scholarly');
+
+        }
+
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+
+        $presentation = PaperPresentation::find($id);
+
+        if ($presentation === null || (int) $presentation['user_id'] !== $userId) {
+
+            set_flash('error', 'Paper presentation not found.');
+
+            redirect('scholarly');
+
+        }
+
+        $data = $this->presentationInput();
+
+        if ($data['title'] === '' || $data['conference_name'] === '') {
+
+            set_flash('error', 'Presentation title and conference name are required.');
+
+            redirect('scholarly#presentation-' . $id);
+
+        }
+
+        PaperPresentation::update($id, $data);
+
+        $this->storeAttachments(ScholarlyAttachment::TYPE_PRESENTATION, $id, $userId, 'supporting_documents');
+
+        AuditLog::record('paper_presentation', $id, 'update', [
+
+            'title' => $data['title'],
+
+        ]);
+
+        set_flash('success', 'Paper presentation updated.');
+
+        redirect('scholarly#presentation-' . $id);
+
+    }
+
     public function destroyPaper(int $id): void
 
     {
@@ -422,7 +524,13 @@ final class ScholarlyController
 
         $year = (int) ($_POST['publication_year'] ?? 0) ?: null;
 
-        $status = (string) ($_POST['status'] ?? 'published');
+        if ($year !== null && ($year < 1900 || $year > 2100)) {
+
+            $year = null;
+
+        }
+
+        $status = strtolower(trim((string) ($_POST['status'] ?? 'published')));
 
         if (!in_array($status, ['published', 'accepted', 'in_press'], true)) {
 
@@ -431,6 +539,20 @@ final class ScholarlyController
         }
 
 
+
+        $link = trim((string) ($_POST['link'] ?? ''));
+
+        if ($link !== '' && !preg_match('#^https?://#i', $link)) {
+
+            $link = 'https://' . $link;
+
+        }
+
+        if ($link !== '' && filter_var($link, FILTER_VALIDATE_URL) === false) {
+
+            $link = '';
+
+        }
 
         return [
 
@@ -450,7 +572,7 @@ final class ScholarlyController
 
             'status' => $status,
 
-            'link' => trim((string) ($_POST['link'] ?? '')),
+            'link' => $link,
 
             'notes' => trim((string) ($_POST['notes'] ?? '')),
 
@@ -466,7 +588,7 @@ final class ScholarlyController
 
     {
 
-        $type = (string) ($_POST['presentation_type'] ?? 'oral');
+        $type = strtolower(trim((string) ($_POST['presentation_type'] ?? 'oral')));
 
         if (!in_array($type, ['oral', 'poster', 'virtual', 'other'], true)) {
 
@@ -578,9 +700,15 @@ final class ScholarlyController
 
 
 
+        $name = basename((string) $attachment['original_name']);
+
+        $asciiName = preg_replace('/[^\x20-\x7E]|["\\\\]/', '_', $name) ?? 'document';
+
         header('Content-Type: ' . ($attachment['mime_type'] ?: 'application/octet-stream'));
 
-        header('Content-Disposition: attachment; filename="' . basename((string) $attachment['original_name']) . '"');
+        header('Content-Disposition: attachment; filename="' . $asciiName . '"; filename*=UTF-8\'\'' . rawurlencode($name));
+
+        header('X-Content-Type-Options: nosniff');
 
         readfile($path);
 

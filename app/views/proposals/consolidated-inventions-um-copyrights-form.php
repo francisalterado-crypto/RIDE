@@ -18,7 +18,7 @@ $pageSubtitle = $isEdit
 
     ? 'Update the consolidated inventions, utility models, and copyrights report before saving or resubmitting.'
 
-    : 'College consolidation of faculty inventions, utility models, and copyrights reports approved by the Director of Research (WPU-QSF-RIDE-RDO-13).';
+    : 'College consolidation of faculty inventions, utility models, and copyrights reports approved by the RDO Director (WPU-QSF-RIDE-RDO-13).';
 
 $user = \App\Core\Auth::user() ?? [];
 
@@ -184,11 +184,11 @@ $fieldNames = [
 
     <?php if (\App\Services\ResearchFormConsolidation::entriesHaveRows('inventions_um_copyrights', $entries)): ?>
 
-        <p class="proposal-section-note">Rows below include faculty inventions, utility models, and copyrights reports for your college, deposited after Director of Research approval.</p>
+        <p class="proposal-section-note">Rows below include faculty inventions, utility models, and copyrights reports for your college, deposited after RDO Director approval.</p>
 
     <?php elseif (!$isEdit): ?>
 
-        <p class="proposal-section-note">No faculty inventions, utility models, and copyrights reports approved by the Director of Research were found yet. Rows are added automatically when the Director of Research approves each report.</p>
+        <p class="proposal-section-note">No faculty inventions, utility models, and copyrights reports approved by the RDO Director were found yet. Rows are added automatically when the RDO Director approves each report.</p>
 
     <?php endif; ?>
 

@@ -3,9 +3,10 @@
 
 use App\Models\FormTemplate;
 
-$pageTitle = 'Downloadable Forms — RIDE IMS';
-$pageHeading = 'Downloadable Forms';
-$pageSubtitle = 'Download official templates (accomplishment reports, attendance sheets, and more), fill them out, and attach them where required.';
+/** $pageTitle is set by the controller. */
+$pageHeading ??= 'Downloadable Forms';
+$pageSubtitle ??= 'Download official templates (accomplishment reports, attendance sheets, and more), fill them out, and attach them where required.';
+$canManageForms = \App\Core\Auth::hasRole('ride_admin');
 
 $formatSize = static function (int $bytes): string {
     if ($bytes >= 1048576) {
@@ -21,20 +22,27 @@ foreach ($templates as $template) {
 }
 ?>
 
+<?php if ($canManageForms): ?>
+<div class="page-actions-bar">
+    <a class="btn btn-outline" href="<?= base_url('admin/form-templates') ?>">Manage forms</a>
+</div>
+<?php endif; ?>
+
 <?php if ($templates === []): ?>
 <div class="card">
     <div class="empty-state">
         <i class="fas fa-file-download empty-icon" aria-hidden="true"></i>
-        <p>No downloadable forms have been published yet. The RIDE administrator uploads templates here.</p>
+        <p>No forms have been posted yet. Once the RIDE administrator uploads them, they will appear here.</p>
     </div>
 </div>
 <?php endif; ?>
 
 <?php foreach (FormTemplate::AUDIENCE_LABELS as $audience => $label): ?>
     <?php if (empty($grouped[$audience])) { continue; } ?>
-    <div class="card" style="margin-bottom: 1.5rem;">
-        <h2><?= htmlspecialchars($label) ?></h2>
-        <table>
+    <div class="card list-card" style="margin-bottom: 1.5rem;">
+        <div class="list-card-head"><h2><?= htmlspecialchars($label) ?></h2></div>
+        <div class="data-table-wrap">
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Form</th>
@@ -57,12 +65,13 @@ foreach ($templates as $template) {
                     </td>
                     <td>
                         <a class="btn btn-sm btn-accent" href="<?= base_url('forms/' . (int) $template['id'] . '/download') ?>">
-                            <i class="fas fa-download" aria-hidden="true"></i> Download
+                            Download
                         </a>
                     </td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </div>
 <?php endforeach; ?>

@@ -15,10 +15,6 @@ if (!is_dir(STORAGE_PATH)) {
 
 require BASE_PATH . '/app/helpers.php';
 
-if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && $_POST !== []) {
-    normalize_request_post_text_fields($_POST);
-}
-
 spl_autoload_register(function (string $class): void {
     $prefix = 'App\\';
     if (!str_starts_with($class, $prefix)) {
@@ -33,6 +29,13 @@ spl_autoload_register(function (string $class): void {
 
 $config = require APP_PATH . '/config/config.php';
 date_default_timezone_set((string) ($config['app']['timezone'] ?? 'Asia/Manila'));
+
+// Scholarly records keep exactly what was typed: paper titles, DOIs and links are case-sensitive.
+$skipTitleCase = preg_match('#^(admin/)?scholarly(/|$)#', request_path()) === 1;
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && $_POST !== [] && !$skipTitleCase) {
+    normalize_request_post_text_fields($_POST);
+}
+unset($skipTitleCase);
 
 try {
     if (is_vercel() && !database_configured($config['database'])) {

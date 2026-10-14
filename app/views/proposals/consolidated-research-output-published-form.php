@@ -8,7 +8,7 @@ $pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Research Output Publish
 $pageHeading = 'Consolidated Research Output Published';
 $pageSubtitle = $isEdit
     ? 'Update the consolidated research output published report before saving or resubmitting.'
-    : 'College consolidation of faculty research output published approved by the Director of Research (WPU-QSF-RIDE-RDO-16).';
+    : 'College consolidation of faculty research output published approved by the RDO Director (WPU-QSF-RIDE-RDO-16).';
 $user = \App\Core\Auth::user() ?? [];
 
 /** @var array<string, list<array<string, string>>> $prefilledEntries */
@@ -97,9 +97,9 @@ $sectionRows = static function (string $key) use ($entries): array {
     </section>
 
     <?php if (\App\Services\ResearchOutputPublishedConsolidation::entriesHaveRows($entries)): ?>
-        <p class="proposal-section-note">Rows below include faculty research output published for your college, deposited after Director of Research approval.</p>
+        <p class="proposal-section-note">Rows below include faculty research output published for your college, deposited after RDO Director approval.</p>
     <?php elseif (!$isEdit): ?>
-        <p class="proposal-section-note">No faculty research output published approved by the Director of Research was found yet. Rows are added automatically when the Director of Research approves each report.</p>
+        <p class="proposal-section-note">No faculty research output published approved by the RDO Director was found yet. Rows are added automatically when the RDO Director approves each report.</p>
     <?php endif; ?>
 
     <?php foreach ($fundingSections as $sectionKey => $sectionLabel): ?>

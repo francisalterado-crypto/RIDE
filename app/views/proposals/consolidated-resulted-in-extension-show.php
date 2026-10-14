@@ -8,7 +8,7 @@
 
 $pageTitle = htmlspecialchars($proposal['title']) . ' — RIDE IMS';
 $pageHeading = 'Consolidated Resulted in Extension';
-$pageSubtitle = 'College consolidation of faculty research resulted in extension approved by the Director of Research.';
+$pageSubtitle = 'College consolidation of faculty research resulted in extension approved by the RDO Director.';
 
 $summaryData = [];
 if (!empty($proposal['summary'])) {

@@ -9,7 +9,7 @@ $pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Linkages — RIDE IMS';
 $pageHeading = 'Consolidated Linkages';
 $pageSubtitle = $isEdit
     ? 'Update the consolidated linkages report before saving or resubmitting.'
-    : 'College consolidation of faculty linkages reports approved by the Director of Research (WPU-QSF-RIDE-RDO-14).';
+    : 'College consolidation of faculty linkages reports approved by the RDO Director (WPU-QSF-RIDE-RDO-14).';
 $user = \App\Core\Auth::user() ?? [];
 $prefilledEntries = $prefilledEntries ?? [];
 
@@ -81,9 +81,9 @@ if (
     </section>
 
     <?php if (\App\Services\ResearchFormConsolidation::entriesHaveRows('linkages', $entries)): ?>
-        <p class="proposal-section-note">Rows below include faculty linkages reports for your college, deposited after Director of Research approval.</p>
+        <p class="proposal-section-note">Rows below include faculty linkages reports for your college, deposited after RDO Director approval.</p>
     <?php elseif (!$isEdit): ?>
-        <p class="proposal-section-note">No faculty linkages reports approved by the Director of Research were found yet. Rows are added automatically when the Director of Research approves each report.</p>
+        <p class="proposal-section-note">No faculty linkages reports approved by the RDO Director were found yet. Rows are added automatically when the RDO Director approves each report.</p>
     <?php endif; ?>
 
     <?php

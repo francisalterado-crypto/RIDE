@@ -20,10 +20,14 @@ $pageSubtitle = $isProgressRegistry
         : 'List of all terminal report records.');
 ?>
 
-<div class="proposal-paper proposal-paper-list">
-    <section class="proposal-section">
-        <h2 class="proposal-section-title"><?= htmlspecialchars($pageHeading) ?></h2>
-        <p class="proposal-section-note">Total records: <?= count($proposals) ?></p>
+<div class="card list-card">
+    <section>
+        <div class="list-card-head">
+            <div>
+                <h2><?= htmlspecialchars($pageHeading) ?></h2>
+                <p>Total records: <?= count($proposals) ?></p>
+            </div>
+        </div>
 
         <?php if (empty($proposals)): ?>
             <div class="proposal-empty-state">
@@ -38,8 +42,8 @@ $pageSubtitle = $isProgressRegistry
                 </p>
             </div>
         <?php else: ?>
-            <div class="proposal-table-wrap">
-                <table class="proposal-table">
+            <div class="data-table-wrap">
+                <table class="data-table">
                     <thead>
                         <tr>
                             <th>Code</th>
@@ -54,7 +58,7 @@ $pageSubtitle = $isProgressRegistry
                     <tbody>
                     <?php foreach ($proposals as $p): ?>
                         <tr>
-                            <td><?= htmlspecialchars($p['project_code'] ?? '—') ?></td>
+                            <td><code class="proposal-registry-code"><?= htmlspecialchars((string) ($p['project_code'] ?? '')) ?></code></td>
                             <td><?= htmlspecialchars($p['title']) ?></td>
                             <td><?= htmlspecialchars(ucfirst((string) $p['project_type'])) ?></td>
                             <td><?= htmlspecialchars(trim((string) (($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')))) ?></td>

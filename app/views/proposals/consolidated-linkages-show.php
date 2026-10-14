@@ -8,7 +8,7 @@
 
 $pageTitle = htmlspecialchars($proposal['title']) . ' — RIDE IMS';
 $pageHeading = 'Consolidated Linkages';
-$pageSubtitle = 'College consolidation of faculty linkages reports approved by the Director of Research.';
+$pageSubtitle = 'College consolidation of faculty linkages reports approved by the RDO Director.';
 
 $summaryData = [];
 if (!empty($proposal['summary'])) {

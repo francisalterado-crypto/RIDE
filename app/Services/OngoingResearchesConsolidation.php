@@ -18,7 +18,7 @@ final class OngoingResearchesConsolidation
     public const SCOPE_VPRIDE = 'vpride';
 
     /**
-     * After Director of Research approves a faculty ongoing report, deposit into
+     * After RDO Director approves a faculty ongoing report, deposit into
      * the college consolidated draft and the university-wide VPRIDE consolidated draft.
      */
     public static function depositOnDirectorApproval(int $facultyProposalId): void

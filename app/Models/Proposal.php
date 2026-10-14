@@ -33,9 +33,11 @@ final class Proposal
     {
         $accessSql = ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
         $stmt = Database::pdo()->prepare(
-            'SELECT p.*,
+            'SELECT p.*, u.first_name, u.last_name, c.name AS college_name,
                     CASE WHEN p.user_id = ? THEN \'lead\' ELSE \'coauthor\' END AS membership
              FROM proposals p
+             LEFT JOIN users u ON u.id = p.user_id
+             LEFT JOIN colleges c ON c.id = p.college_id
              WHERE ' . $accessSql . '
              ORDER BY p.updated_at DESC'
         );
@@ -56,9 +58,11 @@ final class Proposal
 
         $placeholders = implode(',', array_fill(0, count($projectTypes), '?'));
         $accessSql = ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
-        $sql = 'SELECT p.*,
+        $sql = 'SELECT p.*, u.first_name, u.last_name, c.name AS college_name,
                        CASE WHEN p.user_id = ? THEN \'lead\' ELSE \'coauthor\' END AS membership
                 FROM proposals p
+                LEFT JOIN users u ON u.id = p.user_id
+                LEFT JOIN colleges c ON c.id = p.college_id
                 WHERE ' . $accessSql . '
                   AND p.project_type IN (' . $placeholders . ')
                 ORDER BY p.updated_at DESC';

@@ -108,7 +108,7 @@ final class ProgressReport
     /** @return list<array> */
     public static function overdue(?int $userId = null, ?int $collegeId = null): array
     {
-        $sql = "SELECT pr.*, p.title AS project_title, p.project_code
+        $sql = "SELECT pr.*, p.title AS project_title, p.project_code, p.project_type, p.college_id
                 FROM progress_reports pr
                 INNER JOIN proposals p ON p.id = pr.proposal_id
                 WHERE pr.status = 'draft' AND pr.due_date IS NOT NULL AND pr.due_date < " . Sql::currentDate();

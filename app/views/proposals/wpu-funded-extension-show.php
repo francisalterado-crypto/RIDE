@@ -16,7 +16,7 @@ $pageSubtitle = 'Review the submitted Extension Program/Project Proposal (WPU-QS
     <?php if (in_array($proposal['status'], ['ongoing', 'approved', 'completed'], true)): ?>
         <a class="btn btn-accent" href="<?= base_url('projects/' . $proposal['id']) ?>">Monitor Project</a>
     <?php endif; ?>
-    <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id'] . '/print') ?>" target="_blank" rel="noopener"><i class="fa-solid fa-print"></i> Print Preview / PDF</a>
+    <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id'] . '/print') ?>" target="_blank" rel="noopener">Print or Save as PDF</a>
     <?php if ($canEdit): ?>
         <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id'] . '/edit') ?>">Edit</a>
     <?php endif; ?>

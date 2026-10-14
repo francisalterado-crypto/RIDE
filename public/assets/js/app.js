@@ -16,7 +16,7 @@
             return false;
         }
 
-        if (field.classList.contains('no-capitalize') || field.dataset.capitalize === 'off') {
+        if (field.classList.contains('no-capitalize') || field.closest('[data-capitalize="off"]')) {
             return false;
         }
 
@@ -126,6 +126,46 @@
         'terminal-report-submenu',
         'ride:nav:terminal-report-collapsed'
     );
+
+    // Nested collapsible groups inside a nav submenu (e.g. Quarterly Report).
+    document.querySelectorAll('[data-nav-subgroup]').forEach((group) => {
+        const toggle = group.querySelector('.nav-subgroup-toggle');
+        const items = group.querySelector('.nav-subgroup-items');
+        if (!toggle || !items || !group.id) {
+            return;
+        }
+        const storageKey = `ride:nav:${group.id}-collapsed`;
+        const setCollapsed = (collapsed, remember = true) => {
+            group.classList.toggle('is-collapsed', collapsed);
+            items.hidden = collapsed;
+            toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            if (!remember) {
+                return;
+            }
+            try {
+                if (collapsed) {
+                    localStorage.setItem(storageKey, '1');
+                } else {
+                    localStorage.removeItem(storageKey);
+                }
+            } catch (e) {
+                /* ignore storage errors */
+            }
+        };
+
+        try {
+            // Keep the group open while one of its pages is the current page.
+            if (localStorage.getItem(storageKey) === '1' && !group.classList.contains('has-active')) {
+                setCollapsed(true, false);
+            }
+        } catch (e) {
+            /* ignore storage errors */
+        }
+
+        toggle.addEventListener('click', () => {
+            setCollapsed(!group.classList.contains('is-collapsed'));
+        });
+    });
 
     const initAccountsSearch = () => {
         const searchInput = document.getElementById('accounts-search');

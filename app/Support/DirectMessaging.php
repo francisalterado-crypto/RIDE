@@ -44,15 +44,15 @@ final class DirectMessaging
 
     public const STAFF_ROLE_LABELS = [
 
-        MonitoringRoles::COORDINATOR_RESEARCH => 'Coordinator of Research',
+        MonitoringRoles::COORDINATOR_RESEARCH => 'Research Coordinator',
 
-        MonitoringRoles::COORDINATOR_EXTENSION => 'Coordinator of Extension',
+        MonitoringRoles::COORDINATOR_EXTENSION => 'Field Extensionist',
 
         MonitoringRoles::DEAN => 'College Dean',
 
-        MonitoringRoles::DIRECTOR_RESEARCH => 'Director of Research',
+        MonitoringRoles::DIRECTOR_RESEARCH => 'RDO Director',
 
-        MonitoringRoles::DIRECTOR_EXTENSION => 'Director of Extension',
+        MonitoringRoles::DIRECTOR_EXTENSION => 'ESO Director',
 
         MonitoringRoles::VPRIDE => 'VPRIDE',
 

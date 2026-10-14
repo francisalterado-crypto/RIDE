@@ -106,6 +106,29 @@ final class PublishedPaper
         return (int) Database::pdo()->lastInsertId();
     }
 
+    public static function update(int $id, array $data): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE published_papers
+             SET title = ?, authors = ?, journal_name = ?, publication_date = ?, publication_year = ?,
+                 doi = ?, indexing = ?, status = ?, link = ?, notes = ?
+             WHERE id = ?'
+        );
+        $stmt->execute([
+            $data['title'],
+            $data['authors'] ?: null,
+            $data['journal_name'],
+            $data['publication_date'] ?: null,
+            $data['publication_year'] ?: null,
+            $data['doi'] ?: null,
+            $data['indexing'] ?: null,
+            $data['status'] ?? 'published',
+            $data['link'] ?: null,
+            $data['notes'] ?: null,
+            $id,
+        ]);
+    }
+
     public static function delete(int $id): bool
     {
         ScholarlyAttachment::deleteForRecord(ScholarlyAttachment::TYPE_PAPER, $id);

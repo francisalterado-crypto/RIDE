@@ -28,7 +28,7 @@ if ($collegeName === '' && $collegeId > 0) {
 }
 
 $coordinatorStep = MonitoringRoles::coordinatorStepForType($projectType);
-$coordinatorLabel = $isExtension ? 'Coordinator of Extension' : 'Coordinator of Research';
+$coordinatorLabel = $isExtension ? 'Field Extensionist' : 'Research Coordinator';
 $coordinatorEndorsement = $proposalId > 0 ? proposal_step_endorsement($proposalId, $coordinatorStep, $coordinatorLabel) : null;
 $deanEndorsement = $proposalId > 0 ? proposal_step_endorsement($proposalId, MonitoringRoles::DEAN, 'College Dean') : null;
 
@@ -49,9 +49,9 @@ $deanSignatory = proposal_manuscript_college_signatory(
 );
 
 $directorStep = MonitoringRoles::directorStepForType($projectType);
-$directorRoleLabel = $isExtension ? 'Director of Extension' : 'Director of Research';
+$directorRoleLabel = $isExtension ? 'ESO Director' : 'RDO Director';
 $directorDisplayRole = $isExtension
-    ? 'Director of Extension'
+    ? 'ESO Director'
     : 'Director, Research and Development Office';
 
 $directorEndorsement = $proposalId > 0
@@ -80,7 +80,7 @@ if ($isApproved && is_string($proposal['approved_at'] ?? null) && $proposal['app
 $blocks = [
     [
         'label' => 'Submitted by:',
-        'role' => $isExtension ? 'Faculty Extension Worker' : 'Faculty Researcher',
+        'role' => $isExtension ? 'Faculty' : 'Faculty',
         'signature_url' => $applicantSignatureUrl,
         'name' => $applicantName,
     ],

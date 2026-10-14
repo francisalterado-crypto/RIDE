@@ -13,7 +13,7 @@ final class CompletedResearchesConsolidation
 {
     private const FUNDING_SECTIONS = ['external', 'inhouse', 'personal'];
 
-    /** After Director of Research approves a faculty completed report, deposit into the college consolidated draft. */
+    /** After RDO Director approves a faculty completed report, deposit into the college consolidated draft. */
     public static function depositOnDirectorApproval(int $facultyProposalId): void
     {
         $facultyProposal = Proposal::find($facultyProposalId);

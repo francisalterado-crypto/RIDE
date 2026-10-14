@@ -18,7 +18,7 @@ $pageSubtitle = $isEdit
 
     ? 'Update the consolidated resulted in extension report before saving or resubmitting.'
 
-    : 'College consolidation of faculty research resulted in extension approved by the Director of Research (WPU-QSF-RIDE-RDO-10).';
+    : 'College consolidation of faculty research resulted in extension approved by the RDO Director (WPU-QSF-RIDE-RDO-10).';
 
 $user = \App\Core\Auth::user() ?? [];
 
@@ -178,11 +178,11 @@ $sectionRows = static function (string $key) use ($entries): array {
 
     <?php if (\App\Services\ResearchFormConsolidation::entriesHaveRows('resulted_in_extension', $entries)): ?>
 
-        <p class="proposal-section-note">Rows below include faculty research resulted in extension for your college, deposited after Director of Research approval.</p>
+        <p class="proposal-section-note">Rows below include faculty research resulted in extension for your college, deposited after RDO Director approval.</p>
 
     <?php elseif (!$isEdit): ?>
 
-        <p class="proposal-section-note">No faculty research resulted in extension approved by the Director of Research was found yet. Rows are added automatically when the Director of Research approves each report.</p>
+        <p class="proposal-section-note">No faculty research resulted in extension approved by the RDO Director was found yet. Rows are added automatically when the RDO Director approves each report.</p>
 
     <?php endif; ?>
 

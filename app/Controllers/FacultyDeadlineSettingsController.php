@@ -25,7 +25,7 @@ final class FacultyDeadlineSettingsController
             'deadlineSummary' => FacultyFormDeadlines::deadlineSummaryText(),
             'pageTitle' => 'Faculty Form Deadlines — RIDE IMS',
             'pageHeading' => 'Faculty Form Deadlines',
-            'pageSubtitle' => 'Activate quarterly deadlines for faculty monitoring forms (VPRIDE and Director of Research).',
+            'pageSubtitle' => 'Activate quarterly deadlines for faculty monitoring forms (VPRIDE and RDO Director).',
         ]);
     }
 

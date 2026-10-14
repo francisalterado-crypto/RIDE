@@ -105,6 +105,26 @@ final class PaperPresentation
         return (int) Database::pdo()->lastInsertId();
     }
 
+    public static function update(int $id, array $data): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE paper_presentations
+             SET title = ?, conference_name = ?, presentation_type = ?, presentation_date = ?,
+                 location = ?, is_international = ?, notes = ?
+             WHERE id = ?'
+        );
+        $stmt->execute([
+            $data['title'],
+            $data['conference_name'],
+            $data['presentation_type'] ?? 'oral',
+            $data['presentation_date'] ?: null,
+            $data['location'] ?: null,
+            !empty($data['is_international']) ? 1 : 0,
+            $data['notes'] ?: null,
+            $id,
+        ]);
+    }
+
     public static function delete(int $id): bool
     {
         ScholarlyAttachment::deleteForRecord(ScholarlyAttachment::TYPE_PRESENTATION, $id);

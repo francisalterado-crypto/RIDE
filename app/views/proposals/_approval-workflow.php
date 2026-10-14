@@ -16,7 +16,7 @@ foreach ($workflowSteps as $step) {
         <p class="proposal-workflow-summary">
             Currently pending:
             <strong><?= htmlspecialchars($pendingStep['title']) ?></strong>
-            — <?= htmlspecialchars($pendingStep['status_label']) ?>
+            (<?= htmlspecialchars($pendingStep['status_label']) ?>)
         </p>
     <?php endif; ?>
 

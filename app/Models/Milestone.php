@@ -77,7 +77,7 @@ final class Milestone
     public static function overdueForUser(?int $collegeId, ?int $userId, bool $all = false): array
     {
         self::refreshOverdue();
-        $sql = "SELECT m.*, p.title AS project_title, p.project_code
+        $sql = "SELECT m.*, p.title AS project_title, p.project_code, p.project_type, p.college_id
                 FROM milestones m
                 INNER JOIN proposals p ON p.id = m.proposal_id
                 WHERE m.status = 'overdue' AND p.status IN ('ongoing','approved')";

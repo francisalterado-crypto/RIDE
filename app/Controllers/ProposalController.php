@@ -3634,7 +3634,7 @@ final class ProposalController
             return $locked;
         }
 
-        $type = trim((string) ($_POST['project_type'] ?? $fallback));
+        $type = strtolower(trim((string) ($_POST['project_type'] ?? $fallback)));
 
         return in_array($type, ['research', 'innovation', 'development', 'extension'], true) ? $type : 'research';
     }
@@ -5817,7 +5817,7 @@ final class ProposalController
 
             $options[] = [
                 'id' => $id,
-                'label' => implode(' · ', $labelParts) !== '' ? implode(' · ', $labelParts) : $fullName,
+                'label' => implode(' - ', $labelParts) !== '' ? implode(' - ', $labelParts) : $fullName,
                 'name' => $fullName,
                 'college_name' => $collegeName,
                 'department' => $department,

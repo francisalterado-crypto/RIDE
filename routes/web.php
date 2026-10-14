@@ -44,6 +44,7 @@ $router->get('/logout', [AuthController::class, 'logout'], $auth);
 $router->get('/profile', [ProfileController::class, 'index'], $auth);
 $router->post('/profile/update', [ProfileController::class, 'update'], $auth);
 $router->post('/profile/password', [ProfileController::class, 'updatePassword'], $auth);
+$router->post('/profile/researcher', [ProfileController::class, 'updateResearcherProfiles'], $auth);
 $router->post('/profile/avatar', [ProfileController::class, 'uploadAvatar'], $auth);
 $router->post('/profile/avatar/remove', [ProfileController::class, 'removeAvatar'], $auth);
 $router->get('/avatars/{userId}', [ProfileController::class, 'showAvatar']);
@@ -196,6 +197,8 @@ $router->post('/scholarly/papers/{id}/attachments', [ScholarlyController::class,
 $router->post('/scholarly/presentations/{id}/attachments', [ScholarlyController::class, 'uploadPresentationAttachments'], $auth);
 $router->get('/scholarly/attachments/{id}', [ScholarlyController::class, 'downloadAttachment'], $auth);
 $router->post('/scholarly/attachments/{id}/delete', [ScholarlyController::class, 'destroyAttachment'], $auth);
+$router->post('/scholarly/papers/{id}/update', [ScholarlyController::class, 'updatePaper'], $auth);
+$router->post('/scholarly/presentations/{id}/update', [ScholarlyController::class, 'updatePresentation'], $auth);
 $router->post('/scholarly/papers/{id}/delete', [ScholarlyController::class, 'destroyPaper'], $auth);
 $router->post('/scholarly/presentations/{id}/delete', [ScholarlyController::class, 'destroyPresentation'], $auth);
 

@@ -17,7 +17,7 @@ $appCssVersion = is_file($appCssPath) ? (string) filemtime($appCssPath) : '1';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($documentTitle) ?> — Print Preview</title>
+    <title>Print Preview: <?= htmlspecialchars($documentTitle) ?></title>
     <link rel="icon" type="image/png" href="<?= base_url('assets/images/ride-logo.png') ?>" sizes="32x32">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=<?= htmlspecialchars($appCssVersion) ?>">
@@ -68,21 +68,21 @@ $appCssVersion = is_file($appCssPath) ? (string) filemtime($appCssPath) : '1';
 <body class="print-preview-body">
     <div class="print-toolbar">
         <div>
-            <p class="print-toolbar-title"><i class="fa-solid fa-file-lines"></i> <?= htmlspecialchars($documentTitle) ?></p>
+            <p class="print-toolbar-title"><?= htmlspecialchars($documentTitle) ?></p>
             <?php if ($isUnsavedPreview): ?>
-                <p class="print-toolbar-note">Preview of unsaved changes — save the form to keep them.</p>
+                <p class="print-toolbar-note">This preview includes changes you have not saved yet.</p>
             <?php endif; ?>
         </div>
         <div class="print-toolbar-actions">
-            <button type="button" class="btn btn-accent" id="print-btn"><i class="fa-solid fa-print"></i> Print</button>
-            <button type="button" class="btn btn-accent" id="pdf-btn"><i class="fa-solid fa-file-pdf"></i> Save as PDF</button>
-            <button type="button" class="btn btn-outline" id="close-btn"><i class="fa-solid fa-xmark"></i> Close</button>
+            <button type="button" class="btn btn-accent" id="print-btn">Print</button>
+            <button type="button" class="btn btn-accent" id="pdf-btn">Save as PDF</button>
+            <button type="button" class="btn btn-outline" id="close-btn">Close</button>
         </div>
     </div>
 
     <div class="print-sheet proposal-paper completed-researches-paper eso-extension-paper wpu-funded-extension-paper" id="print-sheet">
         <?php if ($isUnsavedPreview): ?>
-            <p class="print-watermark" data-html2canvas-ignore>Preview — not yet saved</p>
+            <p class="print-watermark" data-html2canvas-ignore>Preview only. Not yet saved.</p>
         <?php endif; ?>
         <?php require APP_PATH . '/views/proposals/_wpu-funded-extension-paper.php'; ?>
     </div>
@@ -102,7 +102,7 @@ $appCssVersion = is_file($appCssPath) ? (string) filemtime($appCssPath) : '1';
             }
             const original = pdfButton.innerHTML;
             pdfButton.disabled = true;
-            pdfButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating…';
+            pdfButton.innerHTML = 'Preparing PDF...';
             const sheet = document.getElementById('print-sheet');
             sheet.style.boxShadow = 'none';
             try {

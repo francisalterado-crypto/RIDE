@@ -115,7 +115,7 @@ $lessonsLearned = is_string($summaryData['lessons_learned'] ?? null) ? $summaryD
         <div class="completed-researches-signoff-grid">
             <div>
                 <p class="completed-researches-signoff-label">Prepared by:</p>
-                <p class="completed-researches-signoff-role">College Extension Coordinator</p>
+                <p class="completed-researches-signoff-role">Field Extensionist</p>
             </div>
             <div>
                 <p class="completed-researches-signoff-label">Attested True and Correct:</p>

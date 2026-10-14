@@ -16,6 +16,7 @@ final class FormTemplateController
     {
         view('forms.index', [
             'templates' => FormTemplate::activeFor(self::visibleAudiences()),
+            'pageTitle' => 'Downloadable Forms — RIDE IMS',
         ]);
     }
 

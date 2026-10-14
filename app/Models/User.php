@@ -436,6 +436,22 @@ final class User
         return $stmt->rowCount() > 0;
     }
 
+    /** @param array{orcid_id: ?string, google_scholar_url: ?string, researchgate_url: ?string, github_url: ?string} $profiles */
+    public static function updateResearcherProfiles(int $id, array $profiles): void
+    {
+        $stmt = Database::pdo()->prepare(
+            'UPDATE users SET orcid_id = ?, google_scholar_url = ?, researchgate_url = ?, github_url = ?
+             WHERE id = ? AND is_active = 1'
+        );
+        $stmt->execute([
+            $profiles['orcid_id'],
+            $profiles['google_scholar_url'],
+            $profiles['researchgate_url'],
+            $profiles['github_url'],
+            $id,
+        ]);
+    }
+
     public static function updatePassword(int $id, string $password): bool
     {
         $stmt = Database::pdo()->prepare(

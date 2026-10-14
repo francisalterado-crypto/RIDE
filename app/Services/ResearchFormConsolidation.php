@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Support\MonitoringRoles;
 
 /**
- * Consolidates faculty quarterly research forms into coordinator drafts after Director of Research approval.
+ * Consolidates faculty quarterly research forms into coordinator drafts after RDO Director approval.
  */
 final class ResearchFormConsolidation
 {

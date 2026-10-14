@@ -535,17 +535,17 @@ final class MonitoringRoles
 
         return match ($step) {
 
-            self::COORDINATOR_RESEARCH => 'Coordinator of Research — Endorsement',
+            self::COORDINATOR_RESEARCH => 'Research Coordinator (Endorsement)',
 
-            self::COORDINATOR_EXTENSION => 'Coordinator of Extension — Endorsement',
+            self::COORDINATOR_EXTENSION => 'Field Extensionist (Endorsement)',
 
-            self::DEAN => 'College Dean — Approval',
+            self::DEAN => 'College Dean (Approval)',
 
-            self::DIRECTOR_RESEARCH => 'Director of Research — Approval',
+            self::DIRECTOR_RESEARCH => 'RDO Director (Approval)',
 
-            self::DIRECTOR_EXTENSION => 'Director of Extension — Approval',
+            self::DIRECTOR_EXTENSION => 'ESO Director (Approval)',
 
-            self::VPRIDE => 'VPRIDE — Final Approval',
+            self::VPRIDE => 'VPRIDE (Final Approval)',
 
             default => ucwords(str_replace('_', ' ', $step)),
 
@@ -589,25 +589,25 @@ final class MonitoringRoles
 
         if (self::isDirectorResearch()) {
 
-            return 'Director of Research';
+            return 'RDO Director';
 
         }
 
         if (self::isDirectorExtension()) {
 
-            return 'Director of Extension';
+            return 'ESO Director';
 
         }
 
         if (self::isCoordinatorResearch()) {
 
-            return 'Coordinator of Research';
+            return 'Research Coordinator';
 
         }
 
         if (self::isCoordinatorExtension()) {
 
-            return 'Coordinator of Extension';
+            return 'Field Extensionist';
 
         }
 

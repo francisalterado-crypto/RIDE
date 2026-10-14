@@ -18,7 +18,7 @@ $pageSubtitle = $isEdit
 
     ? 'Update the consolidated book citation report before saving or resubmitting.'
 
-    : 'College consolidation of faculty book citation reports approved by the Director of Research (WPU-QSF-RIDE-RDO-12).';
+    : 'College consolidation of faculty book citation reports approved by the RDO Director (WPU-QSF-RIDE-RDO-12).';
 
 $user = \App\Core\Auth::user() ?? [];
 
@@ -156,11 +156,11 @@ if (
 
     <?php if (\App\Services\ResearchFormConsolidation::entriesHaveRows('book_citation', $entries)): ?>
 
-        <p class="proposal-section-note">Rows below include faculty book citation reports for your college, deposited after Director of Research approval.</p>
+        <p class="proposal-section-note">Rows below include faculty book citation reports for your college, deposited after RDO Director approval.</p>
 
     <?php elseif (!$isEdit): ?>
 
-        <p class="proposal-section-note">No faculty book citation reports approved by the Director of Research were found yet. Rows are added automatically when the Director of Research approves each report.</p>
+        <p class="proposal-section-note">No faculty book citation reports approved by the RDO Director were found yet. Rows are added automatically when the RDO Director approves each report.</p>
 
     <?php endif; ?>
 

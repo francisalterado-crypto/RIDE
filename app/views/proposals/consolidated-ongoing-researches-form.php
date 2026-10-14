@@ -24,8 +24,8 @@ $pageSubtitle = $isEdit
     ? 'Update the consolidated ongoing researches report before saving or resubmitting.'
 
     : ($isVprideConsolidation
-        ? 'University-wide consolidation of faculty ongoing researches approved by the Director of Research (WPU-QSF-RIDE-RDO-06).'
-        : 'College consolidation of faculty ongoing researches approved by the Director of Research (WPU-QSF-RIDE-RDO-06).');
+        ? 'University-wide consolidation of faculty ongoing researches approved by the RDO Director (WPU-QSF-RIDE-RDO-06).'
+        : 'College consolidation of faculty ongoing researches approved by the RDO Director (WPU-QSF-RIDE-RDO-06).');
 
 $user = \App\Core\Auth::user() ?? [];
 
@@ -170,10 +170,10 @@ $sectionRows = static function (string $key) use ($entries): array {
 
     <?php if (\App\Services\OngoingResearchesConsolidation::entriesHaveRows($entries)): ?>
         <p class="proposal-section-note"><?= $isVprideConsolidation
-            ? 'Rows below include faculty ongoing researches from all colleges, deposited after Director of Research approval. The Category column shows the college.'
-            : 'Rows below include faculty ongoing researches for your college, deposited after Director of Research approval.' ?></p>
+            ? 'Rows below include faculty ongoing researches from all colleges, deposited after RDO Director approval. The Category column shows the college.'
+            : 'Rows below include faculty ongoing researches for your college, deposited after RDO Director approval.' ?></p>
     <?php elseif (!$isEdit): ?>
-        <p class="proposal-section-note">No faculty ongoing researches approved by the Director of Research were found yet. They are added automatically when the Director of Research approves each report.</p>
+        <p class="proposal-section-note">No faculty ongoing researches approved by the RDO Director were found yet. They are added automatically when the RDO Director approves each report.</p>
     <?php endif; ?>
 
     <?php foreach ($fundingSections as $sectionKey => $sectionLabel): ?>

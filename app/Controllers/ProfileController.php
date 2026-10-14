@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAvatar;
 use App\Models\UserSignature;
+use App\Support\ResearcherProfiles;
 
 final class ProfileController
 {
@@ -31,6 +32,51 @@ final class ProfileController
             'hasAvatar' => $avatarUrl !== null,
             'avatarUrl' => $avatarUrl,
         ]);
+    }
+
+    public function updateResearcherProfiles(): void
+    {
+        if (!verify_csrf()) {
+            set_flash('error', 'Invalid session. Please try again.');
+            redirect('profile');
+        }
+
+        $user = Auth::user();
+        if ($user === null) {
+            redirect('login');
+        }
+
+        $validators = [
+            'orcid_id' => [ResearcherProfiles::class, 'orcid'],
+            'google_scholar_url' => [ResearcherProfiles::class, 'googleScholar'],
+            'researchgate_url' => [ResearcherProfiles::class, 'researchGate'],
+            'github_url' => [ResearcherProfiles::class, 'github'],
+        ];
+        $profiles = [];
+        $errors = [];
+        $old = [];
+        foreach ($validators as $field => $validator) {
+            $raw = trim((string) ($_POST[$field] ?? ''));
+            $old['profile_' . $field] = $raw;
+            [$profiles[$field], $error] = $validator($raw);
+            if ($error !== null) {
+                $errors[] = $error;
+            }
+        }
+
+        if ($errors !== []) {
+            $_SESSION['_old'] = $old;
+            set_flash('error', implode(' ', $errors));
+            redirect('profile#researcher-profiles');
+        }
+
+        unset($_SESSION['_old']);
+        $userId = (int) $user['id'];
+        User::updateResearcherProfiles($userId, $profiles);
+        AuditLog::record('user', $userId, 'researcher_profiles_update', $profiles);
+
+        set_flash('success', 'Researcher profiles saved.');
+        redirect('profile#researcher-profiles');
     }
 
     public function update(): void

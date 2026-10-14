@@ -104,18 +104,27 @@ function nav_active(string $path): bool
     return $current === $path || str_starts_with($current, $path . '/');
 }
 
-/** @return 'research'|'extension'|null Null when nav scope does not apply (non-faculty). */
+/** Faculty and college deans work on both tracks, so they get separate Research and Extension menus. */
+function proposal_nav_has_dual_menu(): bool
+{
+    return \App\Core\Auth::hasRole('faculty') || \App\Support\MonitoringRoles::isDean();
+}
+
+/** @return 'research'|'extension'|null Null when nav scope does not apply (single-track roles). */
 function proposal_nav_scope(): ?string
 {
-    if (\App\Core\Auth::hasRole('extension_worker')) {
+    if (\App\Core\Auth::hasRole('extension_worker')
+        || \App\Support\MonitoringRoles::isCoordinatorExtension()
+        || \App\Support\MonitoringRoles::isDirectorExtension()) {
         return 'extension';
     }
 
-    if (!\App\Core\Auth::hasRole('faculty')) {
+    if (!proposal_nav_has_dual_menu()) {
         return null;
     }
 
-    $scope = trim((string) ($_GET['scope'] ?? $_POST['nav_scope'] ?? ''));
+    // POST values are title-cased globally in bootstrap, so compare in lowercase.
+    $scope = strtolower(trim((string) ($_GET['scope'] ?? $_POST['nav_scope'] ?? '')));
     if ($scope === 'extension' || $scope === 'research') {
         return $scope;
     }
@@ -139,7 +148,7 @@ function proposal_nav_scope(): ?string
 
 function proposal_nav_scope_query(string $menuScope): string
 {
-    if (!\App\Core\Auth::hasRole('faculty')) {
+    if (!proposal_nav_has_dual_menu()) {
         return '';
     }
 
@@ -148,7 +157,7 @@ function proposal_nav_scope_query(string $menuScope): string
 
 function proposal_nav_menu_scope_active(string $menuScope): bool
 {
-    if (!\App\Core\Auth::hasRole('faculty')) {
+    if (!proposal_nav_has_dual_menu()) {
         return true;
     }
 
@@ -162,7 +171,7 @@ function proposal_nav_scoped_active(bool $pathActive, string $menuScope): bool
 
 function proposal_nav_redirect_suffix(?string $scope = null): string
 {
-    if (!\App\Core\Auth::hasRole('faculty')) {
+    if (!proposal_nav_has_dual_menu()) {
         return '';
     }
 
@@ -173,7 +182,9 @@ function proposal_nav_redirect_suffix(?string $scope = null): string
 
 function proposal_nav_group_label(): string
 {
-    if (\App\Support\MonitoringRoles::isCoordinatorExtension() || \App\Support\MonitoringRoles::isExtensionWorker()) {
+    if (\App\Support\MonitoringRoles::isCoordinatorExtension()
+        || \App\Support\MonitoringRoles::isDirectorExtension()
+        || \App\Support\MonitoringRoles::isExtensionWorker()) {
         return 'Extension Services';
     }
 
@@ -254,16 +265,16 @@ function user_role_label(): string
         return 'RIDE Administrator';
     }
     if (\App\Support\MonitoringRoles::isDirectorResearch()) {
-        return 'Director of Research';
+        return 'RDO Director';
     }
     if (\App\Support\MonitoringRoles::isDirectorExtension()) {
-        return 'Director of Extension';
+        return 'ESO Director';
     }
     if (\App\Support\MonitoringRoles::isCoordinatorResearch()) {
-        return 'Coordinator of Research';
+        return 'Research Coordinator';
     }
     if (\App\Support\MonitoringRoles::isCoordinatorExtension()) {
-        return 'Coordinator of Extension';
+        return 'Field Extensionist';
     }
     if (\App\Core\Auth::hasRole('dean')) {
         return 'College Dean';
@@ -862,12 +873,15 @@ function proposal_uses_faculty_submitted_monitoring_workflow(?array $proposal): 
         || proposal_is_obr_matrix($proposal);
 }
 
-/** Quarterly report filed by the college coordinator of its track (routes College Dean → Director → VPRIDE). */
+/**
+ * True when the submitter is the coordinator for this record's type (college reports, or an
+ * extension coordinator's own proposal), so it goes to the College Dean first.
+ */
 function proposal_is_coordinator_submitted_report(?array $proposal): bool
 {
     if (!is_array($proposal)
-        || !proposal_is_quarterly_researches_report($proposal)
-        || proposal_uses_faculty_submitted_monitoring_workflow($proposal)) {
+        || proposal_uses_faculty_submitted_monitoring_workflow($proposal)
+        || (!proposal_is_quarterly_researches_report($proposal) && !proposal_is_wpu_funded_extension($proposal))) {
         return false;
     }
 
@@ -890,6 +904,44 @@ function proposal_form_type(?array $proposal): string
     $formType = $decoded['form_type'] ?? '';
 
     return is_string($formType) ? $formType : '';
+}
+
+/** Human-readable name of the form a proposal record was filed with, e.g. "Extension Program/Project Proposal". */
+function proposal_form_label(?array $proposal): string
+{
+    if (proposal_is_wpu_funded_extension($proposal)) {
+        return 'Extension Program/Project Proposal';
+    }
+
+    $formType = proposal_form_type($proposal);
+    if ($formType === '') {
+        return (($proposal['project_type'] ?? '') === 'extension') ? 'Extension Proposal' : 'Research Proposal';
+    }
+
+    return match ($formType) {
+        'manuscript' => 'Manuscript Writing for Publication',
+        'completed_researches' => 'Completed Researches',
+        'ongoing_researches' => 'Ongoing Researches',
+        'research_output_published' => 'Research Output Published',
+        'research_output_presented' => 'Research Output Presented',
+        'commercialized' => 'Commercialized Research',
+        'resulted_in_extension' => 'Research Resulted in Extension',
+        'journal_citation' => 'Journal Citation',
+        'book_citation' => 'Book Citation',
+        'inventions_um_copyrights' => 'Inventions, Utility Models, Copyrights',
+        'linkages' => 'Linkages',
+        'progress_report' => 'Progress Report',
+        'terminal_report' => 'Terminal Report',
+        'terminal_report_assessment_form' => 'Terminal Report Assessment Form',
+        'obr_matrix' => 'OBR Matrix',
+        'trainings_conducted' => 'Trainings Conducted',
+        'technical_advisory' => 'Technical Advisory',
+        'extension_linkages' => 'Extension Linkages',
+        'outreach_activities' => 'Outreach Activities',
+        'technology_adoption' => 'Technology Adoption',
+        'ebalwasyon_ng_gawain' => 'Ebalwasyon ng Gawain',
+        default => ucwords(str_replace('_', ' ', $formType)),
+    };
 }
 
 /** Applicant's Information / standard research proposal (no separate required-file uploads). */
@@ -946,7 +998,7 @@ function proposal_step_endorsement(int $proposalId, string $step, string $positi
 function proposal_coordinator_endorsement(int $proposalId, string $projectType = 'research'): ?array
 {
     $step = \App\Support\MonitoringRoles::coordinatorStepForType($projectType);
-    $label = $projectType === 'extension' ? 'Coordinator of Extension' : 'Coordinator of Research';
+    $label = $projectType === 'extension' ? 'Field Extensionist' : 'Research Coordinator';
 
     return proposal_step_endorsement($proposalId, $step, $label);
 }
@@ -1089,10 +1141,8 @@ function proposal_workflow_steps(?array $proposal): array
     $steps = [[
         'key' => 'applicant',
         'title' => $isCoordinatorSubmittedReport
-            ? ($isExtension ? 'College Extension Coordinator' : 'College R&D Coordinator')
-            : ($isManuscript
-            ? 'Lead Researcher'
-            : ($isExtension ? 'Faculty Extension Worker' : 'Faculty Researcher')),
+            ? ($isExtension ? 'Field Extensionist' : 'Research Coordinator')
+            : ($isManuscript ? 'Lead Researcher' : 'Faculty'),
         'description' => match (true) {
             $isProgressReport => 'Submit progress report',
             $isTerminalReport => 'Submit terminal report',
@@ -1106,7 +1156,7 @@ function proposal_workflow_steps(?array $proposal): array
         },
         'status' => $applicantStatus,
         'status_label' => match ($applicantStatus) {
-            'pending' => 'Draft — not yet submitted',
+            'pending' => 'Draft, not yet submitted',
             'returned' => 'Returned for revision',
             'suspended' => 'Suspended',
             default => 'Submitted',
@@ -1119,8 +1169,8 @@ function proposal_workflow_steps(?array $proposal): array
     $reviewDescriptions = [
         $coordinatorStep => 'Endorses and forwards to College Dean',
         \App\Support\MonitoringRoles::DEAN => $isExtension
-            ? 'Approves and forwards to Director of Extension'
-            : 'Approves and forwards to Director of Research',
+            ? 'Approves and forwards to ESO Director'
+            : 'Approves and forwards to RDO Director',
         \App\Support\MonitoringRoles::DIRECTOR_RESEARCH => 'Approves and forwards to VPRIDE',
         \App\Support\MonitoringRoles::DIRECTOR_EXTENSION => 'Approves and forwards to VPRIDE',
         \App\Support\MonitoringRoles::VPRIDE => 'Grants final approval',

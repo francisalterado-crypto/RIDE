@@ -39,21 +39,21 @@ c:\xampp\php\php.exe scripts\install.php
 |------|-------|------|-----------------|
 | Ana Reyes | admin@ride.local | RIDE Admin (system) | University-wide |
 | Ramon Villanueva | vpride@ride.local | Admin / VPRIDE | University-wide |
-| Liza Mendoza | director.research@ride.local | Director of Research | University-wide |
-| Carlos Javier | director.extension@ride.local | Director of Extension | University-wide |
-| Liza Mendoza | director@ride.local | Director of Research (alias) | University-wide |
-| Mark Santos | coord.research.cet@ride.local | Coordinator of Research | CET |
-| Grace Lim | coord.extension.cet@ride.local | Coordinator of Extension | CET |
+| Liza Mendoza | director.research@ride.local | RDO Director | University-wide |
+| Carlos Javier | director.extension@ride.local | ESO Director | University-wide |
+| Liza Mendoza | director@ride.local | RDO Director (alias) | University-wide |
+| Mark Santos | coord.research.cet@ride.local | Research Coordinator | CET |
+| Grace Lim | coord.extension.cet@ride.local | Field Extensionist | CET |
 | Patricia Ong | dean.cet@ride.local | College Dean | CET |
 | John Cruz | faculty.research.cet@ride.local | Faculty (Research) | CET |
 | Nina Bautista | faculty.extension.cet@ride.local | Faculty (Extension) | CET |
-| Elena Ramos | coord.research.cas@ride.local | Coordinator of Research | CAS |
-| Paolo Garcia | coord.extension.cas@ride.local | Coordinator of Extension | CAS |
+| Elena Ramos | coord.research.cas@ride.local | Research Coordinator | CAS |
+| Paolo Garcia | coord.extension.cas@ride.local | Field Extensionist | CAS |
 | Isabel Torres | dean.cas@ride.local | College Dean | CAS |
 | Miguel Lopez | faculty.research.cas@ride.local | Faculty (Research) | CAS |
 | Sara Dela Cruz | faculty.extension.cas@ride.local | Faculty (Extension) | CAS |
-| Daniel Tan | coord.research.cbm@ride.local | Coordinator of Research | CBM |
-| Monica Reyes | coord.extension.cbm@ride.local | Coordinator of Extension | CBM |
+| Daniel Tan | coord.research.cbm@ride.local | Research Coordinator | CBM |
+| Monica Reyes | coord.extension.cbm@ride.local | Field Extensionist | CBM |
 | Antonio Flores | dean.cbm@ride.local | College Dean | CBM |
 | Rachel Gomez | faculty.research.cbm@ride.local | Faculty (Research) | CBM |
 | Kevin Navarro | faculty.extension.cbm@ride.local | Faculty (Extension) | CBM |

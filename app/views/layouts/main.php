@@ -194,6 +194,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     || $trainingsConductedNavActive || $technicalAdvisoryNavActive || $extensionLinkagesNavActive
                     || $outreachActivitiesNavActive || $technologyAdoptionNavActive || $ebalwasyonNgGawainNavActive;
                 $isFacultyAccount = \App\Core\Auth::hasRole('faculty');
+                $hasDualProposalMenu = proposal_nav_has_dual_menu();
                 $showManuscriptNav = \App\Support\MonitoringRoles::canAccessManuscript();
                 $showCompletedResearchesNav = \App\Support\MonitoringRoles::canAccessCompletedResearches();
                 $showOngoingResearchesNav = \App\Support\MonitoringRoles::canAccessOngoingResearches();
@@ -231,7 +232,8 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     && !$showConsolidatedReportsNav
                     && !$hideDirectorResearchFormNav;
                 $disableManuscriptHighlight = \App\Support\MonitoringRoles::isCoordinator();
-                $hideCoordinatorProposalIntroNav = \App\Support\MonitoringRoles::isCoordinator();
+                $hideCoordinatorProposalIntroNav = \App\Support\MonitoringRoles::isCoordinator()
+                    && !\App\Support\MonitoringRoles::isCoordinatorExtension();
                 $consolidatedReportsNavActive = $consolidatedOngoingResearchesNavActive
                     || $consolidatedResearchOutputPublishedNavActive
                     || $consolidatedResearchOutputPresentedNavActive
@@ -243,16 +245,16 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     || $consolidatedLinkagesNavActive
                     || $consolidatedCompletedResearchesNavActive
                     || $obrMatrixNavActive;
-                $terminalReportNavGroupActive = $isFacultyAccount
+                $terminalReportNavGroupActive = $hasDualProposalMenu
                     ? proposal_nav_scoped_active(
                         $progressReportNavActive || $terminalReportNavActive || $terminalReportAssessmentFormNavActive,
                         'research'
                     )
                     : ($terminalReportNavActive || $terminalReportAssessmentFormNavActive);
-                $researchProposalNavActive = $isFacultyAccount
+                $researchProposalNavActive = $hasDualProposalMenu
                     ? proposal_nav_scoped_active($proposalNavItemsActive, 'research')
                     : $proposalNavItemsActive;
-                $researchExtensionNavActive = $isFacultyAccount
+                $researchExtensionNavActive = $hasDualProposalMenu
                     && proposal_nav_scoped_active($proposalNavItemsActive, 'extension');
                 ?>
                 <?php if ($showResearchProposalNav): ?>
@@ -274,7 +276,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </div>
                 </div>
                 <?php endif; ?>
-                <?php if ($isFacultyAccount && $showResearchProposalNav): ?>
+                <?php if ($hasDualProposalMenu && $showResearchProposalNav): ?>
                 <div class="nav-group nav-group-collapsible" id="research-extension-nav" data-nav-collapsible>
                     <button type="button" class="nav-item nav-item-toggle<?= $researchExtensionNavActive ? ' active' : '' ?>" id="research-extension-nav-toggle" aria-expanded="true" aria-controls="research-extension-submenu">
                         <i class="fas fa-hands-helping" aria-hidden="true"></i>

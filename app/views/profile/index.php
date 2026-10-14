@@ -151,6 +151,63 @@ $userId = (int) ($user['id'] ?? 0);
         <?php endif; ?>
     </div>
 
+    <div class="card" id="researcher-profiles">
+        <h2>Researcher Profiles</h2>
+        <p class="muted">Link your research profiles so they appear with your publications. All fields are optional.</p>
+
+        <form method="post" action="<?= base_url('profile/researcher') ?>" data-capitalize="off">
+            <?= csrf_field() ?>
+
+            <label for="profile_orcid_id">ORCID iD</label>
+            <input
+                id="profile_orcid_id"
+                name="orcid_id"
+                value="<?= old('profile_orcid_id', (string) ($user['orcid_id'] ?? '')) ?>"
+                maxlength="60"
+                placeholder="0000-0002-1825-0097"
+                autocomplete="off"
+            >
+            <p class="muted profile-field-hint">Your 16-digit iD from orcid.org. You can paste the full link.</p>
+
+            <label for="profile_google_scholar_url">Google Scholar profile</label>
+            <input
+                id="profile_google_scholar_url"
+                type="url"
+                name="google_scholar_url"
+                value="<?= old('profile_google_scholar_url', (string) ($user['google_scholar_url'] ?? '')) ?>"
+                maxlength="255"
+                placeholder="https://scholar.google.com/citations?user=..."
+            >
+            <p class="muted profile-field-hint">Open your Google Scholar profile and copy the address from the browser.</p>
+
+            <label for="profile_researchgate_url">ResearchGate profile</label>
+            <input
+                id="profile_researchgate_url"
+                type="url"
+                name="researchgate_url"
+                value="<?= old('profile_researchgate_url', (string) ($user['researchgate_url'] ?? '')) ?>"
+                maxlength="255"
+                placeholder="https://www.researchgate.net/profile/Your-Name"
+            >
+            <p class="muted profile-field-hint">Open your ResearchGate profile and copy the address from the browser.</p>
+
+            <label for="profile_github_url">GitHub</label>
+            <input
+                id="profile_github_url"
+                name="github_url"
+                value="<?= old('profile_github_url', (string) ($user['github_url'] ?? '')) ?>"
+                maxlength="255"
+                placeholder="https://github.com/username"
+                autocomplete="off"
+            >
+            <p class="muted profile-field-hint">Your GitHub username or profile link.</p>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-accent">Save Researcher Profiles</button>
+            </div>
+        </form>
+    </div>
+
     <div class="card">
         <h2>Change Password</h2>
         <p class="muted">Enter your current password, then choose a new one (at least 8 characters).</p>

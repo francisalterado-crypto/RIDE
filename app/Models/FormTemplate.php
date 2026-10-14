@@ -20,7 +20,7 @@ final class FormTemplate
         self::AUDIENCE_ALL => 'All users',
     ];
 
-    private const ALLOWED_EXT = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'zip'];
+    private const ALLOWED_EXT = ['pdf', 'doc', 'docx', 'rtf', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'txt', 'jpg', 'jpeg', 'png', 'zip'];
     private const MAX_BYTES = 10 * 1024 * 1024;
     private const COLUMNS = 'id, title, description, audience, original_name, stored_name, mime_type, file_size,
                              sort_order, is_active, created_by, created_at, updated_at';
