@@ -7,7 +7,7 @@ $isEdit = $proposal !== null;
 $lockedProjectType = $isEdit ? null : ($lockedProjectType ?? proposal_nav_scope());
 $isExtensionNav = $lockedProjectType === 'extension';
 $proposalLabel = $isExtensionNav ? 'Extension' : 'Research';
-$pageTitle = ($isEdit ? 'Edit' : ($isExtensionNav ? $proposalLabel . ' Proposal' : 'Applicant\'s Information')) . ' — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : ($isExtensionNav ? $proposalLabel . ' Proposal' : 'Applicant\'s Information')) . ' | RIDE';
 $pageHeading = $isEdit
     ? 'Edit ' . $proposalLabel . ' Proposal'
     : ($isExtensionNav ? $proposalLabel . ' Proposal' : 'Applicant\'s Information');

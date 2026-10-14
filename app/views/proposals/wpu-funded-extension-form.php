@@ -6,8 +6,8 @@
 
 $isEdit = $proposal !== null;
 $lockedProjectType = $isEdit ? 'extension' : ($lockedProjectType ?? proposal_nav_scope());
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Extension Program/Project Proposal — RIDE IMS';
-$pageHeading = 'Research Extension';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Extension Program/Project Proposal | RIDE';
+$pageHeading = 'Extension Services';
 $pageSubtitle = $isEdit
     ? 'Update your Extension Program/Project Proposal before saving or resubmitting.'
     : 'Complete the Office of Extension Services program/project proposal (WPU-QSF-RIDE-ESO-03).';
@@ -477,7 +477,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                     <div class="webform-grid webform-grid--3">
                         <div class="webform-field">
                             <label for="eso-faculty-search">Search faculty</label>
-                            <input type="search" id="eso-faculty-search" placeholder="Search by name, college, or department" autocomplete="off">
+                            <input type="search" id="eso-faculty-search" placeholder="Search by name, college, department, or specialization" autocomplete="off">
                         </div>
                         <div class="webform-field">
                             <label for="eso-faculty-college-filter">College</label>
@@ -508,7 +508,8 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                                         data-college="<?= htmlspecialchars((string) $facultyOption['college_name']) ?>"
                                         data-department="<?= htmlspecialchars((string) $facultyOption['department']) ?>"
                                         data-department-label="<?= htmlspecialchars((string) ($facultyOption['department_label'] ?? $facultyOption['department'])) ?>"
-                                    ><?= htmlspecialchars((string) $facultyOption['label']) ?></option>
+                                        data-specializations="<?= htmlspecialchars(implode(', ', $facultyOption['specializations'] ?? [])) ?>"
+                                    ><?= htmlspecialchars((string) $facultyOption['label']) ?><?= !empty($facultyOption['specializations']) ? ' (' . htmlspecialchars(implode(', ', $facultyOption['specializations'])) . ')' : '' ?></option>
                                 <?php endforeach; ?>
                             </optgroup>
                         <?php endforeach; ?>
@@ -1184,6 +1185,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                     option.dataset.name,
                     option.dataset.college,
                     option.dataset.department,
+                    option.dataset.specializations,
                     departmentLabel,
                     group.label,
                 ].join(' ').toLowerCase();

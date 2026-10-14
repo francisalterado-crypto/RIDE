@@ -12,7 +12,7 @@
 use App\Support\MonitoringRoles;
 
 $firstName = trim((string) ($user['first_name'] ?? ''));
-$pageTitle = 'Dashboard — RIDE IMS';
+$pageTitle = 'Dashboard | RIDE';
 $pageHeading = 'Dashboard';
 $pageSubtitle = 'Welcome back, ' . trim($firstName . ' ' . (string) ($user['last_name'] ?? ''))
     . (!empty($user['college_name']) ? ', ' . $user['college_name'] : '');

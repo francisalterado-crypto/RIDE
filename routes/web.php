@@ -8,6 +8,7 @@ use App\Controllers\AccountController;
 use App\Controllers\AdminScholarlyController;
 use App\Controllers\HighlightController;
 use App\Controllers\DashboardController;
+use App\Controllers\FacultyDirectoryController;
 use App\Controllers\FacultyDeadlineSettingsController;
 use App\Controllers\FormTemplateController;
 use App\Controllers\DirectMessageController;
@@ -45,6 +46,7 @@ $router->get('/profile', [ProfileController::class, 'index'], $auth);
 $router->post('/profile/update', [ProfileController::class, 'update'], $auth);
 $router->post('/profile/password', [ProfileController::class, 'updatePassword'], $auth);
 $router->post('/profile/researcher', [ProfileController::class, 'updateResearcherProfiles'], $auth);
+$router->post('/profile/specializations', [ProfileController::class, 'updateSpecializations'], $auth);
 $router->post('/profile/avatar', [ProfileController::class, 'uploadAvatar'], $auth);
 $router->post('/profile/avatar/remove', [ProfileController::class, 'removeAvatar'], $auth);
 $router->get('/avatars/{userId}', [ProfileController::class, 'showAvatar']);
@@ -182,6 +184,7 @@ $router->post('/projects/{id}/extension', [ProjectController::class, 'storeExten
 $router->get('/reports/extension-beneficiaries', [ProjectController::class, 'accreditationReport'], $auth);
 
 $router->get('/forms', [FormTemplateController::class, 'index'], $auth);
+$router->get('/faculty-directory', [FacultyDirectoryController::class, 'index'], $auth);
 $router->get('/forms/{id}/download', [FormTemplateController::class, 'download'], $auth);
 
 $router->get('/notifications/{id}/read', [NotificationController::class, 'markRead'], $auth);

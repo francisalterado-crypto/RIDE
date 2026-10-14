@@ -10,7 +10,7 @@
 
 $isEdit = $proposal !== null;
 
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Resulted in Extension — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Resulted in Extension | RIDE';
 
 $pageHeading = 'Consolidated Resulted in Extension';
 

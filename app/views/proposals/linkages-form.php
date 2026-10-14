@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Linkages — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Linkages | RIDE';
 $pageHeading = 'Linkages';
 $pageSubtitle = $isEdit
     ? 'Update your quarterly linkages report before saving or resubmitting.'

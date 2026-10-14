@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Not Found — RIDE IMS';
+$pageTitle = 'Not Found | RIDE';
 $pageHeading = 'Not Found';
 $pageSubtitle = 'The page you requested could not be found.';
 ?>

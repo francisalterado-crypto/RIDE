@@ -80,7 +80,7 @@ $scopeLabel = match ($scopeProjectType) {
     'extension' => 'Extension',
     default => 'Research and Extension',
 };
-$pageTitle = 'Monitoring — RIDE IMS';
+$pageTitle = 'Monitoring | RIDE';
 $pageHeading = 'Monitoring';
 $pageSubtitle = $roleTitle . ', '
     . ($universityWide ? 'all colleges' : (string) ($user['college_name'] ?? 'your college'))

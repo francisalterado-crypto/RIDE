@@ -3,7 +3,7 @@
 /** @var string $vision */
 /** @var string $mission */
 
-$pageTitle = 'Login Highlights — RIDE IMS';
+$pageTitle = 'Login Highlights | RIDE';
 $pageHeading = 'Login Highlights';
 $pageSubtitle = 'Manage vision, mission, and picture activities shown on the public login page.';
 ?>

@@ -13,7 +13,7 @@ $types = $context['types'];
 $singleType = count($types) === 1 ? $types[0] : null;
 $actionWord = $role === 'coordinator' ? 'endorsement' : 'approval';
 
-$pageTitle = 'Dashboard — RIDE IMS';
+$pageTitle = 'Dashboard | RIDE';
 $pageHeading = 'Dashboard';
 $pageSubtitle = 'Welcome back, ' . trim((string) ($user['first_name'] ?? '') . ' ' . (string) ($user['last_name'] ?? ''))
     . '. ' . $context['title'] . ', ' . $scopeLabel . '.';

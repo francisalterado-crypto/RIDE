@@ -23,7 +23,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
 <?php if (\App\Core\Auth::check()): ?>
     <?php
     $u = \App\Core\Auth::user();
-    $heading = $pageHeading ?? explode(' — ', (string) $pageTitle)[0];
+    $heading = $pageHeading ?? explode(' | ', (string) $pageTitle)[0];
     $subtitle = $pageSubtitle ?? '';
     $initials = user_initials($u);
     $roleLabel = user_role_label();
@@ -75,6 +75,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <a href="<?= base_url('forms') ?>" class="nav-item<?= nav_active('forms') ? ' active' : '' ?>">
                         <i class="fas fa-file-download"></i> <span>Downloadable Forms</span>
                     </a>
+                    <a href="<?= base_url('faculty-directory') ?>" class="nav-item<?= nav_active('faculty-directory') ? ' active' : '' ?>">
+                        <i class="fas fa-address-book"></i> <span>Faculty Directory</span>
+                    </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-label">Monitoring</div>
@@ -109,6 +112,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 </a>
                 <a href="<?= base_url('forms') ?>" class="nav-item<?= nav_active('forms') ? ' active' : '' ?>">
                     <i class="fas fa-file-download"></i> <span>Downloadable Forms</span>
+                </a>
+                <a href="<?= base_url('faculty-directory') ?>" class="nav-item<?= nav_active('faculty-directory') ? ' active' : '' ?>">
+                    <i class="fas fa-address-book"></i> <span>Faculty Directory</span>
                 </a>
                 <?php
                 $newProposalActive = nav_active('proposals/create');

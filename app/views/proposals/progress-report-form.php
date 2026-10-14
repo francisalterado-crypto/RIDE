@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Progress Report — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Progress Report | RIDE';
 $pageHeading = 'Progress Report';
 $pageSubtitle = $isEdit
     ? 'Update your progress report before saving or resubmitting.'

@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Terminal Report Assessment Form — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Terminal Report Assessment Form | RIDE';
 $pageHeading = 'Terminal Report Assessment Form';
 $pageSubtitle = 'Assessment checklist for terminal report evaluation.';
 

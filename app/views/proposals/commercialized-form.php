@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Commercialized — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Commercialized | RIDE';
 $pageHeading = 'Commercialized';
 $pageSubtitle = $isEdit
     ? 'Update your commercialized quarterly report before saving or resubmitting.'

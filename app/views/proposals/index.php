@@ -5,7 +5,7 @@ use App\Support\MonitoringRoles;
 
 $isVprideRegistry = MonitoringRoles::isVpride();
 $proposalCount = count($proposals);
-$pageTitle = 'Proposals — RIDE IMS';
+$pageTitle = 'Proposals | RIDE';
 $pageHeading = 'Proposals';
 $pageSubtitle = $isVprideRegistry
     ? 'University-wide proposal registry — search, review, and manage submissions.'

@@ -14,7 +14,7 @@
 
 /** @var int $currentUserId */
 
-$pageTitle = 'Manage Accounts — RIDE IMS';
+$pageTitle = 'Manage Accounts | RIDE';
 
 $pageHeading = 'Manage Accounts';
 

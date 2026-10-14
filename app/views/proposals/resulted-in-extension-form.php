@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Resulted in Extension — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Resulted in Extension | RIDE';
 $pageHeading = 'Resulted in Extension';
 $pageSubtitle = $isEdit
     ? 'Update your quarterly resulted in extension report before saving or resubmitting.'

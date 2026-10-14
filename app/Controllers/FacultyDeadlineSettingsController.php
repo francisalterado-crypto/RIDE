@@ -23,7 +23,7 @@ final class FacultyDeadlineSettingsController
             'monthOptions' => FacultyFormDeadlines::monthOptions(),
             'formGroupOptions' => FacultyFormDeadlines::FORM_GROUP_LABELS,
             'deadlineSummary' => FacultyFormDeadlines::deadlineSummaryText(),
-            'pageTitle' => 'Faculty Form Deadlines — RIDE IMS',
+            'pageTitle' => 'Faculty Form Deadlines | RIDE',
             'pageHeading' => 'Faculty Form Deadlines',
             'pageSubtitle' => 'Activate quarterly deadlines for faculty monitoring forms (VPRIDE and RDO Director).',
         ]);

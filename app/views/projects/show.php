@@ -1,5 +1,5 @@
 <?php
-$pageTitle = htmlspecialchars($project['title']) . ' — Monitoring';
+$pageTitle = (string) $project['title'] . ' | RIDE';
 $pageHeading = htmlspecialchars($project['title']);
 $pageSubtitle = 'Code: ' . htmlspecialchars($project['project_code'] ?? '—')
     . ' · ' . status_label((string) $project['status']);

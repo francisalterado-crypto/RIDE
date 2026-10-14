@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Journal Citation — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Journal Citation | RIDE';
 $pageHeading = 'Journal Citation';
 $pageSubtitle = $isEdit
     ? 'Update your journal citation report before saving or resubmitting.'

@@ -93,8 +93,8 @@ final class ProposalController
                 'proposal' => null,
                 'lockedProjectType' => 'extension',
                 'colleges' => College::all(),
-                'pageTitle' => 'New Extension Program/Project Proposal — RIDE IMS',
-                'pageHeading' => 'Research Extension',
+                'pageTitle' => 'New Extension Program/Project Proposal | RIDE',
+                'pageHeading' => 'Extension Services',
                 'pageSubtitle' => 'Complete the Office of Extension Services program/project proposal (WPU-QSF-RIDE-ESO-03).',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
                 'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
@@ -1024,7 +1024,7 @@ final class ProposalController
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-            'pageTitle' => 'New Ebalwasyon ng Gawain — RIDE IMS',
+            'pageTitle' => 'New Ebalwasyon ng Gawain | RIDE',
             'pageHeading' => 'Ebalwasyon ng Gawain',
             'pageSubtitle' => 'Complete the activity evaluation (WPU-QSF-RIDE-ESO-16).',
         ]);
@@ -2382,7 +2382,7 @@ final class ProposalController
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
-            'pageTitle' => ((string) ($proposal['title'] ?? 'Extension Program/Project Proposal')) . ' — RIDE IMS',
+            'pageTitle' => ((string) ($proposal['title'] ?? 'Extension Program/Project Proposal')) . ' | RIDE',
             'pageHeading' => (string) ($proposal['title'] ?? 'Extension Program/Project Proposal'),
             'pageSubtitle' => 'Review the submitted Extension Program/Project Proposal (WPU-QSF-RIDE-ESO-03).',
         ]);
@@ -2695,7 +2695,7 @@ final class ProposalController
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
-            'pageTitle' => ((string) ($proposal['title'] ?? 'Ebalwasyon ng Gawain')) . ' — RIDE IMS',
+            'pageTitle' => ((string) ($proposal['title'] ?? 'Ebalwasyon ng Gawain')) . ' | RIDE',
             'pageHeading' => (string) ($proposal['title'] ?? 'Ebalwasyon ng Gawain'),
             'pageSubtitle' => 'Review the submitted activity evaluation (WPU-QSF-RIDE-ESO-16).',
         ]);
@@ -2710,7 +2710,7 @@ final class ProposalController
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
-            'pageTitle' => ((string) ($proposal['title'] ?? 'Attendance Sheet')) . ' — RIDE IMS',
+            'pageTitle' => ((string) ($proposal['title'] ?? 'Attendance Sheet')) . ' | RIDE',
             'pageHeading' => (string) ($proposal['title'] ?? 'Attendance Sheet'),
             'pageSubtitle' => 'Review the submitted attendance form (WPU-QSF-RIDE-ESO-17).',
         ]);
@@ -3027,7 +3027,7 @@ final class ProposalController
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-                'pageTitle' => 'Edit Ebalwasyon ng Gawain — RIDE IMS',
+                'pageTitle' => 'Edit Ebalwasyon ng Gawain | RIDE',
                 'pageHeading' => 'Ebalwasyon ng Gawain',
                 'pageSubtitle' => 'Update the activity evaluation before saving or resubmitting.',
             ]);
@@ -3166,8 +3166,8 @@ final class ProposalController
                 'proposal' => $proposal,
                 'lockedProjectType' => 'extension',
                 'colleges' => College::all(),
-                'pageTitle' => 'Edit Extension Program/Project Proposal — RIDE IMS',
-                'pageHeading' => 'Research Extension',
+                'pageTitle' => 'Edit Extension Program/Project Proposal | RIDE',
+                'pageHeading' => 'Extension Services',
                 'pageSubtitle' => 'Update your Extension Program/Project Proposal before saving or resubmitting.',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
                 'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
@@ -5790,7 +5790,9 @@ final class ProposalController
     private function facultyTeamOptions(): array
     {
         $options = [];
-        foreach (User::allFaculty() as $row) {
+        $faculty = User::allFaculty();
+        $specializations = \App\Models\UserSpecialization::forUsers(array_map(static fn (array $row): int => (int) $row['id'], $faculty));
+        foreach ($faculty as $row) {
             $id = (int) ($row['id'] ?? 0);
             if ($id <= 0) {
                 continue;
@@ -5822,6 +5824,7 @@ final class ProposalController
                 'college_name' => $collegeName,
                 'department' => $department,
                 'department_label' => $departmentLabel,
+                'specializations' => $specializations[$id] ?? [],
             ];
         }
 

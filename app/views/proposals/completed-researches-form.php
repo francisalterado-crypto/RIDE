@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Completed Researches — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Completed Researches | RIDE';
 $pageHeading = 'Completed Researches';
 $pageSubtitle = $isEdit
     ? 'Update your quarterly completed researches report before saving or resubmitting.'

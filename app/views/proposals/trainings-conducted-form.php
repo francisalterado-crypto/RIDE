@@ -9,7 +9,7 @@ $isEdit = $proposal !== null;
 $requiredFileList = $requiredFileList ?? [];
 $requiredDocuments = $requiredDocuments ?? [];
 $allowDocumentUpload = true;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Trainings Conducted — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Trainings Conducted | RIDE';
 $pageHeading = 'Trainings Conducted';
 $pageSubtitle = $isEdit
     ? 'Update your quarterly trainings conducted report before saving or resubmitting.'

@@ -10,7 +10,7 @@
 /** @var array<int, list<array<string, mixed>>> $paperAttachments */
 /** @var array<int, list<array<string, mixed>>> $presentationAttachments */
 
-$pageTitle = 'Faculty Scholarly Output — RIDE IMS';
+$pageTitle = 'Faculty Scholarly Output | RIDE';
 $pageHeading = 'Published Papers & Presentations';
 $pageSubtitle = 'Monitor published papers and paper presentations submitted by faculty university-wide.';
 ?>

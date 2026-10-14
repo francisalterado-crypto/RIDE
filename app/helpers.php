@@ -303,10 +303,24 @@ function title_case_words(string $value): string
         return $value;
     }
 
+    // Small connecting words stay as typed unless they start the text ("College of Engineering and Technology").
+    static $minorWords = ['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'the', 'to', 'vs', 'via', 'ng', 'sa'];
+
     return (string) preg_replace_callback(
-        '/(^|[\s\'\-])([a-z])/u',
-        static fn (array $matches): string => $matches[1] . strtoupper($matches[2]),
-        $value
+        '/(^|[\s\'\-])([a-z])([\p{L}]*)/u',
+        static function (array $matches) use ($minorWords): string {
+            [$whole, $prefix, $first, $rest] = [$matches[0][0], $matches[1][0], $matches[2][0], $matches[3][0]];
+            $isFirstWord = $matches[0][1] === 0;
+            if (!$isFirstWord && trim($prefix) === '' && in_array($first . $rest, $minorWords, true)) {
+                return $whole;
+            }
+
+            return $prefix . strtoupper($first) . $rest;
+        },
+        $value,
+        -1,
+        $count,
+        PREG_OFFSET_CAPTURE
     );
 }
 
@@ -1156,8 +1170,8 @@ function proposal_workflow_steps(?array $proposal): array
         },
         'status' => $applicantStatus,
         'status_label' => match ($applicantStatus) {
-            'pending' => 'Draft, not yet submitted',
-            'returned' => 'Returned for revision',
+            'pending' => 'Draft',
+            'returned' => 'Returned',
             'suspended' => 'Suspended',
             default => 'Submitted',
         },

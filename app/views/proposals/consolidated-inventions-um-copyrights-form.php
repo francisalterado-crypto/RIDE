@@ -10,7 +10,7 @@
 
 $isEdit = $proposal !== null;
 
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Inventions, UM, Copyrights — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Inventions, UM, Copyrights | RIDE';
 
 $pageHeading = 'Consolidated Inventions, UM, Copyrights';
 

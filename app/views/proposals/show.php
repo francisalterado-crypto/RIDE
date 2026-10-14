@@ -5,7 +5,7 @@
 /** @var bool $canApprove */
 /** @var string $approveLabel */
 /** @var string $stepLabel */
-$pageTitle = htmlspecialchars($proposal['title']) . ' — RIDE IMS';
+$pageTitle = (string) $proposal['title'] . ' | RIDE';
 $pageHeading = 'Research Proposal Application';
 $pageSubtitle = 'Review the submitted application in the same structured format used for encoding.';
 $summaryData = null;

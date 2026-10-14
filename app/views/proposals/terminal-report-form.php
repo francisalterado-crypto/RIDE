@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Terminal Report — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Terminal Report | RIDE';
 $pageHeading = 'Terminal Report';
 $pageSubtitle = $isEdit
     ? 'Update your terminal report before saving or resubmitting.'

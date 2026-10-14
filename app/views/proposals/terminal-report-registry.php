@@ -9,7 +9,7 @@ $pageTitle = (
     $isProgressRegistry
         ? 'Progress Report Registry'
         : ($isAssessmentRegistry ? 'Terminal Report Assessment Registry' : 'Terminal Report Registry')
-) . ' — RIDE IMS';
+) . ' | RIDE';
 $pageHeading = $isProgressRegistry
     ? 'Progress Report Registry'
     : ($isAssessmentRegistry ? 'Terminal Report Assessment Registry' : 'Terminal Report Registry');

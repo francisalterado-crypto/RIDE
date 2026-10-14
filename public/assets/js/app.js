@@ -4,7 +4,16 @@
             return value;
         }
 
-        return value.replace(/(^|[\s\-'])([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
+        // Small connecting words stay as typed unless they start the text (matches title_case_words() in PHP).
+        const minorWords = ['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'the', 'to', 'vs', 'via', 'ng', 'sa'];
+
+        return value.replace(/(^|[\s\-'])([a-z])([\p{L}]*)/gu, (whole, prefix, letter, rest, offset) => {
+            if (offset > 0 && prefix.trim() === '' && minorWords.includes(letter + rest)) {
+                return whole;
+            }
+
+            return prefix + letter.toUpperCase() + rest;
+        });
     };
 
     const shouldCapitalizeField = (field) => {
@@ -235,10 +244,107 @@
         searchInput.addEventListener('input', updateFilter);
     };
 
+    // Chip input: type a value and press Enter or comma to add it; each chip submits as a hidden field.
+    const initChipInputs = () => {
+        document.querySelectorAll('[data-chip-input]').forEach((box) => {
+            const entry = box.querySelector('.chip-entry');
+            const form = box.closest('form');
+            if (!entry || !form) {
+                return;
+            }
+            const max = parseInt(box.dataset.max || '15', 10);
+            const fieldName = 'specializations[]';
+            const suggestions = form.querySelectorAll('.chip-suggestion');
+
+            const values = () => Array.from(box.querySelectorAll('input[type="hidden"]')).map((input) => input.value);
+            const hasValue = (value) => values().some((existing) => existing.toLowerCase() === value.toLowerCase());
+
+            const refreshSuggestions = () => {
+                const query = entry.value.trim().toLowerCase();
+                suggestions.forEach((button) => {
+                    const value = button.dataset.value || '';
+                    button.hidden = hasValue(value) || (query !== '' && !value.toLowerCase().includes(query));
+                });
+                entry.disabled = values().length >= max;
+                entry.placeholder = entry.disabled ? `Limit of ${max} reached` : 'Type a specialization, then press Enter';
+            };
+
+            const bindRemove = (chip) => {
+                chip.querySelector('.chip-remove')?.addEventListener('click', () => {
+                    chip.remove();
+                    refreshSuggestions();
+                    entry.focus();
+                });
+            };
+
+            const addChip = (raw) => {
+                const value = raw.replace(/\s+/g, ' ').trim().slice(0, 80);
+                if (value === '' || hasValue(value) || values().length >= max) {
+                    return;
+                }
+                const chip = document.createElement('span');
+                chip.className = 'chip-item';
+                const text = document.createElement('span');
+                text.className = 'chip-text';
+                text.textContent = value;
+                const hidden = document.createElement('input');
+                hidden.type = 'hidden';
+                hidden.name = fieldName;
+                hidden.value = value;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'chip-remove';
+                remove.setAttribute('aria-label', `Remove ${value}`);
+                remove.innerHTML = '<i class="fas fa-xmark" aria-hidden="true"></i>';
+                chip.append(text, hidden, remove);
+                box.insertBefore(chip, entry);
+                bindRemove(chip);
+                refreshSuggestions();
+            };
+
+            box.querySelectorAll('.chip-item').forEach(bindRemove);
+            box.addEventListener('click', (event) => {
+                if (event.target === box) {
+                    entry.focus();
+                }
+            });
+            entry.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ',') {
+                    event.preventDefault();
+                    addChip(entry.value);
+                    entry.value = '';
+                    refreshSuggestions();
+                } else if (event.key === 'Backspace' && entry.value === '') {
+                    const chips = box.querySelectorAll('.chip-item');
+                    chips[chips.length - 1]?.remove();
+                    refreshSuggestions();
+                }
+            });
+            entry.addEventListener('input', refreshSuggestions);
+            // Text left in the box when saving is added as a chip too.
+            form.addEventListener('submit', () => {
+                if (entry.value.trim() !== '') {
+                    addChip(entry.value);
+                    entry.value = '';
+                }
+            });
+            suggestions.forEach((button) => {
+                button.addEventListener('click', () => {
+                    addChip(button.dataset.value || '');
+                    entry.value = '';
+                    refreshSuggestions();
+                    entry.focus();
+                });
+            });
+            refreshSuggestions();
+        });
+    };
+
     const initApp = () => {
         initFormWordCapitalization();
         initAccountsSearch();
         initProposalRegistrySearch();
+        initChipInputs();
     };
 
     if (document.readyState === 'loading') {

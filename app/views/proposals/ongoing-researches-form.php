@@ -10,7 +10,7 @@
 
 $isEdit = $proposal !== null;
 
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Ongoing Researches — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Ongoing Researches | RIDE';
 
 $pageHeading = 'Ongoing Researches';
 

@@ -8,7 +8,7 @@
 /** @var array<string, string> $requiredFileList */
 /** @var array<string, list<array<string, mixed>>> $requiredDocuments */
 
-$pageTitle = htmlspecialchars($proposal['title']) . ' — RIDE IMS';
+$pageTitle = (string) $proposal['title'] . ' | RIDE';
 $pageHeading = htmlspecialchars($proposal['title']);
 $pageSubtitle = 'Review the submitted Accomplishment Report (WPU-QSF-RIDE-ESO-13).';
 

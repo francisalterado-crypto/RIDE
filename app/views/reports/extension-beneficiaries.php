@@ -46,7 +46,7 @@ $sortIndicator = static function (string $column) use ($sortBy, $sortDir): strin
     return $sortDir === 'asc' ? ' ▲' : ' ▼';
 };
 
-$pageTitle = 'Extension Beneficiaries Report — RIDE IMS';
+$pageTitle = 'Extension Beneficiaries Report | RIDE';
 $pageHeading = 'Extension Beneficiaries Report';
 $pageSubtitle = 'Accreditation report: extension projects with beneficiary counts (past ' . $years . ' years).';
 $formLabels = [

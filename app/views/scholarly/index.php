@@ -5,7 +5,7 @@
 /** @var array<int, list<array<string, mixed>>> $paperAttachments */
 /** @var array<int, list<array<string, mixed>>> $presentationAttachments */
 
-$pageTitle = 'My Scholarly Output — RIDE IMS';
+$pageTitle = 'My Scholarly Output | RIDE';
 $pageHeading = 'Published Papers & Presentations';
 $pageSubtitle = 'Keep a record of your published papers and conference presentations for university monitoring.';
 

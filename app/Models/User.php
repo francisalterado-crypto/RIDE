@@ -196,7 +196,8 @@ final class User
     public static function facultyForCollege(int $collegeId): array
     {
         $stmt = Database::pdo()->prepare(
-            'SELECT u.id, u.email, u.first_name, u.last_name, u.program, u.college_id, c.name AS college_name
+            'SELECT u.id, u.email, u.first_name, u.last_name, u.program, u.college_id, c.name AS college_name,
+                    u.orcid_id, u.google_scholar_url, u.researchgate_url, u.github_url
              FROM users u
              INNER JOIN user_roles ur ON ur.user_id = u.id
              INNER JOIN roles r ON r.id = ur.role_id AND r.slug = \'faculty\'
@@ -499,7 +500,8 @@ final class User
     public static function findActiveFacultyById(int $id): ?array
     {
         $stmt = Database::pdo()->prepare(
-            'SELECT u.id, u.email, u.first_name, u.last_name, u.program, u.college_id, c.name AS college_name
+            'SELECT u.id, u.email, u.first_name, u.last_name, u.program, u.college_id, c.name AS college_name,
+                    u.orcid_id, u.google_scholar_url, u.researchgate_url, u.github_url
              FROM users u
              INNER JOIN user_roles ur ON ur.user_id = u.id
              INNER JOIN roles r ON r.id = ur.role_id AND r.slug = \'faculty\'
@@ -517,7 +519,8 @@ final class User
     public static function allFaculty(): array
     {
         $stmt = Database::pdo()->query(
-            'SELECT u.id, u.email, u.first_name, u.last_name, u.program, u.college_id, c.name AS college_name
+            'SELECT u.id, u.email, u.first_name, u.last_name, u.program, u.college_id, c.name AS college_name,
+                    u.orcid_id, u.google_scholar_url, u.researchgate_url, u.github_url
              FROM users u
              INNER JOIN user_roles ur ON ur.user_id = u.id
              INNER JOIN roles r ON r.id = ur.role_id AND r.slug = \'faculty\'

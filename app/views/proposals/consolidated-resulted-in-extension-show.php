@@ -6,7 +6,7 @@
 /** @var string $approveLabel */
 /** @var string $stepLabel */
 
-$pageTitle = htmlspecialchars($proposal['title']) . ' — RIDE IMS';
+$pageTitle = (string) $proposal['title'] . ' | RIDE';
 $pageHeading = 'Consolidated Resulted in Extension';
 $pageSubtitle = 'College consolidation of faculty research resulted in extension approved by the RDO Director.';
 

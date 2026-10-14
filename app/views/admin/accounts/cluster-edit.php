@@ -2,7 +2,7 @@
 /** @var array<string, mixed> $cluster */
 /** @var list<array> $colleges */
 /** @var list<int> $memberCollegeIds */
-$pageTitle = 'Edit Cluster — RIDE IMS';
+$pageTitle = 'Edit Cluster | RIDE';
 $pageHeading = 'Edit Cluster';
 $pageSubtitle = 'Rename this cluster or change which colleges belong to it.';
 ?>

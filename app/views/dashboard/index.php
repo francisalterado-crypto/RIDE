@@ -4,7 +4,7 @@ $dashboardSections = $dashboardSections ?? [];
 $splitDashboard = (bool) ($splitDashboard ?? false);
 $globalMessage = (string) ($globalMessage ?? 'Please check this page regularly for the latest dashboard announcements and updates.');
 
-$pageTitle = 'Dashboard — RIDE IMS';
+$pageTitle = 'Dashboard | RIDE';
 $pageHeading = 'Dashboard';
 $pageSubtitle = 'Welcome back, ' . trim($user['first_name'] . ' ' . $user['last_name'])
     . ($user['college_name'] ? ' · ' . $user['college_name'] : '')

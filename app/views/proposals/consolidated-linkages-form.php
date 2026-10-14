@@ -5,7 +5,7 @@
 /** @var list<array<string, string>> $prefilledEntries */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Linkages — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Linkages | RIDE';
 $pageHeading = 'Consolidated Linkages';
 $pageSubtitle = $isEdit
     ? 'Update the consolidated linkages report before saving or resubmitting.'

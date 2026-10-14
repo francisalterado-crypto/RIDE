@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Inventions, UM, Copyrights — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Inventions, UM, Copyrights | RIDE';
 $pageHeading = 'Inventions, Utility Models and Copyrights';
 $pageSubtitle = $isEdit
     ? 'Update your inventions, utility models, and copyrights report before saving or resubmitting.'

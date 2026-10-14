@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' OBR Matrix — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' OBR Matrix | RIDE';
 $pageHeading = 'OBR Matrix';
 $pageSubtitle = $isEdit
     ? 'Update your Outcome Based Research Matrix before saving or resubmitting.'

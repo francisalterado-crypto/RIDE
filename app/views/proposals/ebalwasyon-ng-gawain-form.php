@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Ebalwasyon ng Gawain — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Ebalwasyon ng Gawain | RIDE';
 $pageHeading = 'Ebalwasyon ng Gawain';
 $pageSubtitle = $isEdit
     ? 'Update the activity evaluation before saving or resubmitting.'

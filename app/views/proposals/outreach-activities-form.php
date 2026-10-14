@@ -9,7 +9,7 @@ $isEdit = $proposal !== null;
 $requiredFileList = $requiredFileList ?? [];
 $requiredDocuments = $requiredDocuments ?? [];
 $allowDocumentUpload = true;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Outreach Activities — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Outreach Activities | RIDE';
 $pageHeading = 'Outreach Activities';
 $pageSubtitle = $isEdit
     ? 'Update your quarterly outreach activities report before saving or resubmitting.'

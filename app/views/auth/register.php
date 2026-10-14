@@ -1,4 +1,4 @@
-<?php $pageTitle = 'Register — RIDE IMS'; ?>
+<?php $pageTitle = 'Register | RIDE'; ?>
 <div class="card auth-box">
     <h2>Register</h2>
     <p class="muted" style="margin-bottom:1rem;">Submit your details for review. An administrator will approve your account and assign access (typically as faculty) before you can sign in.</p>

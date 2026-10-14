@@ -492,7 +492,7 @@ final class DashboardController
             'facultyContacts' => $facultyContacts,
             'facultyRecipients' => $facultyRecipients,
             'directUnreadCount' => $directUnreadCount,
-            'pageTitle' => 'Message — RIDE IMS',
+            'pageTitle' => 'Message | RIDE',
             'pageHeading' => 'Message',
             'pageSubtitle' => $directMessagingEnabled
                 ? 'Announcements and direct messages'

@@ -3,7 +3,7 @@
 
 use App\Models\FormTemplate;
 
-$pageTitle = 'Form Templates — RIDE IMS';
+$pageTitle = 'Form Templates | RIDE';
 $pageHeading = 'Form Templates';
 $pageSubtitle = 'Upload the official templates users download from Downloadable Forms (e.g. Accomplishment Report, Technical Advisory AR, Outreach Activities AR, Attendance Sheet).';
 

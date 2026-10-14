@@ -6,7 +6,7 @@
 /** @var array<string, list<array<string, mixed>>> $requiredDocuments */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Extension Linkages — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Extension Linkages | RIDE';
 $pageHeading = 'Extension Linkages';
 $pageSubtitle = $isEdit
     ? 'Update your quarterly extension linkages report before saving or resubmitting.'

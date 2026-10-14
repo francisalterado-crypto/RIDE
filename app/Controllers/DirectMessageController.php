@@ -48,7 +48,7 @@ final class DirectMessageController
             'partnerName' => $partnerName,
             'partnerRoleLabel' => $partnerRoleLabel,
             'messages' => $messages,
-            'pageTitle' => 'Conversation — RIDE IMS',
+            'pageTitle' => 'Conversation | RIDE',
             'pageHeading' => 'Message',
             'pageSubtitle' => $partnerName !== '' ? $partnerName . ' · ' . $partnerRoleLabel : $partnerRoleLabel,
         ]);

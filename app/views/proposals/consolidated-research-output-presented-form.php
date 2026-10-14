@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Research Output Presented — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Research Output Presented | RIDE';
 $pageHeading = 'Consolidated Research Output Presented';
 $pageSubtitle = $isEdit
     ? 'Update the consolidated research output presented report before saving or resubmitting.'

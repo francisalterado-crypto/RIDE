@@ -91,7 +91,7 @@ final class MonitoringController
             'isDirectorResearch' => MonitoringRoles::isDirectorResearch(),
             'isDirectorExtension' => MonitoringRoles::isDirectorExtension(),
             'scopeProjectType' => $scopeProjectType,
-            'pageTitle' => $pageHeading . ' — RIDE IMS',
+            'pageTitle' => $pageHeading . ' | RIDE',
             'pageHeading' => $pageHeading,
             'pageSubtitle' => $pageSubtitle,
         ]);

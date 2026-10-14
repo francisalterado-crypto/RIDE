@@ -4,7 +4,7 @@
 /** @var array<string, list<array<string, mixed>>> $requiredDocuments */
 
 $hasProposal = $proposal !== null;
-$pageTitle = 'Required File List — RIDE IMS';
+$pageTitle = 'Required File List | RIDE';
 $pageHeading = 'Required File List';
 $pageSubtitle = $hasProposal
     ? 'Upload all required supporting documents for your research proposal.'

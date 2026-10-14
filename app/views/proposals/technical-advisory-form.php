@@ -20,7 +20,7 @@ $requiredDocuments = $requiredDocuments ?? [];
 
 $allowDocumentUpload = true;
 
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Technical Advisory — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Technical Advisory | RIDE';
 
 $pageHeading = 'Technical Advisory';
 

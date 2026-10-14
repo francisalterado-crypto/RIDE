@@ -7,7 +7,7 @@ $isEdit = $proposal !== null;
 $lockedProjectType = $isEdit
     ? (string) ($proposal['project_type'] ?? 'research')
     : ($lockedProjectType ?? proposal_nav_scope() ?? 'research');
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Manuscript Writing for Publication — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Manuscript Writing for Publication | RIDE';
 $pageHeading = 'Manuscript Writing for Publication';
 $pageSubtitle = $isEdit
     ? 'Update your manuscript writing proposal before saving or resubmitting.'

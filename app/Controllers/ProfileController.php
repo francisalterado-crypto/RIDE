@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAvatar;
 use App\Models\UserSignature;
+use App\Models\UserSpecialization;
 use App\Support\ResearcherProfiles;
 
 final class ProfileController
@@ -31,7 +32,35 @@ final class ProfileController
             'hasSignature' => UserSignature::filePath($userId) !== null,
             'hasAvatar' => $avatarUrl !== null,
             'avatarUrl' => $avatarUrl,
+            'showSpecializations' => Auth::hasRole('faculty'),
+            'specializations' => UserSpecialization::forUser($userId),
+            'specializationSuggestions' => array_column(UserSpecialization::allInUse(), 'name'),
         ]);
+    }
+
+    public function updateSpecializations(): void
+    {
+        if (!verify_csrf()) {
+            set_flash('error', 'Invalid session. Please try again.');
+            redirect('profile');
+        }
+
+        $user = Auth::user();
+        if ($user === null) {
+            redirect('login');
+        }
+        if (!Auth::hasRole('faculty')) {
+            set_flash('error', 'Specializations are available for faculty accounts.');
+            redirect('profile');
+        }
+
+        $userId = (int) $user['id'];
+        $names = UserSpecialization::normalize($_POST['specializations'] ?? []);
+        UserSpecialization::replaceForUser($userId, $names);
+        AuditLog::record('user', $userId, 'specializations_update', ['specializations' => $names]);
+
+        set_flash('success', $names === [] ? 'Specializations cleared.' : 'Specializations saved.');
+        redirect('profile#specializations');
     }
 
     public function updateResearcherProfiles(): void

@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Book Citation — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Book Citation | RIDE';
 $pageHeading = 'Book Citation';
 $pageSubtitle = $isEdit
     ? 'Update your book citation report before saving or resubmitting.'

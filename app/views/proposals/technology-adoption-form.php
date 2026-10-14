@@ -9,7 +9,7 @@ $isEdit = $proposal !== null;
 $requiredFileList = $requiredFileList ?? [];
 $requiredDocuments = $requiredDocuments ?? [];
 $allowDocumentUpload = true;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Technology Adoption — RIDE IMS';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Technology Adoption | RIDE';
 $pageHeading = 'Technology Adoption';
 $pageSubtitle = $isEdit
     ? 'Update your quarterly technology adoption report before saving or resubmitting.'
