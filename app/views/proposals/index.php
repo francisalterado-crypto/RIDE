@@ -87,8 +87,7 @@ $pageSubtitle = $isVprideRegistry
                             (string) ($p['current_step'] ?? ''),
                             (string) ($p['membership'] ?? ''),
                         ])));
-                        $canDelete = \App\Core\Auth::hasRole('faculty')
-                            && (int) ($p['user_id'] ?? 0) === $currentUserId
+                        $canDelete = (int) ($p['user_id'] ?? 0) === $currentUserId
                             && in_array((string) ($p['status'] ?? ''), ['draft', 'returned'], true);
                         $canForceManage = \App\Core\Auth::hasRole('ride_admin', 'vpride', 'dean')
                             && MonitoringRoles::canViewProposal($p);

@@ -1749,10 +1749,6 @@ final class ProposalController
 
     public function updateTrainingsConducted(int $id): void
     {
-        if (!$this->allowTrainingsConductedAccess()) {
-            return;
-        }
-
         if (!verify_csrf()) {
             set_flash('error', 'Invalid session.');
             redirect('proposals/' . $id . '/edit');
@@ -1785,10 +1781,6 @@ final class ProposalController
 
     public function updateTechnicalAdvisory(int $id): void
     {
-        if (!$this->allowTechnicalAdvisoryAccess()) {
-            return;
-        }
-
         if (!verify_csrf()) {
             set_flash('error', 'Invalid session.');
             redirect('proposals/' . $id . '/edit');
@@ -1821,10 +1813,6 @@ final class ProposalController
 
     public function updateExtensionLinkages(int $id): void
     {
-        if (!$this->allowExtensionLinkagesAccess()) {
-            return;
-        }
-
         if (!verify_csrf()) {
             set_flash('error', 'Invalid session.');
             redirect('proposals/' . $id . '/edit');
@@ -1857,10 +1845,6 @@ final class ProposalController
 
     public function updateOutreachActivities(int $id): void
     {
-        if (!$this->allowOutreachActivitiesAccess()) {
-            return;
-        }
-
         if (!verify_csrf()) {
             set_flash('error', 'Invalid session.');
             redirect('proposals/' . $id . '/edit');
@@ -1893,10 +1877,6 @@ final class ProposalController
 
     public function updateTechnologyAdoption(int $id): void
     {
-        if (!$this->allowTechnologyAdoptionAccess()) {
-            return;
-        }
-
         if (!verify_csrf()) {
             set_flash('error', 'Invalid session.');
             redirect('proposals/' . $id . '/edit');
@@ -1929,10 +1909,6 @@ final class ProposalController
 
     public function updateEbalwasyonNgGawain(int $id): void
     {
-        if (!$this->allowEbalwasyonNgGawainAccess()) {
-            return;
-        }
-
         if (!verify_csrf()) {
             set_flash('error', 'Invalid session.');
             redirect('proposals/' . $id . '/edit');
@@ -3250,12 +3226,6 @@ final class ProposalController
         if (!verify_csrf()) {
             set_flash('error', 'Invalid session.');
             redirect('proposals');
-        }
-
-        if (!Auth::hasRole('faculty')) {
-            http_response_code(403);
-            view('errors.403');
-            return;
         }
 
         $proposal = $this->authorizeView($id);
@@ -5951,17 +5921,6 @@ final class ProposalController
         if (Auth::hasRole('ride_reporter')) {
             return $proposal;
         }
-        if (MonitoringRoles::proposalScopeType() !== null) {
-            if (MonitoringRoles::canViewProposal($proposal)) {
-                return $proposal;
-            }
-            http_response_code(403);
-            view('errors.403');
-            return null;
-        }
-        if (Auth::hasRole('coordinator_research', 'coordinator_extension', 'dean') && (int) $user['college_id'] === (int) $proposal['college_id']) {
-            return $proposal;
-        }
         if ((int) $proposal['user_id'] === (int) $user['id']) {
             return $proposal;
         }
@@ -5971,6 +5930,17 @@ final class ProposalController
                 (string) ($proposal['summary'] ?? ''),
                 (int) $user['id']
             )) {
+            return $proposal;
+        }
+        if (MonitoringRoles::proposalScopeType() !== null) {
+            if (MonitoringRoles::canViewProposal($proposal)) {
+                return $proposal;
+            }
+            http_response_code(403);
+            view('errors.403');
+            return null;
+        }
+        if (Auth::hasRole('coordinator_research', 'coordinator_extension', 'dean') && (int) $user['college_id'] === (int) $proposal['college_id']) {
             return $proposal;
         }
         http_response_code(403);
