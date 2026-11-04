@@ -54,15 +54,17 @@ function app_base_url(): string
         return $cached;
     }
 
-    $forwardedHost = (string) ($_SERVER['HTTP_X_FORWARDED_HOST'] ?? '');
+    // Forwarded headers are client-controlled unless a known proxy sets them. Other proxies should set APP_URL.
+    $firstForwarded = static fn (string $header): string => trim(explode(',', (string) ($_SERVER[$header] ?? ''))[0]);
+    $forwardedHost = is_vercel() ? $firstForwarded('HTTP_X_FORWARDED_HOST') : '';
     $host = $forwardedHost !== '' ? $forwardedHost : (string) ($_SERVER['HTTP_HOST'] ?? '');
-    $isLocalHost = $host === '' || str_starts_with($host, 'localhost') || str_starts_with($host, '127.0.0.1');
+    $hostname = strtolower((string) preg_replace('/:\d+$/', '', $host));
+    $isLocalHost = in_array($hostname, ['', 'localhost', '127.0.0.1'], true);
 
     if (!$isLocalHost) {
-        $proto = (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? (is_vercel() ? 'https' : ($_SERVER['REQUEST_SCHEME'] ?? 'http')));
-        if (str_contains($proto, ',')) {
-            $proto = trim(explode(',', $proto)[0]);
-        }
+        $proto = is_vercel()
+            ? ($firstForwarded('HTTP_X_FORWARDED_PROTO') ?: 'https')
+            : (string) ($_SERVER['REQUEST_SCHEME'] ?? 'http');
         $configPath = is_vercel() ? '' : rtrim((string) (parse_url((string) config('app.url', ''), PHP_URL_PATH) ?? ''), '/');
         $cached = $proto . '://' . $host . $configPath;
 
