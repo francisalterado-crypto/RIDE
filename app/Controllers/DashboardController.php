@@ -118,7 +118,10 @@ final class DashboardController
                 'user' => $user,
                 'context' => $reviewerContext,
                 'globalMessage' => $globalMessage,
-                'facultyReportingNotice' => $reviewerContext['role'] === 'coordinator' ? $facultyReportingNotice : null,
+                'facultyReportingNotice' => $facultyReportingNotice,
+                'pendingCoAuthorInvitations' => $pendingCoAuthorInvitations,
+                'ownOverdueMilestones' => $isOwnScoped ? $overdueMilestones : [],
+                'ownOverdueReports' => $isOwnScoped ? $overdueReports : [],
             ]));
             return;
         }
@@ -198,7 +201,7 @@ final class DashboardController
             && ($collegeId === null || (int) ($row['college_id'] ?? 0) === $collegeId);
 
         // Proposals waiting on this user, oldest first.
-        $queue = array_values(array_filter(Proposal::pendingAtStep($context['step'], $collegeId, $singleType), $inScope));
+        $queue = Proposal::pendingAtStep($context['step'], $collegeId, $singleType);
 
         $stats = Proposal::monitoringStats($collegeId, $singleType);
         $byStatus = $stats['by_status'] ?? [];
@@ -359,10 +362,13 @@ final class DashboardController
             'drafts' => array_values(array_filter($byStatus(['draft']), $isLead)),
             'returnedProposals' => $returned,
             'inReview' => $byStatus(['submitted', 'under_review']),
-            'ongoingProjects' => array_merge(
-                Proposal::ongoing(null, $userId, 'research'),
-                Proposal::ongoing(null, $userId, 'extension')
-            ),
+            'ongoingProjects' => array_values(array_filter(
+                array_merge(
+                    Proposal::ongoing(null, $userId, 'research'),
+                    Proposal::ongoing(null, $userId, 'extension')
+                ),
+                static fn (array $p): bool => in_array((string) $p['status'], ['ongoing', 'approved'], true)
+            )),
             'completedCount' => count($byStatus(['completed'])),
             'paperCount' => count($papers),
             'presentationCount' => count($presentations),

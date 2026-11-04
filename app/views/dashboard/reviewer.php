@@ -7,6 +7,8 @@
 /** @var array<string, array{in_review: int, ongoing: int, completed: int}> $breakdown */
 /** @var list<array<string, mixed>> $followUps */
 /** @var list<array<string, mixed>> $myDrafts */
+/** @var list<array<string, mixed>> $ownOverdueMilestones */
+/** @var list<array<string, mixed>> $ownOverdueReports */
 
 $role = $context['role'];
 $types = $context['types'];
@@ -37,6 +39,8 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
 
 <div class="fd">
     <?php require APP_PATH . '/views/dashboard/_notices.php'; ?>
+
+    <?php require APP_PATH . '/views/dashboard/_coauthor-invitations.php'; ?>
 
     <div class="fd-actions">
         <a class="fd-action" href="#rd-queue">
@@ -117,6 +121,38 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
             <p class="fd-footnote">Your step is highlighted. <?= (int) $returnedCount ?> returned to the proponent for revision.</p>
         </section>
     </div>
+
+    <?php if ($ownOverdueMilestones !== [] || $ownOverdueReports !== []): ?>
+        <section class="fd-panel">
+            <div class="fd-panel-head">
+                <h2>Your overdue items</h2>
+            </div>
+            <ul class="fd-list">
+                <?php foreach ($ownOverdueMilestones as $m): ?>
+                    <li class="fd-item">
+                        <div class="fd-item-main">
+                            <span class="fd-kind">Project milestone</span>
+                            <span class="fd-tag fd-tag--overdue">Overdue</span>
+                            <span class="fd-item-title"><?= $e($m['title']) ?></span>
+                            <p class="fd-item-note"><?= $e($m['project_title']) ?>, due <?= $e($m['due_date'] ?? '') ?></p>
+                        </div>
+                        <a class="btn btn-sm btn-outline" href="<?= base_url('projects/' . (int) $m['proposal_id']) ?>">Open project</a>
+                    </li>
+                <?php endforeach; ?>
+                <?php foreach ($ownOverdueReports as $r): ?>
+                    <li class="fd-item">
+                        <div class="fd-item-main">
+                            <span class="fd-kind">Progress Report</span>
+                            <span class="fd-tag fd-tag--overdue">Overdue</span>
+                            <span class="fd-item-title"><?= $e($r['project_title']) ?></span>
+                            <p class="fd-item-note">Was due <?= $e($r['due_date'] ?? '') ?></p>
+                        </div>
+                        <a class="btn btn-sm btn-outline" href="<?= base_url('projects/' . (int) $r['proposal_id'] . '/reports/' . (int) $r['id']) ?>">Finish report</a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </section>
+    <?php endif; ?>
 
     <div class="fd-columns">
         <section class="fd-panel" id="rd-followups">
