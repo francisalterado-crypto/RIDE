@@ -226,13 +226,14 @@ final class Proposal
             return;
         }
         // Coordinator-filed college reports skip the coordinator's own endorsement step.
-        $step = proposal_is_coordinator_submitted_report($proposal)
+        $coordinatorFiled = proposal_filer_is_coordinator($proposal);
+        $step = $coordinatorFiled
             ? MonitoringRoles::DEAN
             : MonitoringRoles::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
         $stmt = Database::pdo()->prepare(
-            'UPDATE proposals SET status = \'submitted\', current_step = ?, submitted_at = NOW() WHERE id = ?'
+            'UPDATE proposals SET status = \'submitted\', current_step = ?, coordinator_filed = ?, submitted_at = NOW() WHERE id = ?'
         );
-        $stmt->execute([$step, $id]);
+        $stmt->execute([$step, $coordinatorFiled ? 1 : 0, $id]);
     }
 
     public static function addComment(int $proposalId, int $userId, string $comment, string $action = 'comment', ?string $step = null): void

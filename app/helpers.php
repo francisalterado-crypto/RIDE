@@ -890,10 +890,23 @@ function proposal_uses_faculty_submitted_monitoring_workflow(?array $proposal): 
 }
 
 /**
- * True when the submitter is the coordinator for this record's type (college reports, or an
- * extension coordinator's own proposal), so it goes to the College Dean first.
+ * True when this record was routed straight to the College Dean at submission. Uses the route
+ * stored at submit time so later role changes do not rewrite the workflow shown for it.
  */
 function proposal_is_coordinator_submitted_report(?array $proposal): bool
+{
+    if (is_array($proposal) && isset($proposal['coordinator_filed'])) {
+        return (bool) (int) $proposal['coordinator_filed'];
+    }
+
+    return proposal_filer_is_coordinator($proposal);
+}
+
+/**
+ * True when the filer currently is the coordinator for this record's type (college reports, or
+ * an extension coordinator's own proposal), so a submission goes to the College Dean first.
+ */
+function proposal_filer_is_coordinator(?array $proposal): bool
 {
     if (!is_array($proposal)
         || proposal_uses_faculty_submitted_monitoring_workflow($proposal)
