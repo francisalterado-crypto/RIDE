@@ -20,7 +20,43 @@ final class ProposalController
     public function index(): void
     {
         $user = Auth::user();
-        $proposals = array_values(array_filter(
+        view('proposals.index', [
+            'proposals' => \App\Support\ProposalRegistry::rows($this->registryProposals($user), fn (array $p): bool => $this->canApprove($p)),
+            'currentUserId' => (int) $user['id'],
+        ]);
+    }
+
+    /** CSV of the registry with the page's current filters (VPRIDE and RIDE reporters). */
+    public function exportRegistry(): void
+    {
+        if (!MonitoringRoles::isVpride() && !Auth::hasRole('ride_reporter')) {
+            http_response_code(403);
+            view('errors.403');
+            return;
+        }
+        $user = Auth::user();
+        $filters = [
+            'tab' => array_key_exists((string) ($_GET['tab'] ?? ''), \App\Support\ProposalRegistry::TABS) ? (string) $_GET['tab'] : 'all',
+            'form' => trim((string) ($_GET['form'] ?? '')),
+            'year' => preg_match('/^\d{4}$/', (string) ($_GET['year'] ?? '')) === 1 ? (string) $_GET['year'] : '',
+            'q' => trim((string) ($_GET['q'] ?? '')),
+        ];
+        $rows = array_values(array_filter(
+            \App\Support\ProposalRegistry::rows($this->registryProposals($user), fn (array $p): bool => $this->canApprove($p)),
+            static fn (array $row): bool => \App\Support\ProposalRegistry::matches($row, $filters)
+        ));
+        $csv = \App\Support\ProposalRegistry::csv($rows);
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="proposals-' . date('Y-m-d') . '.csv"');
+        header('Content-Length: ' . strlen($csv));
+        header('Cache-Control: private, no-store');
+        echo $csv;
+    }
+
+    /** @return list<array<string, mixed>> proposals the registry lists for the viewer */
+    private function registryProposals(array $user): array
+    {
+        return array_values(array_filter(
             $this->visibleProposalsForCurrentUser($user),
             static function (array $proposal): bool {
                 if (proposal_is_terminal_report_assessment_form($proposal)) {
@@ -35,10 +71,6 @@ final class ProposalController
                 return $directorApproval === null;
             }
         ));
-        view('proposals.index', [
-            'proposals' => $proposals,
-            'currentUserId' => (int) $user['id'],
-        ]);
     }
 
     public function terminalReportRegistry(): void
@@ -93,9 +125,9 @@ final class ProposalController
                 'proposal' => null,
                 'lockedProjectType' => 'extension',
                 'colleges' => College::all(),
-                'pageTitle' => 'New Extension Program/Project Proposal | RIDE',
+                'pageTitle' => 'New Extension Project Proposal | RIDE Hub',
                 'pageHeading' => 'Extension Services',
-                'pageSubtitle' => 'Complete the Office of Extension Services program/project proposal (WPU-QSF-RIDE-ESO-03).',
+                'pageSubtitle' => 'Complete the Office of Extension Services extension project proposal (WPU-QSF-RIDE-ESO-03).',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
                 'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
                 'deanNamesByCollege' => $this->deanNamesByCollege(),
@@ -324,87 +356,25 @@ final class ProposalController
         redirect('proposals/' . $id . '/edit/required-files');
     }
 
+    /** Manuscript Writing for Publication is one of the RDO request forms now (ResearchRequestController). */
     public function createManuscript(): void
     {
-        if (!$this->allowManuscriptAccess()) {
-            return;
-        }
-
-        view('proposals.manuscript-form', [
-            'proposal' => null,
-            'colleges' => College::all(),
-            'lockedProjectType' => proposal_nav_scope(),
-        ]);
-    }
-
-    public function storeManuscript(): void
-    {
-        if (!$this->allowManuscriptAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/create/manuscript' . proposal_nav_redirect_suffix());
-        }
-
-        $user = Auth::user();
-        $data = $this->validatedManuscriptInput();
-        $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
-        $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
-
-        if ($data['college_id'] === 0 || $data['title'] === '') {
-            set_flash('error', 'College and title are required.');
-            redirect('proposals/create/manuscript' . proposal_nav_redirect_suffix());
-        }
-
-        $id = Proposal::create($data);
-        AuditLog::record('proposal', $id, 'created');
-        set_flash('success', 'Manuscript proposal saved as draft.');
-        redirect('proposals/' . $id);
-    }
-
-    public function updateManuscript(int $id): void
-    {
-        if (!$this->allowManuscriptAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/' . $id . '/edit');
-        }
-
-        $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || !proposal_is_manuscript($proposal)) {
-            http_response_code(403);
-            view('errors.403');
-            return;
-        }
-
-        Proposal::update($id, $this->validatedManuscriptInput());
-        AuditLog::record('proposal', $id, 'updated');
-        set_flash('success', 'Manuscript proposal updated.');
-        redirect('proposals/' . $id);
+        redirect('research-requests/new/manuscript');
     }
 
     public function createCompletedResearches(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            redirect('proposals/create/consolidated-completed-researches');
-        }
-
         if (!$this->allowCompletedResearchesAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.completed-researches-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'completed_researches',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('completed_researches', $user));
     }
 
     public function storeCompletedResearches(): void
@@ -461,20 +431,17 @@ final class ProposalController
 
     public function createOngoingResearches(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            redirect('proposals/create/consolidated-ongoing-researches');
-        }
-
         if (!$this->allowOngoingResearchesAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.ongoing-researches-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'ongoing_researches',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('ongoing_researches', $user));
     }
 
     public function storeOngoingResearches(): void
@@ -531,20 +498,17 @@ final class ProposalController
 
     public function createResearchOutputPublished(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            redirect('proposals/create/consolidated-research-output-published');
-        }
-
         if (!$this->allowResearchOutputPublishedAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.research-output-published-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'research_output_published',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('research_output_published', $user));
     }
 
     public function storeResearchOutputPublished(): void
@@ -601,20 +565,17 @@ final class ProposalController
 
     public function createResearchOutputPresented(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            redirect('proposals/create/consolidated-research-output-presented');
-        }
-
         if (!$this->allowResearchOutputPresentedAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.research-output-presented-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'research_output_presented',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('research_output_presented', $user));
     }
 
     public function storeResearchOutputPresented(): void
@@ -671,20 +632,17 @@ final class ProposalController
 
     public function createCommercialized(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            $this->redirectFacultyToConsolidatedCreate('commercialized');
-        }
-
         if (!$this->allowCommercializedAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.commercialized-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'commercialized',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('commercialized', $user));
     }
 
     public function storeCommercialized(): void
@@ -741,20 +699,17 @@ final class ProposalController
 
     public function createResultedInExtension(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            $this->redirectFacultyToConsolidatedCreate('resulted_in_extension');
-        }
-
         if (!$this->allowResultedInExtensionAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.resulted-in-extension-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'resulted_in_extension',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('resulted_in_extension', $user));
     }
 
     public function storeResultedInExtension(): void
@@ -811,20 +766,17 @@ final class ProposalController
 
     public function createJournalCitation(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            $this->redirectFacultyToConsolidatedCreate('journal_citation');
-        }
-
         if (!$this->allowJournalCitationAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.journal-citation-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'journal_citation',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('journal_citation', $user));
     }
 
     public function storeJournalCitation(): void
@@ -881,56 +833,47 @@ final class ProposalController
 
     public function createBookCitation(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            $this->redirectFacultyToConsolidatedCreate('book_citation');
-        }
-
         if (!$this->allowBookCitationAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.book-citation-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'book_citation',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('book_citation', $user));
     }
 
     public function createInventionsUmCopyrights(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            $this->redirectFacultyToConsolidatedCreate('inventions_um_copyrights');
-        }
-
         if (!$this->allowInventionsUmCopyrightsAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.inventions-um-copyrights-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'inventions_um_copyrights',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('inventions_um_copyrights', $user));
     }
 
     public function createLinkages(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            $this->redirectFacultyToConsolidatedCreate('linkages');
-        }
-
         if (!$this->allowLinkagesAccess()) {
             return;
         }
 
         $user = Auth::user();
-        view('proposals.linkages-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'linkages',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        ] + $this->conductedActivitiesPrefill('linkages', $user));
     }
 
     public function createTrainingsConducted(): void
@@ -940,13 +883,14 @@ final class ProposalController
         }
 
         $user = Auth::user();
-        view('proposals.trainings-conducted-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'trainings_conducted',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
             'requiredFileList' => $this->trainingsConductedRequiredFileCategories(),
             'requiredDocuments' => [],
-        ]);
+        ] + $this->conductedActivitiesPrefill('trainings_conducted', $user));
     }
 
     public function createTechnicalAdvisory(): void
@@ -956,13 +900,14 @@ final class ProposalController
         }
 
         $user = Auth::user();
-        view('proposals.technical-advisory-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'technical_advisory',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
             'requiredFileList' => $this->technicalAdvisoryRequiredFileCategories(),
             'requiredDocuments' => [],
-        ]);
+        ] + $this->conductedActivitiesPrefill('technical_advisory', $user));
     }
 
     public function createExtensionLinkages(): void
@@ -972,13 +917,14 @@ final class ProposalController
         }
 
         $user = Auth::user();
-        view('proposals.extension-linkages-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'extension_linkages',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
             'requiredFileList' => $this->extensionLinkagesRequiredFileCategories(),
             'requiredDocuments' => [],
-        ]);
+        ] + $this->conductedActivitiesPrefill('extension_linkages', $user));
     }
 
     public function createOutreachActivities(): void
@@ -988,13 +934,14 @@ final class ProposalController
         }
 
         $user = Auth::user();
-        view('proposals.outreach-activities-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'outreach_activities',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
             'requiredFileList' => $this->outreachActivitiesRequiredFileCategories(),
             'requiredDocuments' => [],
-        ]);
+        ] + $this->conductedActivitiesPrefill('outreach_activities', $user));
     }
 
     public function createTechnologyAdoption(): void
@@ -1004,30 +951,14 @@ final class ProposalController
         }
 
         $user = Auth::user();
-        view('proposals.technology-adoption-form', [
+        view('proposals.quarterly-report-form', [
+                'reportType' => 'technology_adoption',
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
             'requiredFileList' => $this->technologyAdoptionRequiredFileCategories(),
             'requiredDocuments' => [],
-        ]);
-    }
-
-    public function createEbalwasyonNgGawain(): void
-    {
-        if (!$this->allowEbalwasyonNgGawainAccess()) {
-            return;
-        }
-
-        $user = Auth::user();
-        view('proposals.ebalwasyon-ng-gawain-form', [
-            'proposal' => null,
-            'colleges' => College::all(),
-            'collegeName' => $this->collegeNameForUser($user),
-            'pageTitle' => 'New Ebalwasyon ng Gawain | RIDE',
-            'pageHeading' => 'Ebalwasyon ng Gawain',
-            'pageSubtitle' => 'Complete the activity evaluation (WPU-QSF-RIDE-ESO-16).',
-        ]);
+        ] + $this->conductedActivitiesPrefill('technology_adoption', $user));
     }
 
     public function createConsolidatedCompletedResearches(): void
@@ -1183,20 +1114,6 @@ final class ProposalController
 
         $user = Auth::user();
         view('proposals.terminal-report-assessment-form', [
-            'proposal' => null,
-            'colleges' => College::all(),
-            'collegeName' => $this->collegeNameForUser($user),
-        ]);
-    }
-
-    public function createObrMatrix(): void
-    {
-        if (!$this->allowObrMatrixAccess()) {
-            return;
-        }
-
-        $user = Auth::user();
-        view('proposals.obr-matrix-form', [
             'proposal' => null,
             'colleges' => College::all(),
             'collegeName' => $this->collegeNameForUser($user),
@@ -1444,34 +1361,6 @@ final class ProposalController
         redirect('proposals/' . $id . '/edit');
     }
 
-    public function storeEbalwasyonNgGawain(): void
-    {
-        if (!$this->allowEbalwasyonNgGawainAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/create/ebalwasyon-ng-gawain');
-        }
-
-        $user = Auth::user();
-        $data = $this->validatedEbalwasyonNgGawainInput();
-        $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
-        $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
-
-        if ($data['college_id'] === 0) {
-            set_flash('error', 'College is required.');
-            redirect('proposals/create/ebalwasyon-ng-gawain');
-        }
-
-        $id = Proposal::create($data);
-        AuditLog::record('proposal', $id, 'created');
-        set_flash('success', 'Ebalwasyon ng Gawain saved as draft.');
-        redirect('proposals/' . $id . '/edit');
-    }
-
     public function storeConsolidatedCompletedResearches(): void
     {
         if (!$this->allowConsolidatedCompletedResearchesAccess()) {
@@ -1668,34 +1557,6 @@ final class ProposalController
         $id = Proposal::create($data);
         AuditLog::record('proposal', $id, 'created');
         set_flash('success', 'Terminal report assessment form saved as draft.');
-        redirect('proposals/' . $id);
-    }
-
-    public function storeObrMatrix(): void
-    {
-        if (!$this->allowObrMatrixAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/create/obr-matrix');
-        }
-
-        $user = Auth::user();
-        $data = $this->validatedObrMatrixInput();
-        $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
-        $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
-
-        if ($data['college_id'] === 0) {
-            set_flash('error', 'College is required.');
-            redirect('proposals/create/obr-matrix');
-        }
-
-        $id = Proposal::create($data);
-        AuditLog::record('proposal', $id, 'created');
-        set_flash('success', 'OBR Matrix saved as draft.');
         redirect('proposals/' . $id);
     }
 
@@ -1904,26 +1765,6 @@ final class ProposalController
                 . implode(' ', $uploadErrors)
             );
         }
-        redirect('proposals/' . $id . '/edit');
-    }
-
-    public function updateEbalwasyonNgGawain(int $id): void
-    {
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/' . $id . '/edit');
-        }
-
-        $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || !proposal_is_ebalwasyon_ng_gawain($proposal)) {
-            http_response_code(403);
-            view('errors.403');
-            return;
-        }
-
-        Proposal::update($id, $this->validatedEbalwasyonNgGawainInput($proposal));
-        AuditLog::record('proposal', $id, 'updated');
-        set_flash('success', 'Ebalwasyon ng Gawain updated.');
         redirect('proposals/' . $id . '/edit');
     }
 
@@ -2215,8 +2056,30 @@ final class ProposalController
         if (!$proposal) {
             return;
         }
-        if (proposal_is_manuscript($proposal)) {
-            $this->showManuscript($id, $proposal);
+        if (\App\Support\ResearchRequestForms::typeOf($proposal) !== null) {
+            view('requests.show', [
+                'proposal' => $proposal,
+                'comments' => Proposal::comments($id),
+                'canEdit' => $this->canEdit($proposal),
+                'canApprove' => $this->canApprove($proposal),
+                'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
+                'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            ]);
+            return;
+        }
+        // Quarterly reports: app view page; Print Preview downloads the filled office form.
+        $quarterlyType = proposal_form_type($proposal);
+        if (\App\Support\ExtensionActivityTypes::get($quarterlyType) !== null) {
+            view('proposals.quarterly-report-show', [
+                'reportType' => $quarterlyType,
+                'proposal' => $proposal,
+                'comments' => Proposal::comments($id),
+                'canEdit' => $this->canEdit($proposal),
+                'canApprove' => $this->canApprove($proposal),
+                'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
+                'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+                'documents' => Document::forProposal($id),
+            ]);
             return;
         }
         if (proposal_is_completed_researches($proposal)) {
@@ -2358,9 +2221,9 @@ final class ProposalController
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
-            'pageTitle' => ((string) ($proposal['title'] ?? 'Extension Program/Project Proposal')) . ' | RIDE',
-            'pageHeading' => (string) ($proposal['title'] ?? 'Extension Program/Project Proposal'),
-            'pageSubtitle' => 'Review the submitted Extension Program/Project Proposal (WPU-QSF-RIDE-ESO-03).',
+            'pageTitle' => ((string) ($proposal['title'] ?? 'Extension Project Proposal')) . ' | RIDE Hub',
+            'pageHeading' => (string) ($proposal['title'] ?? 'Extension Project Proposal'),
+            'pageSubtitle' => 'Review the submitted Extension Project Proposal (WPU-QSF-RIDE-ESO-03).',
         ]);
     }
 
@@ -2371,11 +2234,83 @@ final class ProposalController
         if (!$proposal) {
             return;
         }
+        if (\App\Support\ExtensionActivityTypes::get(proposal_form_type($proposal)) !== null) {
+            // Quarterly reports print from the office's own Excel/Word form (letterhead included).
+            $file = \App\Services\QuarterlyReportFile::build($proposal);
+            if ($file === null) {
+                set_flash('error', 'The office form for this report is not available yet.');
+                redirect('proposals/' . $id);
+            }
+            header('Content-Type: ' . $file['mime']);
+            header('Content-Disposition: attachment; filename="' . str_replace('"', '', $file['name']) . '"');
+            header('Content-Length: ' . strlen($file['bytes']));
+            header('Cache-Control: private, no-store');
+            echo $file['bytes'];
+            return;
+        }
+        if (\App\Services\ResearchFormDocument::formKey($proposal) !== null) {
+            send_form_docx($proposal);
+            return;
+        }
         if (!proposal_is_wpu_funded_extension($proposal)) {
             redirect('proposals/' . $id);
         }
 
         $this->renderWpuFundedExtensionPrint($proposal, false);
+    }
+
+    /** The filled office Word form (.docx) of a saved RDO-20 application or RDO request form. */
+    public function downloadDocx(int $id): void
+    {
+        $proposal = $this->authorizeView($id);
+        if (!$proposal) {
+            return;
+        }
+        if (\App\Services\ResearchFormDocument::formKey($proposal) === null) {
+            redirect('proposals/' . $id);
+        }
+        send_form_docx($proposal);
+    }
+
+    /** Print preview of the Research Proposal Application's current, unsaved values. */
+    public function previewResearchApplication(): void
+    {
+        if (!verify_csrf()) {
+            http_response_code(419);
+            echo 'Invalid session. Reload the form and try again.';
+            return;
+        }
+
+        $existing = null;
+        $id = (int) ($_POST['preview_proposal_id'] ?? 0);
+        if ($id > 0) {
+            $existing = $this->authorizeView($id);
+            if (!$existing) {
+                return;
+            }
+        }
+
+        $user = Auth::user() ?? [];
+        $data = $this->validatedInput($existing);
+        $proposal = array_merge($existing ?? [
+            'status' => 'draft',
+            'project_code' => '',
+            'current_step' => '',
+            'project_type' => 'research',
+            'risk_level' => 'low',
+            'ethics_required' => 0,
+            'college_name' => (string) ($user['college_name'] ?? ''),
+            'first_name' => (string) ($user['first_name'] ?? ''),
+            'last_name' => (string) ($user['last_name'] ?? ''),
+        ], [
+            'title' => $data['title'],
+            'summary' => $data['summary'],
+            'funding_source' => $data['funding_source'],
+            'risk_level' => $data['risk_level'],
+            'ethics_required' => $data['ethics_required'] ? 1 : 0,
+        ]);
+
+        send_form_docx($proposal, true);
     }
 
     /** Print preview of the ESO-03 form's current, unsaved values. */
@@ -2414,20 +2349,14 @@ final class ProposalController
 
     private function renderWpuFundedExtensionPrint(array $proposal, bool $isUnsavedPreview): void
     {
+        $missing = \App\Support\FormPreviewRequirements::missing($proposal, \App\Support\FormPreviewRequirements::forExtensionProposal());
+        if ($missing !== []) {
+            send_form_missing_page($missing, $isUnsavedPreview);
+            return;
+        }
+
         $stepLabel = MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? ''));
         require APP_PATH . '/views/proposals/wpu-funded-extension-print.php';
-    }
-
-    private function showManuscript(int $id, array $proposal): void
-    {
-        view('proposals.manuscript-show', [
-            'proposal' => $proposal,
-            'comments' => Proposal::comments($id),
-            'canEdit' => $this->canEdit($proposal),
-            'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
-        ]);
     }
 
     private function showCompletedResearches(int $id, array $proposal): void
@@ -2671,7 +2600,7 @@ final class ProposalController
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
-            'pageTitle' => ((string) ($proposal['title'] ?? 'Ebalwasyon ng Gawain')) . ' | RIDE',
+            'pageTitle' => ((string) ($proposal['title'] ?? 'Ebalwasyon ng Gawain')) . ' | RIDE Hub',
             'pageHeading' => (string) ($proposal['title'] ?? 'Ebalwasyon ng Gawain'),
             'pageSubtitle' => 'Review the submitted activity evaluation (WPU-QSF-RIDE-ESO-16).',
         ]);
@@ -2686,7 +2615,7 @@ final class ProposalController
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
-            'pageTitle' => ((string) ($proposal['title'] ?? 'Attendance Sheet')) . ' | RIDE',
+            'pageTitle' => ((string) ($proposal['title'] ?? 'Attendance Sheet')) . ' | RIDE Hub',
             'pageHeading' => (string) ($proposal['title'] ?? 'Attendance Sheet'),
             'pageSubtitle' => 'Review the submitted attendance form (WPU-QSF-RIDE-ESO-17).',
         ]);
@@ -2829,47 +2758,56 @@ final class ProposalController
             return;
         }
 
-        if (proposal_is_manuscript($proposal)) {
-            view('proposals.manuscript-form', [
-                'proposal' => $proposal,
-                'colleges' => College::all(),
-            ]);
-            return;
+        if (\App\Support\ResearchRequestForms::typeOf($proposal) !== null) {
+            redirect('research-requests/' . $id . '/edit');
+        }
+
+        // Quarterly reports: rows always come from Conducted Activities / Research Accomplishments.
+        $generatedVars = [];
+        $reportType = proposal_form_type($proposal);
+        if (\App\Support\ExtensionActivityTypes::get($reportType) !== null) {
+            $savedSummary = json_decode((string) ($proposal['summary'] ?? ''), true);
+            $generatedVars = $this->conductedActivitiesPrefill($reportType, Auth::user(), (string) (is_array($savedSummary) ? ($savedSummary['reporting_period'] ?? '') : ''));
+            $proposal['summary'] = self::summaryWithGeneratedRows((string) ($proposal['summary'] ?? ''), $generatedVars['prefillSummary'] ?? null, $reportType);
         }
 
         if (proposal_is_completed_researches($proposal)) {
-            view('proposals.completed-researches-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'completed_researches',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_ongoing_researches($proposal)) {
-            view('proposals.ongoing-researches-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'ongoing_researches',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_research_output_published($proposal)) {
-            view('proposals.research-output-published-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'research_output_published',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_research_output_presented($proposal)) {
-            view('proposals.research-output-presented-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'research_output_presented',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
@@ -2878,61 +2816,68 @@ final class ProposalController
         }
 
         if (proposal_is_commercialized($proposal)) {
-            view('proposals.commercialized-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'commercialized',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_resulted_in_extension($proposal)) {
-            view('proposals.resulted-in-extension-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'resulted_in_extension',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_journal_citation($proposal)) {
-            view('proposals.journal-citation-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'journal_citation',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_book_citation($proposal)) {
-            view('proposals.book-citation-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'book_citation',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_inventions_um_copyrights($proposal)) {
-            view('proposals.inventions-um-copyrights-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'inventions_um_copyrights',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_linkages($proposal)) {
-            view('proposals.linkages-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'linkages',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_trainings_conducted($proposal)) {
-            view('proposals.trainings-conducted-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'trainings_conducted',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
@@ -2941,12 +2886,13 @@ final class ProposalController
                     (int) $proposal['id'],
                     $this->trainingsConductedRequiredFileCategories()
                 ),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_technical_advisory($proposal)) {
-            view('proposals.technical-advisory-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'technical_advisory',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
@@ -2955,12 +2901,13 @@ final class ProposalController
                     (int) $proposal['id'],
                     $this->technicalAdvisoryRequiredFileCategories()
                 ),
-            ]);
+            ] + $generatedVars);
             return;
         }
 
         if (proposal_is_extension_linkages($proposal)) {
-            view('proposals.extension-linkages-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'extension_linkages',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
@@ -2969,11 +2916,12 @@ final class ProposalController
                     (int) $proposal['id'],
                     $this->extensionLinkagesRequiredFileCategories()
                 ),
-            ]);
+            ] + $generatedVars);
             return;
         }
         if (proposal_is_outreach_activities($proposal)) {
-            view('proposals.outreach-activities-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'outreach_activities',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
@@ -2982,11 +2930,12 @@ final class ProposalController
                     (int) $proposal['id'],
                     $this->outreachActivitiesRequiredFileCategories()
                 ),
-            ]);
+            ] + $generatedVars);
             return;
         }
         if (proposal_is_technology_adoption($proposal)) {
-            view('proposals.technology-adoption-form', [
+            view('proposals.quarterly-report-form', [
+                'reportType' => 'technology_adoption',
                 'proposal' => $proposal,
                 'colleges' => College::all(),
                 'collegeName' => (string) ($proposal['college_name'] ?? ''),
@@ -2995,18 +2944,7 @@ final class ProposalController
                     (int) $proposal['id'],
                     $this->technologyAdoptionRequiredFileCategories()
                 ),
-            ]);
-            return;
-        }
-        if (proposal_is_ebalwasyon_ng_gawain($proposal)) {
-            view('proposals.ebalwasyon-ng-gawain-form', [
-                'proposal' => $proposal,
-                'colleges' => College::all(),
-                'collegeName' => (string) ($proposal['college_name'] ?? ''),
-                'pageTitle' => 'Edit Ebalwasyon ng Gawain | RIDE',
-                'pageHeading' => 'Ebalwasyon ng Gawain',
-                'pageSubtitle' => 'Update the activity evaluation before saving or resubmitting.',
-            ]);
+            ] + $generatedVars);
             return;
         }
         if (proposal_is_consolidated_completed_researches($proposal)) {
@@ -3142,9 +3080,9 @@ final class ProposalController
                 'proposal' => $proposal,
                 'lockedProjectType' => 'extension',
                 'colleges' => College::all(),
-                'pageTitle' => 'Edit Extension Program/Project Proposal | RIDE',
+                'pageTitle' => 'Edit Extension Project Proposal | RIDE Hub',
                 'pageHeading' => 'Extension Services',
-                'pageSubtitle' => 'Update your Extension Program/Project Proposal before saving or resubmitting.',
+                'pageSubtitle' => 'Update your Extension Project Proposal before saving or resubmitting.',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
                 'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
                 'deanNamesByCollege' => $this->deanNamesByCollege(),
@@ -3214,6 +3152,13 @@ final class ProposalController
                 'Submit for review is unavailable until all registered faculty co-authors accept their invitation.'
             );
             redirect('proposals/' . $id);
+        }
+        if (\App\Services\ResearchFormDocument::formKey($proposal) !== null) {
+            $missing = \App\Support\FormPreviewRequirements::missing($proposal);
+            if ($missing !== []) {
+                set_flash('error', 'Fill in the form before submitting it for review. Missing: ' . implode(', ', $missing) . '.');
+                redirect('proposals/' . $id);
+            }
         }
         Proposal::submit($id);
         AuditLog::record('proposal', $id, 'submitted');
@@ -3353,21 +3298,12 @@ final class ProposalController
             return $this->validatedWpuFundedExtensionInput($proposal);
         }
 
+        // Part I (The Proponent) is the proponent's profile, copied in so the saved form keeps the details it
+        // was submitted with.
+        $proponentUserId = (int) ($proposal['user_id'] ?? (Auth::user()['id'] ?? 0));
         $structuredSummary = [
-            'version' => 1,
-            'applicant_last_name' => trim($_POST['applicant_last_name'] ?? ''),
-            'applicant_first_name' => trim($_POST['applicant_first_name'] ?? ''),
-            'applicant_middle_name' => trim($_POST['applicant_middle_name'] ?? ''),
-            'applicant_title_prefix' => trim($_POST['applicant_title_prefix'] ?? ''),
-            'applicant_sex' => trim($_POST['applicant_sex'] ?? ''),
-            'applicant_position' => trim($_POST['applicant_position'] ?? ''),
-            'applicant_email' => trim($_POST['applicant_email'] ?? ''),
-            'applicant_contact_number' => trim($_POST['applicant_contact_number'] ?? ''),
-            'applicant_college_department' => trim($_POST['applicant_college_department'] ?? ''),
-            'applicant_program' => trim($_POST['applicant_program'] ?? ''),
-            'applicant_campus' => trim($_POST['applicant_campus'] ?? ''),
-            'applicant_google_scholar_link' => trim($_POST['applicant_google_scholar_link'] ?? ''),
-            'applicant_researchgate_link' => trim($_POST['applicant_researchgate_link'] ?? ''),
+            'version' => 2,
+        ] + \App\Support\ProponentProfile::applicantFields($proponentUserId) + [
             'coauthors' => $this->validatedCoAuthors($_POST['coauthors'] ?? []),
             'period_covered' => trim($_POST['period_covered'] ?? ''),
             'duration_months' => trim($_POST['duration_months'] ?? ''),
@@ -3386,6 +3322,13 @@ final class ProposalController
             'budget_items' => $this->validatedBudgetItems($_POST['budget_items'] ?? []),
             'six_ps' => $this->validatedSixPs($_POST['six_ps'] ?? []),
             'implementation_plan' => $this->validatedImplementationPlan($_POST['implementation_plan'] ?? []),
+            'plan_year_from' => preg_match('/^\d{4}$/', trim((string) ($_POST['plan_year_from'] ?? ''))) === 1 ? trim((string) $_POST['plan_year_from']) : '',
+            'plan_year_to' => preg_match('/^\d{4}$/', trim((string) ($_POST['plan_year_to'] ?? ''))) === 1 ? trim((string) $_POST['plan_year_to']) : '',
+            'funding_support' => \App\Support\ResearchFormOptions::picked($_POST['funding_support'] ?? [], \App\Support\ResearchFormOptions::FUNDING_SUPPORT),
+            'graphical_abstract_link' => trim((string) ($_POST['graphical_abstract_link'] ?? '')),
+            'ched_achieve' => \App\Support\ResearchFormOptions::picked($_POST['ched_achieve'] ?? [], \App\Support\ResearchFormOptions::CHED_ACHIEVE),
+            'sdgs' => \App\Support\ResearchFormOptions::picked($_POST['sdgs'] ?? [], \App\Support\ResearchFormOptions::SDGS),
+            'sustainability_plan' => trim((string) ($_POST['sustainability_plan'] ?? '')),
         ];
 
         return [
@@ -3567,36 +3510,6 @@ final class ProposalController
         return $out;
     }
 
-    private function validatedManuscriptInput(): array
-    {
-        $structuredSummary = [
-            'form_type' => 'manuscript',
-            'version' => 1,
-            'study_origin_details' => trim($_POST['study_origin_details'] ?? ''),
-            'study_origin_status' => trim($_POST['study_origin_status'] ?? ''),
-            'study_origin_completion_date' => trim($_POST['study_origin_completion_date'] ?? ''),
-            'lead_researchers' => trim($_POST['lead_researchers'] ?? ''),
-            'co_researchers' => trim($_POST['co_researchers'] ?? ''),
-            'duration_writing' => trim($_POST['duration_writing'] ?? ''),
-            'target_journal' => trim($_POST['target_journal'] ?? ''),
-            'sdgs' => $this->validatedManuscriptOptions($_POST['sdgs'] ?? [], $this->manuscriptSdgOptions()),
-            'ched_achieve' => $this->validatedManuscriptOptions($_POST['ched_achieve'] ?? [], $this->manuscriptAchieveOptions()),
-            'brief_rationale' => trim($_POST['brief_rationale'] ?? ''),
-            'objectives' => trim($_POST['objectives'] ?? ''),
-            'general_methodology' => trim($_POST['general_methodology'] ?? ''),
-            'highlights_of_results' => trim($_POST['highlights_of_results'] ?? ''),
-        ];
-
-        return [
-            'title' => trim($_POST['title'] ?? ''),
-            'summary' => json_encode($structuredSummary, JSON_UNESCAPED_SLASHES) ?: '',
-            'project_type' => $this->resolvedProjectType('research'),
-            'funding_source' => trim($_POST['funding_source'] ?? ''),
-            'risk_level' => 'low',
-            'ethics_required' => false,
-        ];
-    }
-
     private function resolvedProjectType(string $fallback = 'research'): string
     {
         $locked = proposal_nav_scope();
@@ -3609,43 +3522,21 @@ final class ProposalController
         return in_array($type, ['research', 'innovation', 'development', 'extension'], true) ? $type : 'research';
     }
 
-    /** @return list<string> */
-    private function validatedManuscriptOptions(mixed $values, array $allowed): array
-    {
-        if (!is_array($values)) {
-            return [];
-        }
-
-        return array_values(array_intersect($allowed, array_map('strval', $values)));
-    }
-
-    /** @return list<string> */
-    private function manuscriptSdgOptions(): array
-    {
-        return [
-            'sdg_1', 'sdg_2', 'sdg_3', 'sdg_4', 'sdg_5', 'sdg_6', 'sdg_7', 'sdg_8', 'sdg_9',
-            'sdg_10', 'sdg_11', 'sdg_12', 'sdg_13', 'sdg_14', 'sdg_15', 'sdg_16', 'sdg_17',
-        ];
-    }
-
-    /** @return list<string> */
-    private function manuscriptAchieveOptions(): array
-    {
-        return ['access', 'connectivity', 'human_capital', 'innovation', 'excellence', 'value', 'engagement'];
-    }
-
     private function validatedCompletedResearchesInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('completed_researches', $existingProposal);
         return $this->validatedQuarterlyResearchesReportInput('completed_researches', 'Completed Researches', $existingProposal);
     }
 
     private function validatedOngoingResearchesInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('ongoing_researches', $existingProposal);
         return $this->validatedQuarterlyResearchesReportInput('ongoing_researches', 'Ongoing Researches', $existingProposal);
     }
 
     private function validatedResearchOutputPublishedInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('research_output_published', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'research_output_published');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -3662,10 +3553,10 @@ final class ProposalController
 
         $title = 'Research Output Published';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -3697,10 +3588,10 @@ final class ProposalController
 
         $title = $titleBase;
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -3837,6 +3728,7 @@ final class ProposalController
 
     private function validatedResearchOutputPresentedInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('research_output_presented', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'research_output_presented');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -3853,10 +3745,10 @@ final class ProposalController
 
         $title = 'Research Output Presented';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -3871,6 +3763,7 @@ final class ProposalController
 
     private function validatedCommercializedInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('commercialized', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'commercialized');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -3887,10 +3780,10 @@ final class ProposalController
 
         $title = 'Commercialized';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -3905,6 +3798,7 @@ final class ProposalController
 
     private function validatedResultedInExtensionInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('resulted_in_extension', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'resulted_in_extension');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -3921,10 +3815,10 @@ final class ProposalController
 
         $title = 'Resulted in Extension';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -3939,6 +3833,7 @@ final class ProposalController
 
     private function validatedJournalCitationInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('journal_citation', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'journal_citation');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -3955,10 +3850,10 @@ final class ProposalController
 
         $title = 'Journal Citation';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -3973,6 +3868,7 @@ final class ProposalController
 
     private function validatedBookCitationInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('book_citation', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'book_citation');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -3989,10 +3885,10 @@ final class ProposalController
 
         $title = 'Book Citation';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4007,6 +3903,7 @@ final class ProposalController
 
     private function validatedInventionsUmCopyrightsInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('inventions_um_copyrights', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'inventions_um_copyrights');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -4023,10 +3920,10 @@ final class ProposalController
 
         $title = 'Inventions, UM, Copyrights';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4041,6 +3938,7 @@ final class ProposalController
 
     private function validatedLinkagesInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('linkages', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'linkages');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -4057,10 +3955,10 @@ final class ProposalController
 
         $title = 'Linkages';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4075,6 +3973,7 @@ final class ProposalController
 
     private function validatedTrainingsConductedInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('trainings_conducted', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'trainings_conducted');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -4102,10 +4001,10 @@ final class ProposalController
 
         $title = 'Trainings Conducted';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4120,6 +4019,7 @@ final class ProposalController
 
     private function validatedTechnicalAdvisoryInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('technical_advisory', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'technical_advisory');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -4139,10 +4039,10 @@ final class ProposalController
 
         $title = 'Technical Advisory';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4157,6 +4057,7 @@ final class ProposalController
 
     private function validatedExtensionLinkagesInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('extension_linkages', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'extension_linkages');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -4173,10 +4074,10 @@ final class ProposalController
 
         $title = 'Extension Linkages';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4191,6 +4092,7 @@ final class ProposalController
 
     private function validatedOutreachActivitiesInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('outreach_activities', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'outreach_activities');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -4210,10 +4112,10 @@ final class ProposalController
 
         $title = 'Outreach Activities';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4228,6 +4130,7 @@ final class ProposalController
 
     private function validatedTechnologyAdoptionInput(?array $existingProposal = null): array
     {
+        $this->useGeneratedReportRows('technology_adoption', $existingProposal);
         $reporting = $this->quarterlyReportingFromRequest($existingProposal, 'technology_adoption');
         $reportAsOf = $reporting['report_as_of'];
         $reportingPeriod = $reporting['reporting_period'];
@@ -4275,10 +4178,10 @@ final class ProposalController
 
         $title = 'Technology Adoption';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4292,58 +4195,6 @@ final class ProposalController
     }
 
     /** @param array<string, mixed>|null $existingProposal */
-    private function validatedEbalwasyonNgGawainInput(?array $existingProposal = null): array
-    {
-        $collegeName = trim((string) ($_POST['college_name'] ?? ''));
-        $activityTitle = trim((string) ($_POST['paksang_gawain'] ?? ''));
-        $title = $activityTitle !== '' ? $activityTitle : 'Ebalwasyon ng Gawain';
-        if ($collegeName !== '' && $activityTitle === '') {
-            $title .= ' — ' . $collegeName;
-        }
-
-        $gender = trim((string) ($_POST['kasarian'] ?? ''));
-        if (!in_array($gender, ['babae', 'lalaki'], true)) {
-            $gender = '';
-        }
-
-        $postedRatings = $_POST['ratings'] ?? [];
-        $ratings = [];
-        if (is_array($postedRatings)) {
-            foreach (ebalwasyon_ng_gawain_item_keys() as $key) {
-                $value = trim((string) ($postedRatings[$key] ?? ''));
-                if (preg_match('/^[1-5]$/', $value) === 1) {
-                    $ratings[$key] = $value;
-                }
-            }
-        }
-
-        $average = ebalwasyon_ng_gawain_average($ratings);
-        $marka = $average !== null ? number_format($average, 2, '.', '') : '';
-
-        $structuredSummary = [
-            'form_type' => 'ebalwasyon_ng_gawain',
-            'version' => 1,
-            'college_name' => $collegeName,
-            'paksang_gawain' => $activityTitle,
-            'pangalan_ng_dumalo' => trim((string) ($_POST['pangalan_ng_dumalo'] ?? '')),
-            'petsa' => trim((string) ($_POST['petsa'] ?? '')),
-            'kasarian' => $gender,
-            'marka' => $marka,
-            'ratings' => $ratings,
-            'karagdagang_komento' => trim((string) ($_POST['karagdagang_komento'] ?? '')),
-            'lagda' => trim((string) ($_POST['lagda'] ?? '')),
-        ];
-
-        return [
-            'title' => $title,
-            'summary' => json_encode($structuredSummary, JSON_UNESCAPED_SLASHES) ?: '',
-            'project_type' => 'extension',
-            'funding_source' => '',
-            'risk_level' => 'low',
-            'ethics_required' => false,
-        ];
-    }
-
     /** @param array<string, mixed>|null $existingProposal */
     private function validatedConsolidatedCompletedResearchesInput(?array $existingProposal = null): array
     {
@@ -4372,10 +4223,10 @@ final class ProposalController
 
         $title = 'Consolidated Completed Researches';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4423,10 +4274,10 @@ final class ProposalController
 
         $title = 'Consolidated Ongoing Researches';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4467,10 +4318,10 @@ final class ProposalController
 
         $title = 'Consolidated Research Output Published';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4511,10 +4362,10 @@ final class ProposalController
 
         $title = 'Consolidated Research Output Presented';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4580,10 +4431,10 @@ final class ProposalController
 
         $title = 'Progress Report';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4649,10 +4500,10 @@ final class ProposalController
 
         $title = 'Terminal Report';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [
@@ -4710,10 +4561,10 @@ final class ProposalController
 
         $title = 'Terminal Report Assessment Form';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($date !== '') {
-            $title .= ' — ' . $date;
+            $title .= ' - ' . $date;
         }
 
         return [
@@ -4739,7 +4590,7 @@ final class ProposalController
 
         $title = 'OBR Matrix';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
 
         return [
@@ -4932,8 +4783,8 @@ final class ProposalController
                 'venue' => trim((string) ($row['venue'] ?? '')),
                 'presentation_date' => trim((string) ($row['presentation_date'] ?? '')),
                 'organizer' => trim((string) ($row['organizer'] ?? '')),
-                'conference_type' => trim((string) ($row['conference_type'] ?? '')),
-                'presentation_type' => trim((string) ($row['presentation_type'] ?? '')),
+                'conference_type' => strtolower(trim((string) ($row['conference_type'] ?? ''))),
+                'presentation_type' => strtolower(trim((string) ($row['presentation_type'] ?? ''))),
                 'award_received' => trim((string) ($row['award_received'] ?? '')),
                 'college' => trim((string) ($row['college'] ?? '')),
                 'campus' => trim((string) ($row['campus'] ?? '')),
@@ -5300,6 +5151,8 @@ final class ProposalController
                 'year_publication' => trim((string) ($row['year_publication'] ?? '')),
                 'isbn' => trim((string) ($row['isbn'] ?? '')),
                 'publisher' => trim((string) ($row['publisher'] ?? '')),
+                'date_cited' => trim((string) ($row['date_cited'] ?? '')),
+                'indexing' => trim((string) ($row['indexing'] ?? '')),
                 'google_drive_link' => trim((string) ($row['google_drive_link'] ?? '')),
             ];
 
@@ -5343,6 +5196,9 @@ final class ProposalController
                 'pages' => trim((string) ($row['pages'] ?? '')),
                 'year_publication' => trim((string) ($row['year_publication'] ?? '')),
                 'publisher' => trim((string) ($row['publisher'] ?? '')),
+                'date_cited' => trim((string) ($row['date_cited'] ?? '')),
+                'issn' => trim((string) ($row['issn'] ?? '')),
+                'indexing' => trim((string) ($row['indexing'] ?? '')),
                 'google_drive_link' => trim((string) ($row['google_drive_link'] ?? '')),
             ];
 
@@ -5576,8 +5432,8 @@ final class ProposalController
                 'venue' => trim((string) ($row['venue'] ?? '')),
                 'presentation_date' => trim((string) ($row['presentation_date'] ?? '')),
                 'organizer' => trim((string) ($row['organizer'] ?? '')),
-                'conference_type' => trim((string) ($row['conference_type'] ?? '')),
-                'presentation_type' => trim((string) ($row['presentation_type'] ?? '')),
+                'conference_type' => strtolower(trim((string) ($row['conference_type'] ?? ''))),
+                'presentation_type' => strtolower(trim((string) ($row['presentation_type'] ?? ''))),
                 'award_received' => trim((string) ($row['award_received'] ?? '')),
                 'google_drive_link' => trim((string) ($row['google_drive_link'] ?? '')),
             ];
@@ -5984,17 +5840,6 @@ final class ProposalController
         };
     }
 
-    private function allowManuscriptAccess(): bool
-    {
-        if (MonitoringRoles::canAccessManuscript()) {
-            return true;
-        }
-
-        http_response_code(403);
-        view('errors.403');
-        return false;
-    }
-
     private function allowCompletedResearchesAccess(): bool
     {
         if (MonitoringRoles::canAccessCompletedResearches()) {
@@ -6160,17 +6005,6 @@ final class ProposalController
         return false;
     }
 
-    private function allowEbalwasyonNgGawainAccess(): bool
-    {
-        if (MonitoringRoles::canAccessEbalwasyonNgGawain()) {
-            return true;
-        }
-
-        http_response_code(403);
-        view('errors.403');
-        return false;
-    }
-
     private function allowConsolidatedCompletedResearchesAccess(): bool
     {
         if (MonitoringRoles::canAccessConsolidatedCompletedResearches()) {
@@ -6277,7 +6111,7 @@ final class ProposalController
 
     private function isStandaloneProposalForm(array $proposal): bool
     {
-        return proposal_is_manuscript($proposal)
+        return \App\Support\ResearchRequestForms::typeOf($proposal) !== null
             || proposal_is_quarterly_researches_report($proposal)
             || proposal_is_wpu_funded_extension($proposal)
             || proposal_is_accomplishment_report($proposal)
@@ -6314,6 +6148,115 @@ final class ProposalController
     }
 
     /** @param array<string, mixed> $user */
+    /**
+     * View data that starts a new ESO quarterly report from Conducted Activities: the activities dated in the
+     * chosen reporting period (?period=, else the locked or current one).
+     *
+     * @param array<string, mixed>|null $user
+     * @return array<string, mixed>
+     */
+    /**
+     * Quarterly reports list the Conducted Activities (ESO) or Research Accomplishments (RDO) of the reporting
+     * period. The rows are never typed in: on save they are rebuilt from those records, replacing whatever the
+     * form posted, so a report always matches the entries it was generated from.
+     */
+    private function useGeneratedReportRows(string $formType, ?array $existingProposal = null): void
+    {
+        $definition = \App\Support\ExtensionActivityTypes::get($formType);
+        if ($definition === null) {
+            return;
+        }
+        $period = (string) ($this->quarterlyReportingFromRequest($existingProposal, $formType)['reporting_period'] ?? '');
+        if (!\App\Support\QuarterlyReporting::isPeriodKeyValid($period)) {
+            return;
+        }
+        $scope = \App\Controllers\ExtensionActivityController::reportScope(
+            Auth::user() ?? [],
+            \App\Support\ExtensionActivityTypes::officeOf($formType)
+        );
+        $generated = \App\Models\ExtensionActivity::reportSummary($formType, $period, $scope)['summary'];
+        foreach ($definition['sections'] as $section) {
+            self::writePath($_POST, $section['path'], self::readPath($generated, $section['path']));
+        }
+    }
+
+    /** A saved report with its rows replaced by the current generated rows (for the edit page). */
+    private static function summaryWithGeneratedRows(string $savedSummary, ?string $generatedSummary, string $formType): string
+    {
+        $saved = json_decode($savedSummary, true);
+        $generated = $generatedSummary !== null ? json_decode($generatedSummary, true) : null;
+        $definition = \App\Support\ExtensionActivityTypes::get($formType);
+        if (!is_array($saved) || !is_array($generated) || $definition === null) {
+            return $savedSummary;
+        }
+        foreach ($definition['sections'] as $section) {
+            self::writePath($saved, $section['path'], self::readPath($generated, $section['path']));
+        }
+        foreach (['reporting_period', 'report_as_of'] as $key) {
+            if (($generated[$key] ?? '') !== '') {
+                $saved[$key] = $generated[$key];
+            }
+        }
+
+        return json_encode($saved, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: $savedSummary;
+    }
+
+    /** @param list<string> $path */
+    private static function readPath(array $data, array $path): array
+    {
+        foreach ($path as $key) {
+            $data = is_array($data[$key] ?? null) ? $data[$key] : [];
+        }
+
+        return $data;
+    }
+
+    /** @param list<string> $path */
+    private static function writePath(array &$data, array $path, array $value): void
+    {
+        $ref = &$data;
+        foreach ($path as $key) {
+            if (!isset($ref[$key]) || !is_array($ref[$key])) {
+                $ref[$key] = [];
+            }
+            $ref = &$ref[$key];
+        }
+        $ref = $value;
+        unset($ref);
+    }
+    private function conductedActivitiesPrefill(string $formType, ?array $user, string $savedPeriod = ''): array
+    {
+        $period = '';
+        if (\App\Support\FacultyFormDeadlines::locksFacultyReportingPeriod($formType)) {
+            $period = \App\Support\QuarterlyReporting::facultyLockedPeriod([], $formType)['reporting_period'] ?? '';
+        }
+        if ($period === '') {
+            $requested = trim((string) ($_GET['period'] ?? ''));
+            $period = \App\Support\QuarterlyReporting::isPeriodKeyValid($requested)
+                ? $requested
+                : (\App\Support\QuarterlyReporting::isPeriodKeyValid($savedPeriod)
+                    ? $savedPeriod
+                    : (\App\Support\QuarterlyReporting::currentPeriodKey() ?? ''));
+        }
+        if ($period === '') {
+            return [];
+        }
+
+        $scope = \App\Controllers\ExtensionActivityController::reportScope(
+            $user ?? [],
+            \App\Support\ExtensionActivityTypes::officeOf($formType)
+        );
+        $generated = \App\Models\ExtensionActivity::reportSummary($formType, $period, $scope);
+
+        return [
+            'prefillSummary' => json_encode($generated['summary'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: null,
+            'conductedActivitiesCount' => $generated['count'],
+            'conductedActivitiesPeriod' => $period,
+            'conductedActivitiesSlug' => (string) (\App\Support\ExtensionActivityTypes::get($formType)['slug'] ?? ''),
+            'conductedActivitiesCollegeScope' => isset($scope['college_id']),
+        ];
+    }
+
     private function collegeNameForUser(array $user): string
     {
         $collegeId = (int) ($user['college_id'] ?? 0);

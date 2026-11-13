@@ -6,7 +6,7 @@ $trainingLengthOptions = [
     'lt_8h' => '< 8 hours (0.5)',
     '8h_1d' => '8 hours or 1 day (1)',
     '2d' => '2 days (1.25)',
-    '3_4d' => '3–4 days (1.5)',
+    '3_4d' => '3-4 days (1.5)',
     '5d_plus' => '5 days or more (2)',
 ];
 
@@ -66,7 +66,7 @@ $renderRow = static function (string $sectionKey, int $index, array $row, bool $
         <td class="tc-col-count"><input type="number" min="0" step="1" class="tc-persons-trained tc-input-num" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[persons_trained]' ?>" value="<?= htmlspecialchars((string) ($row['persons_trained'] ?? '')) ?>"></td>
         <td class="tc-col-weighted">
             <?php if ($readOnly): ?>
-                <span class="tc-readonly-value"><?= htmlspecialchars($weighted !== '' ? $weighted : '—') ?></span>
+                <span class="tc-readonly-value"><?= htmlspecialchars($weighted !== '' ? $weighted : '-') ?></span>
             <?php else: ?>
                 <div class="tc-cell-stack">
                     <select class="tc-training-length" name="<?= $namePrefix ?>[training_length]" aria-label="Training length for weighted total">
@@ -190,7 +190,7 @@ $renderRow = static function (string $sectionKey, int $index, array $row, bool $
         </div>
         <p class="proposal-section-note">
             <span class="tc-footnote">(3)</span> Weighted value = No. of Persons Trained × weight by training length
-            (&lt; 8 h = 0.5; 8 h or 1 day = 1; 2 days = 1.25; 3–4 days = 1.5; 5+ days = 2).
+            (&lt; 8 h = 0.5; 8 h or 1 day = 1; 2 days = 1.25; 3-4 days = 1.5; 5+ days = 2).
         </p>
     <?php endif; ?>
 </section>

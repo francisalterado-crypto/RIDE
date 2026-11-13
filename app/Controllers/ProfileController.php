@@ -29,6 +29,7 @@ final class ProfileController
         view('profile.index', [
             'user' => $user,
             'colleges' => College::all(),
+            'campuses' => (int) ($user['college_id'] ?? 0) > 0 ? College::campuses((int) $user['college_id']) : [],
             'hasSignature' => UserSignature::filePath($userId) !== null,
             'hasAvatar' => $avatarUrl !== null,
             'avatarUrl' => $avatarUrl,
@@ -126,6 +127,15 @@ final class ProfileController
         $email = strtolower(trim((string) ($_POST['email'] ?? '')));
         $collegeId = (int) ($_POST['college_id'] ?? 0) ?: null;
         $program = trim((string) ($_POST['program'] ?? ''));
+        // Proponent details used to fill in the RDO forms (Research Proposal Application, request forms).
+        $details = \App\Support\ProponentProfile::fromPost($_POST);
+        $campusId = (int) ($_POST['campus_id'] ?? 0) ?: null;
+        if ($campusId !== null) {
+            $allowedCampuses = $collegeId !== null ? array_map('intval', array_column(College::campuses($collegeId), 'id')) : [];
+            if (!in_array($campusId, $allowedCampuses, true)) {
+                $campusId = null;
+            }
+        }
 
         $_SESSION['_old'] = [
             'profile_first_name' => $firstName,
@@ -183,8 +193,8 @@ final class ProfileController
             'last_name' => $lastName,
             'college_id' => $collegeId,
             'program' => $program,
-            'campus_id' => $user['campus_id'] ?? null,
-        ]);
+            'campus_id' => $campusId,
+        ] + $details);
 
         unset($_SESSION['_old']);
 

@@ -148,7 +148,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '-')) ?>
 
                             <?php else: ?>
 
@@ -172,7 +172,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'researcher_names') !== '' ? $entryValue($row, 'researcher_names') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'researcher_names') !== '' ? $entryValue($row, 'researcher_names') : '-')) ?>
 
                             <?php else: ?>
 
@@ -196,7 +196,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '-') ?>
 
                             <?php else: ?>
 
@@ -218,7 +218,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '-') ?>
 
                             <?php else: ?>
 
@@ -240,7 +240,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'duration_months') !== '' ? $entryValue($row, 'duration_months') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'duration_months') !== '' ? $entryValue($row, 'duration_months') : '-') ?>
 
                             <?php else: ?>
 
@@ -268,7 +268,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'budget_source') !== '' ? $entryValue($row, 'budget_source') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'budget_source') !== '' ? $entryValue($row, 'budget_source') : '-') ?>
 
                             <?php else: ?>
 
@@ -292,7 +292,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'budget_amount') !== '' ? $entryValue($row, 'budget_amount') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'budget_amount') !== '' ? $entryValue($row, 'budget_amount') : '-') ?>
 
                             <?php else: ?>
 
@@ -316,7 +316,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'category') !== '' ? $entryValue($row, 'category') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'category') !== '' ? $entryValue($row, 'category') : '-') ?>
 
                             <?php else: ?>
 
@@ -340,7 +340,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'remarks') !== '' ? $entryValue($row, 'remarks') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'remarks') !== '' ? $entryValue($row, 'remarks') : '-')) ?>
 
                             <?php else: ?>
 
@@ -374,7 +374,7 @@ $entryValue = static function (array $row, string $key): string {
 
                                 <?php else: ?>
 
-                                    —
+                                    -
 
                                 <?php endif; ?>
 

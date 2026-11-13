@@ -3,7 +3,7 @@
 
 use App\Models\FormTemplate;
 
-$pageTitle = 'Form Templates | RIDE';
+$pageTitle = 'Form Templates | RIDE Hub';
 $pageHeading = 'Form Templates';
 $pageSubtitle = 'Upload the official templates users download from Downloadable Forms (e.g. Accomplishment Report, Technical Advisory AR, Outreach Activities AR, Attendance Sheet).';
 
@@ -25,7 +25,7 @@ foreach ($templates as $template) {
 }
 ?>
 
-<div class="card" style="margin-bottom: 1.5rem;">
+<div class="card">
     <h2>Upload Template</h2>
     <form method="post" action="<?= base_url('admin/form-templates') ?>" enctype="multipart/form-data">
         <?= csrf_field() ?>
@@ -45,7 +45,7 @@ foreach ($templates as $template) {
 
         <label for="file">File <span class="required">*</span></label>
         <input type="file" id="file" name="file" accept="<?= htmlspecialchars($accept) ?>" required>
-        <p class="muted"><?= htmlspecialchars($allowedLabel) ?> · Max 10 MB</p>
+        <p class="muted"><?= htmlspecialchars($allowedLabel) ?> | Max 10 MB</p>
 
         <button type="submit" class="btn btn-accent">Upload Template</button>
     </form>
@@ -60,9 +60,9 @@ foreach ($templates as $template) {
 <?php foreach (FormTemplate::AUDIENCE_LABELS as $audience => $label): ?>
     <?php if (empty($grouped[$audience])) { continue; } ?>
     <?php $rows = $grouped[$audience]; ?>
-    <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card">
         <h2><?= htmlspecialchars($label) ?></h2>
-        <table>
+        <table class="data-table">
             <thead>
                 <tr>
                     <th>Form</th>
@@ -89,21 +89,21 @@ foreach ($templates as $template) {
                         <div class="muted"><?= $formatSize((int) $template['file_size']) ?></div>
                     </td>
                     <td><span class="badge <?= $isActive ? 'badge-approved' : 'badge-draft' ?>"><?= $isActive ? 'Published' : 'Hidden' ?></span></td>
-                    <td style="white-space: nowrap;">
-                        <form method="post" action="<?= base_url('admin/form-templates/' . $id . '/move') ?>" style="display:inline;">
+                    <td class="nowrap">
+                        <form method="post" action="<?= base_url('admin/form-templates/' . $id . '/move') ?>" class="inline-action">
                             <?= csrf_field() ?>
                             <input type="hidden" name="direction" value="-1">
-                            <button type="submit" class="btn btn-outline btn-sm" title="Move up" aria-label="Move up" <?= $index === 0 ? 'disabled' : '' ?>>&#9650;</button>
+                            <button type="submit" class="btn btn-outline btn-sm icon-btn" title="Move up" aria-label="Move up" <?= $index === 0 ? 'disabled' : '' ?>><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
                         </form>
-                        <form method="post" action="<?= base_url('admin/form-templates/' . $id . '/move') ?>" style="display:inline;">
+                        <form method="post" action="<?= base_url('admin/form-templates/' . $id . '/move') ?>" class="inline-action">
                             <?= csrf_field() ?>
                             <input type="hidden" name="direction" value="1">
-                            <button type="submit" class="btn btn-outline btn-sm" title="Move down" aria-label="Move down" <?= $index === count($rows) - 1 ? 'disabled' : '' ?>>&#9660;</button>
+                            <button type="submit" class="btn btn-outline btn-sm icon-btn" title="Move down" aria-label="Move down" <?= $index === count($rows) - 1 ? 'disabled' : '' ?>><i class="fas fa-arrow-down" aria-hidden="true"></i></button>
                         </form>
                         <a href="<?= base_url('admin/form-templates?edit=' . $id) ?>" class="btn btn-outline btn-sm icon-btn" title="Edit template" aria-label="Edit template">
                             <i class="fas fa-pencil-alt" aria-hidden="true"></i>
                         </a>
-                        <form method="post" action="<?= base_url('admin/form-templates/' . $id . '/delete') ?>" style="display:inline;" onsubmit="return confirm('Delete this form template?');">
+                        <form method="post" action="<?= base_url('admin/form-templates/' . $id . '/delete') ?>" class="inline-action" onsubmit="return confirm('Delete this form template?');">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn btn-danger btn-sm icon-btn" title="Delete template" aria-label="Delete template">
                                 <i class="fas fa-trash-alt" aria-hidden="true"></i>
@@ -133,12 +133,12 @@ foreach ($templates as $template) {
                             <input type="file" id="edit_file_<?= $id ?>" name="file" accept="<?= htmlspecialchars($accept) ?>">
                             <p class="muted">Leave empty to keep the current file.</p>
 
-                            <label style="display:flex;align-items:center;gap:0.5rem;margin-top:0.75rem;">
+                            <label class="check-row">
                                 <input type="checkbox" name="is_active" value="1" <?= $isActive ? 'checked' : '' ?>>
                                 Published on Downloadable Forms
                             </label>
 
-                            <div style="display:flex;gap:0.5rem;margin-top:0.85rem;">
+                            <div class="form-actions-row">
                                 <button type="submit" class="btn btn-accent btn-sm">Save changes</button>
                                 <a href="<?= base_url('admin/form-templates') ?>" class="btn btn-outline btn-sm">Cancel</a>
                             </div>

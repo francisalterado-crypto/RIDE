@@ -11,7 +11,7 @@
 /** @var string $selectedSpecialization */
 /** @var int $selectedCollege */
 
-$pageTitle = 'Faculty Directory | RIDE';
+$pageTitle = 'Faculty Directory | RIDE Hub';
 $pageHeading = 'Faculty Directory';
 $pageSubtitle = 'Find faculty by name, college, or specialization.';
 
@@ -40,8 +40,8 @@ $pageLinks = [];
 for ($p = 1; $p <= $pages; $p++) {
     if ($p === 1 || $p === $pages || abs($p - $page) <= 2) {
         $pageLinks[] = $p;
-    } elseif (end($pageLinks) !== '…gap') {
-        $pageLinks[] = '…gap';
+    } elseif (end($pageLinks) !== '...gap') {
+        $pageLinks[] = '...gap';
     }
 }
 ?>
@@ -159,7 +159,7 @@ for ($p = 1; $p <= $pages; $p++) {
                             <span class="is-disabled">Previous</span>
                         <?php endif; ?>
                         <?php foreach ($pageLinks as $link): ?>
-                            <?php if ($link === '…gap'): ?>
+                            <?php if ($link === '...gap'): ?>
                                 <span class="pager-gap">...</span>
                             <?php elseif ($link === $page): ?>
                                 <span class="is-current" aria-current="page"><?= $link ?></span>

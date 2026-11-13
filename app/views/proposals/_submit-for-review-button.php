@@ -8,12 +8,12 @@ $submitBlockedMessage = proposal_submit_blocked_coauthor_message($proposal);
 ?>
 <?php if ($canEdit ?? false): ?>
     <?php if ($canSubmitForReview): ?>
-        <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/submit') ?>" style="display:inline;">
+        <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/submit') ?>" class="inline-action">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-accent" onclick="return confirm('<?= htmlspecialchars($submitConfirmMessage, ENT_QUOTES) ?>')">Submit for Review</button>
         </form>
     <?php else: ?>
-        <span class="proposal-submit-blocked-wrap" style="display:inline;">
+        <span class="proposal-submit-blocked-wrap inline-action">
             <button type="button" class="btn btn-accent" disabled aria-disabled="true" title="Waiting for co-author acceptance">Submit for Review</button>
         </span>
         <?php if ($submitBlockedMessage !== null): ?>

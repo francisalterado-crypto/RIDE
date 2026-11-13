@@ -25,7 +25,7 @@ if ($pendingCoAuthorInvitations === []) {
                     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
                         <div>
                             <strong><?= htmlspecialchars($leadName !== '' ? $leadName : 'Lead author') ?></strong>
-                            <span class="muted"> · </span>
+                            <span class="muted"> | </span>
                             <?= htmlspecialchars($proposalTitle) ?>
                         </div>
                         <div style="display: flex; flex-wrap: wrap; gap: 8px;">

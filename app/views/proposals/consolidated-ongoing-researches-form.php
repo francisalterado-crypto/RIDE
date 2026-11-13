@@ -12,7 +12,7 @@ $isEdit = $proposal !== null;
 
 /** @var array<string, list<array<string, string>>> $prefilledEntries */
 
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Ongoing Researches | RIDE';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Ongoing Researches | RIDE Hub';
 
 $pageHeading = 'Consolidated Ongoing Researches';
 

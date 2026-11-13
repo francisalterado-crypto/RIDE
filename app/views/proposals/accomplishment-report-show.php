@@ -8,8 +8,8 @@
 /** @var array<string, string> $requiredFileList */
 /** @var array<string, list<array<string, mixed>>> $requiredDocuments */
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
-$pageHeading = htmlspecialchars($proposal['title']);
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
+$pageHeading = (string) $proposal['title'];
 $pageSubtitle = 'Review the submitted Accomplishment Report (WPU-QSF-RIDE-ESO-13).';
 
 $summaryData = [];
@@ -23,7 +23,7 @@ if (!empty($proposal['summary'])) {
 $display = static function (string $value): string {
     $trimmed = trim($value);
 
-    return $trimmed === '' ? '—' : nl2br(htmlspecialchars($trimmed));
+    return $trimmed === '' ? '-' : nl2br(htmlspecialchars($trimmed));
 };
 
 $summaryField = static function (string $key) use ($summaryData): string {
@@ -64,9 +64,9 @@ $collegeDisplay = $summaryField('college_name') !== ''
             </tr>
             <tr>
                 <th>College</th>
-                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '—') ?></td>
+                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '-') ?></td>
                 <th>Title</th>
-                <td><?= htmlspecialchars((string) ($proposal['title'] ?? '—')) ?></td>
+                <td><?= htmlspecialchars((string) ($proposal['title'] ?? '-')) ?></td>
             </tr>
             <tr>
                 <th>Authors</th>
@@ -156,6 +156,9 @@ $collegeDisplay = $summaryField('college_name') !== ''
         <p><?= $display($summaryField('acknowledgement')) ?></p>
     </section>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
 <?php
     $workflowSteps = proposal_workflow_steps($proposal);
     require APP_PATH . '/views/proposals/_approval-workflow.php';
@@ -167,7 +170,7 @@ $collegeDisplay = $summaryField('college_name') !== ''
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
                 </form>
@@ -181,7 +184,7 @@ $collegeDisplay = $summaryField('college_name') !== ''
     </section>
 </div>
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
     <section class="proposal-section">
         <h2 class="proposal-section-title">Comments &amp; History</h2>
         <?php if (empty($comments)): ?>
@@ -192,9 +195,9 @@ $collegeDisplay = $summaryField('college_name') !== ''
                     <li>
                         <div class="proposal-history-meta">
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
                         </div>
                         <div><?= nl2br(htmlspecialchars($c['comment'])) ?></div>
                     </li>

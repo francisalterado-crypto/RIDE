@@ -2,7 +2,7 @@
 /** @var array<string, mixed> $cluster */
 /** @var list<array> $colleges */
 /** @var list<int> $memberCollegeIds */
-$pageTitle = 'Edit Cluster | RIDE';
+$pageTitle = 'Edit Cluster | RIDE Hub';
 $pageHeading = 'Edit Cluster';
 $pageSubtitle = 'Rename this cluster or change which colleges belong to it.';
 ?>
@@ -47,7 +47,7 @@ $pageSubtitle = 'Rename this cluster or change which colleges belong to it.';
                         >
                         <?= htmlspecialchars((string) $college['name']) ?> (<code><?= htmlspecialchars((string) $college['code']) ?></code>)
                         <?php if (!empty($college['cluster_name']) && (int) ($college['cluster_id'] ?? 0) !== (int) $cluster['id']): ?>
-                            <span class="muted">— currently in <?= htmlspecialchars((string) $college['cluster_name']) ?></span>
+                            <span class="muted">(currently in <?= htmlspecialchars((string) $college['cluster_name']) ?>)</span>
                         <?php endif; ?>
                     </label>
                 <?php endforeach; ?>

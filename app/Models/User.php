@@ -421,16 +421,23 @@ final class User
     {
         $stmt = Database::pdo()->prepare(
             'UPDATE users
-             SET email = ?, first_name = ?, last_name = ?, college_id = ?, program = ?, campus_id = ?
+             SET email = ?, first_name = ?, last_name = ?, college_id = ?, program = ?, campus_id = ?,
+                 middle_name = ?, title_prefix = ?, sex = ?, position = ?, contact_number = ?
              WHERE id = ? AND is_active = 1'
         );
+        $optional = static fn (string $key): ?string => ($data[$key] ?? '') !== '' ? (string) $data[$key] : null;
         $stmt->execute([
             $data['email'],
             $data['first_name'],
             $data['last_name'],
             $data['college_id'] ?: null,
-            ($data['program'] ?? '') !== '' ? $data['program'] : null,
+            $optional('program'),
             $data['campus_id'] ?: null,
+            $optional('middle_name'),
+            $optional('title_prefix'),
+            $optional('sex'),
+            $optional('position'),
+            $optional('contact_number'),
             $id,
         ]);
 

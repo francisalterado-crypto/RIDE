@@ -166,7 +166,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '-')) ?>
 
                             <?php else: ?>
 
@@ -180,7 +180,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'researchers') !== '' ? $entryValue($row, 'researchers') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'researchers') !== '' ? $entryValue($row, 'researchers') : '-')) ?>
 
                             <?php else: ?>
 
@@ -194,7 +194,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '-') ?>
 
                             <?php else: ?>
 
@@ -208,7 +208,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '-') ?>
 
                             <?php else: ?>
 
@@ -222,7 +222,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'extension_program_activity') !== '' ? $entryValue($row, 'extension_program_activity') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'extension_program_activity') !== '' ? $entryValue($row, 'extension_program_activity') : '-')) ?>
 
                             <?php else: ?>
 
@@ -236,7 +236,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'faculty_staff_involved') !== '' ? $entryValue($row, 'faculty_staff_involved') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'faculty_staff_involved') !== '' ? $entryValue($row, 'faculty_staff_involved') : '-')) ?>
 
                             <?php else: ?>
 
@@ -250,7 +250,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'budget_source') !== '' ? $entryValue($row, 'budget_source') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'budget_source') !== '' ? $entryValue($row, 'budget_source') : '-') ?>
 
                             <?php else: ?>
 
@@ -264,7 +264,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'budget_amount') !== '' ? $entryValue($row, 'budget_amount') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'budget_amount') !== '' ? $entryValue($row, 'budget_amount') : '-') ?>
 
                             <?php else: ?>
 
@@ -278,7 +278,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'venue') !== '' ? $entryValue($row, 'venue') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'venue') !== '' ? $entryValue($row, 'venue') : '-') ?>
 
                             <?php else: ?>
 
@@ -292,7 +292,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'date') !== '' ? $entryValue($row, 'date') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date') !== '' ? $entryValue($row, 'date') : '-') ?>
 
                             <?php else: ?>
 
@@ -306,7 +306,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '-') ?>
 
                             <?php else: ?>
 
@@ -320,7 +320,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '-') ?>
 
                             <?php else: ?>
 
@@ -344,7 +344,7 @@ $entryValue = static function (array $row, string $key): string {
 
                                 <?php else: ?>
 
-                                    —
+                                    -
 
                                 <?php endif; ?>
 

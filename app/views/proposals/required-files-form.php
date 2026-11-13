@@ -4,18 +4,18 @@
 /** @var array<string, list<array<string, mixed>>> $requiredDocuments */
 
 $hasProposal = $proposal !== null;
-$pageTitle = 'Required File List | RIDE';
+$pageTitle = 'Required File List | RIDE Hub';
 $pageHeading = 'Required File List';
 $pageSubtitle = $hasProposal
     ? 'Upload all required supporting documents for your research proposal.'
-    : 'Save your research proposal from Applicant\'s Information first, then return here to upload required files.';
+    : 'Save your research proposal from the Research Proposal Application first, then return here to upload required files.';
 ?>
 
 <?php if (!$hasProposal): ?>
     <section class="proposal-section proposal-paper">
         <p class="proposal-section-note">You need a saved research proposal draft before you can upload required files.</p>
         <div class="actions proposal-form-actions">
-            <a class="btn" href="<?= base_url('proposals/create') ?>">Go to Applicant&apos;s Information</a>
+            <a class="btn" href="<?= base_url('proposals/create') ?>">Go to Research Proposal Application</a>
             <a class="btn btn-outline" href="<?= base_url('proposals') ?>">View Proposals</a>
         </div>
     </section>
@@ -64,7 +64,7 @@ $pageSubtitle = $hasProposal
         <div class="actions proposal-form-actions">
             <button type="submit" class="btn">Save Files</button>
             <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id']) ?>">Back to Proposal</a>
-            <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id'] . '/edit') ?>">Applicant&apos;s Information</a>
+            <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id'] . '/edit') ?>">Research Proposal Application</a>
         </div>
     </form>
 <?php endif; ?>

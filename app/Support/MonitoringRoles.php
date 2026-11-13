@@ -246,21 +246,13 @@ final class MonitoringRoles
 
 
 
-    public static function canAccessManuscript(): bool
-
-    {
-
-        return !self::isExtensionScoped();
-
-    }
-
 
 
     public static function canAccessCompletedResearches(): bool
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -270,7 +262,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -290,7 +282,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -300,7 +292,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -320,7 +312,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -330,7 +322,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -340,7 +332,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -350,7 +342,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -360,7 +352,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -386,7 +378,7 @@ final class MonitoringRoles
 
     {
 
-        return !self::isExtensionScoped() && !self::isCoordinatorResearch();
+        return self::canPrepareResearchQuarterlyReports();
 
     }
 
@@ -442,11 +434,12 @@ final class MonitoringRoles
 
 
 
+    /** The 5 ESO quarterly reports are prepared only by the Field Extensionist (then attested by the Dean). */
     public static function canAccessTrainingsConducted(): bool
 
     {
 
-        return self::isExtensionScoped();
+        return self::isCoordinatorExtension();
 
     }
 
@@ -456,7 +449,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped();
+        return self::isCoordinatorExtension();
 
     }
 
@@ -466,7 +459,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped();
+        return self::isCoordinatorExtension();
 
     }
 
@@ -476,7 +469,7 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped();
+        return self::isCoordinatorExtension();
 
     }
 
@@ -486,7 +479,43 @@ final class MonitoringRoles
 
     {
 
-        return self::isExtensionScoped();
+        return self::isCoordinatorExtension();
+
+    }
+
+
+
+    /**
+     * The 10 RDO quarterly reports (WPU-QSF-RIDE-RDO-05 to -14) are prepared by the college R&D Coordinator
+     * from the researchers' Research Accomplishments, then attested by the Dean.
+     */
+    public static function canPrepareResearchQuarterlyReports(): bool
+    {
+        return self::isCoordinatorResearch();
+    }
+
+    /** RDO request forms (Critical Activities, Program/Project/Study/Center, External Funding, Paper Presentation, Manuscript). */
+    public static function canFileResearchRequests(): bool
+    {
+        return Auth::hasRole('faculty') || self::isCoordinatorResearch() || self::isDean();
+    }
+
+    /** Research Accomplishments page: researchers (faculty), R&D Coordinators and deans. */
+    public static function canEnterResearchAccomplishments(): bool
+    {
+        return Auth::hasRole('faculty') || self::isCoordinatorResearch() || self::isDean();
+    }
+
+    /** Conducted Activities page: extension staff plus faculty, college coordinators and deans. */
+    public static function canEnterConductedActivities(): bool
+
+    {
+
+        return self::isExtensionScoped()
+            || Auth::hasRole('faculty')
+            || self::isCoordinatorResearch()
+            || self::isCoordinatorExtension()
+            || self::isDean();
 
     }
 

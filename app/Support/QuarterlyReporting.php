@@ -211,7 +211,7 @@ final class QuarterlyReporting
 
         $openText = FacultyFormDeadlines::submissionOpenDateText();
         set_flash('error', 'Submissions are not open yet. The submission window opens on ' . $openText . '.');
-        redirect(request_path() !== '' ? request_path() : 'dashboard');
+        redirect(form_page_path());
     }
 
     /**

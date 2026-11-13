@@ -6,7 +6,7 @@
 /** @var string $approveLabel */
 /** @var string $stepLabel */
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
 $pageHeading = 'Terminal Report Assessment Form';
 $pageSubtitle = 'Assessment checklist for terminal report evaluation.';
 
@@ -20,7 +20,7 @@ if (!empty($proposal['summary'])) {
 
 $value = static function (string $key) use ($summaryData): string {
     $current = $summaryData[$key] ?? null;
-    return is_string($current) && $current !== '' ? $current : '—';
+    return is_string($current) && $current !== '' ? $current : '-';
 };
 
 $parameters = [
@@ -46,7 +46,7 @@ $judgmentLabels = [
     'failed_to_pass' => 'Failed to pass',
 ];
 $judgmentKey = (string) ($summaryData['judgment'] ?? '');
-$judgmentText = $judgmentLabels[$judgmentKey] ?? '—';
+$judgmentText = $judgmentLabels[$judgmentKey] ?? '-';
 ?>
 
 <div class="page-actions-bar">
@@ -113,9 +113,9 @@ $judgmentText = $judgmentLabels[$judgmentKey] ?? '—';
                 <tr>
                     <td><?= (int) $number ?></td>
                     <td><?= htmlspecialchars($label) ?></td>
-                    <td class="terminal-assessment-score"><?= $score === 'yes' ? '✓' : '' ?></td>
-                    <td class="terminal-assessment-score"><?= $score === 'no' ? '✓' : '' ?></td>
-                    <td class="terminal-assessment-score"><?= $score === 'na' ? '✓' : '' ?></td>
+                    <td class="terminal-assessment-score"><?= $score === 'yes' ? 'X' : '' ?></td>
+                    <td class="terminal-assessment-score"><?= $score === 'no' ? 'X' : '' ?></td>
+                    <td class="terminal-assessment-score"><?= $score === 'na' ? 'X' : '' ?></td>
                 </tr>
             <?php endforeach; ?>
                 </tbody>
@@ -125,7 +125,7 @@ $judgmentText = $judgmentLabels[$judgmentKey] ?? '—';
 
     <section class="proposal-section">
         <h3 class="proposal-subtitle">Comment(s)/Suggestion(s)/Recommendation(s):</h3>
-        <p><?= nl2br(htmlspecialchars((string) ($summaryData['comments'] ?? '—'))) ?></p>
+        <p><?= nl2br(htmlspecialchars((string) ($summaryData['comments'] ?? '-'))) ?></p>
     </section>
 
     <section class="proposal-section">
@@ -138,6 +138,9 @@ $judgmentText = $judgmentLabels[$judgmentKey] ?? '—';
         <p>TWG Chair/Member</p>
     </section>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
     <?php
     $workflowSteps = proposal_workflow_steps($proposal);
     require APP_PATH . '/views/proposals/_approval-workflow.php';
@@ -149,7 +152,7 @@ $judgmentText = $judgmentLabels[$judgmentKey] ?? '—';
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
                 </form>
@@ -163,7 +166,7 @@ $judgmentText = $judgmentLabels[$judgmentKey] ?? '—';
     </section>
 </div>
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
     <section class="proposal-section">
         <h2 class="proposal-section-title">Comments &amp; History</h2>
         <?php if (empty($comments)): ?>
@@ -174,9 +177,9 @@ $judgmentText = $judgmentLabels[$judgmentKey] ?? '—';
                     <li>
                         <div class="proposal-history-meta">
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
                         </div>
                         <div><?= nl2br(htmlspecialchars($c['comment'])) ?></div>
                     </li>

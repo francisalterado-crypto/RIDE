@@ -33,6 +33,15 @@ $periodOptions = \App\Support\QuarterlyReporting::periodOptions(
     0,
     $quarterlyFormType !== '' ? $quarterlyFormType : null
 );
+// After the last deadline month the current period belongs to next year, which periodOptions() leaves out.
+if ($selectedPeriod !== '' && !isset($periodOptions[$selectedPeriod])) {
+    $periodOptions = [
+        $selectedPeriod => \App\Support\QuarterlyReporting::periodLabel(
+            $selectedPeriod,
+            $quarterlyFormType !== '' ? $quarterlyFormType : null
+        ),
+    ] + $periodOptions;
+}
 $scheduleNote = \App\Support\FacultyFormDeadlines::scheduleNoticeText(
     $quarterlyFormType !== '' ? $quarterlyFormType : null
 );
@@ -72,10 +81,10 @@ $colspan = !empty($colspanRow) ? ' colspan="3"' : '';
         <?php elseif (!$submissionOpen): ?>
             <input type="hidden" name="reporting_period" value="<?= htmlspecialchars($selectedPeriod) ?>">
             <input type="hidden" name="report_as_of" value="<?= htmlspecialchars($reportAsOf) ?>">
-            <span class="muted"><?= $periodLabel !== '' ? htmlspecialchars($periodLabel) : '—' ?></span>
+            <span class="muted"><?= $periodLabel !== '' ? htmlspecialchars($periodLabel) : '-' ?></span>
         <?php else: ?>
             <select name="reporting_period" required>
-                <option value="">— Select period —</option>
+                <option value="">Select period</option>
                 <?php foreach ($periodOptions as $key => $label): ?>
                     <option value="<?= htmlspecialchars($key) ?>"<?= $key === $selectedPeriod ? ' selected' : '' ?>>
                         <?= htmlspecialchars($label) ?>

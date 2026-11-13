@@ -1,7 +1,7 @@
 <?php
 /** @var array<string, mixed> $college */
 /** @var list<array> $clusters */
-$pageTitle = 'Edit College | RIDE';
+$pageTitle = 'Edit College | RIDE Hub';
 $pageHeading = 'Edit College';
 $pageSubtitle = 'Update the college code or name used for account assignment and proposal prefill.';
 ?>

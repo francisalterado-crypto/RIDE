@@ -6,11 +6,11 @@
 
 $isEdit = $proposal !== null;
 $lockedProjectType = $isEdit ? 'extension' : ($lockedProjectType ?? proposal_nav_scope());
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Extension Program/Project Proposal | RIDE';
-$pageHeading = 'Extension Services';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Extension Project Proposal | RIDE Hub';
+$pageHeading = 'Extension Project Proposal';
 $pageSubtitle = $isEdit
-    ? 'Update your Extension Program/Project Proposal before saving or resubmitting.'
-    : 'Complete the Office of Extension Services program/project proposal (WPU-QSF-RIDE-ESO-03).';
+    ? 'Update your Extension Project Proposal before saving or resubmitting.'
+    : 'Complete the Office of Extension Services extension project proposal (WPU-QSF-RIDE-ESO-03).';
 $user = \App\Core\Auth::user() ?? [];
 $colleges = $colleges ?? [];
 $facultyTeamOptions = $facultyTeamOptions ?? [];
@@ -245,6 +245,9 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 ?>
 
 <form class="webform eso-webform" id="eso-proposal-form" novalidate
+      data-preview-rules="<?= htmlspecialchars(\App\Support\FormPreviewRequirements::forScript(\App\Support\FormPreviewRequirements::forExtensionProposal())) ?>"
+      data-preview-ready-title="Open the printable form"
+      data-preview-ready-text="Form complete. Print Preview opens the printable form, ready to print or save as PDF."
       data-draft-key="ride:eso-draft:<?= (int) ($user['id'] ?? 0) ?>:<?= $isEdit ? (int) $proposal['id'] : 'new' ?>"
       data-server-version="<?= htmlspecialchars((string) ($proposal['updated_at'] ?? '')) ?>"
       data-dean-names="<?= htmlspecialchars(json_encode($deanNamesByCollege, JSON_UNESCAPED_UNICODE) ?: '{}') ?>"
@@ -259,10 +262,12 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     <div class="webform-hero">
         <div>
             <p class="webform-eyebrow">Office of Extension Services, Form WPU-QSF-RIDE-ESO-03</p>
-            <h2 class="webform-hero-title">Extension Program/Project Proposal</h2>
-            <p class="webform-hero-text">Fill out each section below. Click <strong>Print Preview</strong> at any time to see how the form will look on paper, print it, or save it as a PDF.</p>
+            <h2 class="webform-hero-title">Extension Project Proposal</h2>
+            <p class="webform-hero-text">Fill out each section below. When every required part is filled, <strong>Print Preview</strong> opens the printable form, ready to print or save as PDF.</p>
+            <p class="webform-hint webform-req-legend"><span class="webform-req">*</span> Required before Print Preview.</p>
+            <p class="webform-hint js-preview-hint" aria-live="polite"></p>
         </div>
-        <button type="submit" class="btn btn-outline webform-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formtarget="_blank" formnovalidate>
+        <button type="submit" class="btn btn-outline webform-preview-btn js-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formtarget="_blank" formnovalidate disabled>
             Print Preview
         </button>
     </div>
@@ -309,11 +314,11 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <p class="webform-hint">Start typing to see suggested programs.</p>
             </div>
             <div class="webform-field">
-                <label for="eso-team-leader">Project Team Leader</label>
+                <label for="eso-team-leader">Project Team Leader <span class="webform-req">*</span></label>
                 <input id="eso-team-leader" name="project_team_leader" list="eso-registered-user-options" value="<?= htmlspecialchars($teamLeaderValue) ?>" placeholder="Search faculty or type a name" autocomplete="off">
             </div>
             <div class="webform-field">
-                <label for="eso-implementing-college">Implementing College / Department</label>
+                <label for="eso-implementing-college">Implementing College / Department <span class="webform-req">*</span></label>
                 <?php if ($collegeOptions !== []): ?>
                     <select id="eso-implementing-college" name="implementing_college_department">
                         <option value="">Select college / department</option>
@@ -360,11 +365,11 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             </div>
             <p class="webform-calc webform-field--full" id="eso-beneficiary-total" hidden></p>
             <div class="webform-field">
-                <label for="eso-start">Start date</label>
+                <label for="eso-start">Start date <span class="webform-req">*</span></label>
                 <input id="eso-start" type="date" name="duration_start_date" value="<?= htmlspecialchars($durationStartValue) ?>">
             </div>
             <div class="webform-field">
-                <label for="eso-end">End date</label>
+                <label for="eso-end">End date <span class="webform-req">*</span></label>
                 <input id="eso-end" type="date" name="duration_end_date" value="<?= htmlspecialchars($durationEndValue) ?>">
             </div>
             <p class="webform-calc webform-field--full" id="eso-duration-calc" hidden></p>
@@ -372,7 +377,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <p class="webform-hint webform-field--full">Previously entered as: <?= htmlspecialchars($durationValue) ?>. Pick dates above to replace it.</p>
             <?php endif; ?>
             <div class="webform-field webform-field--full">
-                <label for="eso-location">Location</label>
+                <label for="eso-location">Location <span class="webform-req">*</span></label>
                 <input id="eso-location" name="location" value="<?= htmlspecialchars($locationValue) ?>" placeholder="Barangay, municipality, province">
             </div>
             <div class="webform-field">
@@ -397,7 +402,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         <header class="webform-card-head">
             <span class="webform-card-num">2</span>
             <div>
-                <h2>Rationale</h2>
+                <h2>Rationale <span class="webform-req">*</span></h2>
                 <p>The basis for the extension program/project and why it matters.</p>
             </div>
         </header>
@@ -416,11 +421,11 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             </div>
         </header>
         <div class="webform-field">
-            <label for="eso-general-objective">General objective</label>
+            <label for="eso-general-objective">General objective <span class="webform-req">*</span></label>
             <textarea id="eso-general-objective" name="general_objective" rows="3" data-autoresize placeholder="State the general objective."><?= htmlspecialchars($generalObjectiveValue) ?></textarea>
         </div>
         <div class="webform-field">
-            <label for="eso-specific-objectives">Specific objectives</label>
+            <label for="eso-specific-objectives">Specific objectives <span class="webform-req">*</span></label>
             <textarea id="eso-specific-objectives" name="specific_objectives" rows="5" data-autoresize placeholder="List each specific objective on its own line."><?= htmlspecialchars($specificObjectivesValue) ?></textarea>
         </div>
     </section>
@@ -445,7 +450,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <textarea id="eso-problem" name="problem_analysis" rows="5" data-autoresize placeholder="Identify the primary issue, causes, and consequences."><?= htmlspecialchars($problemAnalysisValue) ?></textarea>
         </div>
         <div class="webform-field">
-            <label for="eso-target-group">C. Description of the target group</label>
+            <label for="eso-target-group">C. Description of the target group <span class="webform-req">*</span></label>
             <p class="webform-hint">Actual numbers, age, gender and quality of life of the target clients.</p>
             <textarea id="eso-target-group" name="target_group_description" rows="4" data-autoresize placeholder="Describe the target clients."><?= htmlspecialchars($targetGroupValue) ?></textarea>
         </div>
@@ -594,7 +599,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             </div>
         </header>
         <div class="webform-field">
-            <label for="eso-methodology">Methodology</label>
+            <label for="eso-methodology">Methodology <span class="webform-req">*</span></label>
             <p class="webform-hint">Training techniques, methods, tools and materials, plus the monitoring and evaluation scheme.</p>
             <textarea id="eso-methodology" name="methodology" rows="6" data-autoresize placeholder="Describe the methods, tools, materials, and M&amp;E scheme."><?= htmlspecialchars($methodologyValue) ?></textarea>
         </div>
@@ -800,7 +805,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         <?php if ($isEdit): ?>
             <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id']) ?>">Cancel</a>
         <?php endif; ?>
-        <button type="submit" class="btn btn-outline" formaction="<?= base_url('proposals/preview/extension-program') ?>" formtarget="_blank" formnovalidate>
+        <button type="submit" class="btn btn-outline js-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formtarget="_blank" formnovalidate disabled>
             Print Preview
         </button>
         <button type="submit" class="btn"><?= $isEdit ? 'Save Changes' : 'Save Draft' ?></button>
@@ -1952,3 +1957,4 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     bindAutoResize(document);
 })();
 </script>
+<script src="<?= base_url('assets/js/form-preview-gate.js') ?>?v=<?= htmlspecialchars((string) @filemtime(BASE_PATH . '/public/assets/js/form-preview-gate.js')) ?>"></script>

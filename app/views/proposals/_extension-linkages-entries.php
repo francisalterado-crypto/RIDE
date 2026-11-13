@@ -41,56 +41,56 @@ $entryValue = static function (array $row, string $key): string {
                     <tr class="extension-linkages-row">
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'partner') !== '' ? $entryValue($row, 'partner') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'partner') !== '' ? $entryValue($row, 'partner') : '-')) ?>
                             <?php else: ?>
                                 <textarea class="proposal-textarea proposal-textarea-compact" rows="2" name="entries[<?= (int) $index ?>][partner]"><?= htmlspecialchars($entryValue($row, 'partner')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'linkage_forged') !== '' ? $entryValue($row, 'linkage_forged') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'linkage_forged') !== '' ? $entryValue($row, 'linkage_forged') : '-') ?>
                             <?php else: ?>
                                 <input type="text" name="entries[<?= (int) $index ?>][linkage_forged]" value="<?= htmlspecialchars($entryValue($row, 'linkage_forged')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'description') !== '' ? $entryValue($row, 'description') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'description') !== '' ? $entryValue($row, 'description') : '-')) ?>
                             <?php else: ?>
                                 <textarea class="proposal-textarea proposal-textarea-compact" rows="2" name="entries[<?= (int) $index ?>][description]"><?= htmlspecialchars($entryValue($row, 'description')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'effectivity_from') !== '' ? $entryValue($row, 'effectivity_from') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'effectivity_from') !== '' ? $entryValue($row, 'effectivity_from') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= (int) $index ?>][effectivity_from]" value="<?= htmlspecialchars($entryValue($row, 'effectivity_from')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'effectivity_to') !== '' ? $entryValue($row, 'effectivity_to') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'effectivity_to') !== '' ? $entryValue($row, 'effectivity_to') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= (int) $index ?>][effectivity_to]" value="<?= htmlspecialchars($entryValue($row, 'effectivity_to')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'extension_activities') !== '' ? $entryValue($row, 'extension_activities') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'extension_activities') !== '' ? $entryValue($row, 'extension_activities') : '-')) ?>
                             <?php else: ?>
                                 <textarea class="proposal-textarea proposal-textarea-compact" rows="2" name="entries[<?= (int) $index ?>][extension_activities]"><?= htmlspecialchars($entryValue($row, 'extension_activities')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'conducted_from') !== '' ? $entryValue($row, 'conducted_from') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'conducted_from') !== '' ? $entryValue($row, 'conducted_from') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= (int) $index ?>][conducted_from]" value="<?= htmlspecialchars($entryValue($row, 'conducted_from')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'conducted_to') !== '' ? $entryValue($row, 'conducted_to') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'conducted_to') !== '' ? $entryValue($row, 'conducted_to') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= (int) $index ?>][conducted_to]" value="<?= htmlspecialchars($entryValue($row, 'conducted_to')) ?>">
                             <?php endif; ?>

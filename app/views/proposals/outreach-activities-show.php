@@ -8,7 +8,7 @@
 /** @var array<string, string> $requiredFileList */
 /** @var array<string, list<array<string, mixed>>> $requiredDocuments */
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
 $pageHeading = 'Outreach Activities';
 $pageSubtitle = 'Quarterly report of accomplishment in Extension.';
 
@@ -60,9 +60,9 @@ $lessonsLearned = is_string($summaryData['lessons_learned'] ?? null) ? $summaryD
             </tr>
             <tr>
                 <th>As of</th>
-                <td><?= htmlspecialchars($reportAsOf !== '' ? $reportAsOf : '—') ?></td>
+                <td><?= htmlspecialchars($reportAsOf !== '' ? $reportAsOf : '-') ?></td>
                 <th>College</th>
-                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '—') ?></td>
+                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '-') ?></td>
             </tr>
         </table>
     </section>
@@ -93,10 +93,22 @@ $lessonsLearned = is_string($summaryData['lessons_learned'] ?? null) ? $summaryD
     <?php require APP_PATH . '/views/proposals/_outreach-activities-notes.php'; ?>
 
     <?php
-    $allowUpload = false;
-    require APP_PATH . '/views/proposals/_outreach-activities-supporting-documents.php';
+    // Supporting documents are attached to each activity under Conducted Activities; this table only
+    // lists files uploaded to reports made before that.
+    if (array_filter($requiredDocuments ?? []) !== []) {
+        $allowUpload = false;
+        require APP_PATH . '/views/proposals/_outreach-activities-supporting-documents.php';
+    }
+
+    $statusType = 'outreach_activities';
+    $statusCollegeId = (int) ($proposal['college_id'] ?? 0);
+    $statusPeriod = \App\Support\QuarterlyReporting::periodFromSummary($summaryData);
+    require APP_PATH . '/views/proposals/_activity-documents-status.php';
     ?>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
 <?php
     $workflowSteps = proposal_workflow_steps($proposal);
     require APP_PATH . '/views/proposals/_approval-workflow.php';
@@ -108,7 +120,7 @@ $lessonsLearned = is_string($summaryData['lessons_learned'] ?? null) ? $summaryD
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
                 </form>
@@ -122,7 +134,7 @@ $lessonsLearned = is_string($summaryData['lessons_learned'] ?? null) ? $summaryD
     </section>
 </div>
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
     <section class="proposal-section">
         <h2 class="proposal-section-title">Comments &amp; History</h2>
         <?php if (empty($comments)): ?>
@@ -133,9 +145,9 @@ $lessonsLearned = is_string($summaryData['lessons_learned'] ?? null) ? $summaryD
                     <li>
                         <div class="proposal-history-meta">
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
                         </div>
                         <div><?= nl2br(htmlspecialchars($c['comment'])) ?></div>
                     </li>

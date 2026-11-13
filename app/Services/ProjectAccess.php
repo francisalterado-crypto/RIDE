@@ -81,7 +81,8 @@ final class ProjectAccess
 
     public static function isMonitoring(array $proposal): bool
     {
-        return in_array($proposal['status'], self::MONITORING_STATUSES, true);
+        return in_array($proposal['status'], self::MONITORING_STATUSES, true)
+            && \App\Support\ResearchRequestForms::typeOf($proposal) === null;
     }
 
     public static function denyUnlessView(int $proposalId): ?array

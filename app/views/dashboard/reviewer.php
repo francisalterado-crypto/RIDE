@@ -15,7 +15,7 @@ $types = $context['types'];
 $singleType = count($types) === 1 ? $types[0] : null;
 $actionWord = $role === 'coordinator' ? 'endorsement' : 'approval';
 
-$pageTitle = 'Dashboard | RIDE';
+$pageTitle = 'Dashboard | RIDE Hub';
 $pageHeading = 'Dashboard';
 $pageSubtitle = 'Welcome back, ' . trim((string) ($user['first_name'] ?? '') . ' ' . (string) ($user['last_name'] ?? ''))
     . '. ' . $context['title'] . ', ' . $scopeLabel . '.';
@@ -29,6 +29,11 @@ $daysWaiting = static function (?string $since): string {
     $days = (int) floor((time() - $time) / 86400);
 
     return $days < 1 ? 'arrived today' : 'waiting ' . $days . ' day' . ($days === 1 ? '' : 's');
+};
+$formatDate = static function (?string $date): string {
+    $time = $date ? strtotime($date) : false;
+
+    return $time ? date('M j, Y', $time) : '';
 };
 $monitoringUrl = base_url('monitoring' . ($singleType !== null ? '?scope=' . $singleType : ''));
 $activity = is_array($monthlyActivity ?? null) ? $monthlyActivity : ['labels' => [], 'submitted' => [], 'approved' => []];
@@ -54,7 +59,7 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
         </a>
         <?php if ($role === 'coordinator' && $singleType === 'extension'): ?>
             <a class="fd-action" href="<?= base_url('proposals/create') ?>">
-                <strong>New extension proposal</strong><span>Extension Program/Project Proposal</span>
+                <strong>New extension proposal</strong><span>Extension Project Proposal</span>
             </a>
         <?php elseif (in_array('extension', $types, true) && in_array($role, ['director', 'vpride'], true)): ?>
             <a class="fd-action" href="<?= base_url('reports/extension-beneficiaries') ?>">
@@ -134,7 +139,7 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
                             <span class="fd-kind">Project milestone</span>
                             <span class="fd-tag fd-tag--overdue">Overdue</span>
                             <span class="fd-item-title"><?= $e($m['title']) ?></span>
-                            <p class="fd-item-note"><?= $e($m['project_title']) ?>, due <?= $e($m['due_date'] ?? '') ?></p>
+                            <p class="fd-item-note"><?= $e($m['project_title']) ?>, due <?= $e($formatDate($m['due_date'] ?? null)) ?></p>
                         </div>
                         <a class="btn btn-sm btn-outline" href="<?= base_url('projects/' . (int) $m['proposal_id']) ?>">Open project</a>
                     </li>
@@ -145,7 +150,7 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
                             <span class="fd-kind">Progress Report</span>
                             <span class="fd-tag fd-tag--overdue">Overdue</span>
                             <span class="fd-item-title"><?= $e($r['project_title']) ?></span>
-                            <p class="fd-item-note">Was due <?= $e($r['due_date'] ?? '') ?></p>
+                            <p class="fd-item-note">Was due <?= $e($formatDate($r['due_date'] ?? null)) ?></p>
                         </div>
                         <a class="btn btn-sm btn-outline" href="<?= base_url('projects/' . (int) $r['proposal_id'] . '/reports/' . (int) $r['id']) ?>">Finish report</a>
                     </li>

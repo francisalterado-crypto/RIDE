@@ -11,7 +11,7 @@ if ($rows === []) {
 $cell = static function (string $value) use ($readOnly): string {
     $trimmed = trim($value);
     if ($readOnly) {
-        return $trimmed === '' ? '—' : htmlspecialchars($trimmed);
+        return $trimmed === '' ? '-' : htmlspecialchars($trimmed);
     }
 
     return htmlspecialchars($trimmed);
@@ -56,7 +56,7 @@ $cell = static function (string $value) use ($readOnly): string {
                         <?php if ($readOnly): ?>
                             <td><?= $cell($name) ?></td>
                             <td><?= $cell($position) ?></td>
-                            <td><?= htmlspecialchars($sexOptions[$sex] ?? ($sex !== '' ? $sex : '—')) ?></td>
+                            <td><?= htmlspecialchars($sexOptions[$sex] ?? ($sex !== '' ? $sex : '-')) ?></td>
                             <td><?= $cell($contact) ?></td>
                             <td><?= $cell($office) ?></td>
                             <td><?= $cell($email) ?></td>

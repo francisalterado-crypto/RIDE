@@ -646,10 +646,10 @@ final class ResearchOutputPresentedConsolidation
     {
         $title = 'Consolidated Research Output Presented';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return $title;

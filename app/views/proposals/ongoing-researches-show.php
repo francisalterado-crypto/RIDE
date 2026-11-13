@@ -14,7 +14,7 @@
 
 
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
 
 $pageHeading = 'Ongoing Researches';
 
@@ -84,7 +84,7 @@ $sectionRows = static function (string $key) use ($entries): array {
 
 
 
-<div class="proposal-paper completed-researches-paper">
+<div class="proposal-paper completed-researches-paper eso-extension-paper rdo-research-paper">
 
     <header class="completed-researches-header">
 
@@ -98,7 +98,7 @@ $sectionRows = static function (string $key) use ($entries): array {
 
         <h2 class="completed-researches-title">ONGOING RESEARCHES</h2>
 
-        <p class="completed-researches-form-id">WPU-QSF-RIDE-RDO-06 Rev.00 (09.15.25)</p>
+        <p class="completed-researches-form-id">WPU-QSF-RIDE-RDO-06 Rev.01 (10.12.26)</p>
 
     </header>
 
@@ -134,11 +134,11 @@ $sectionRows = static function (string $key) use ($entries): array {
 
                 <th>As of</th>
 
-                <td><?= htmlspecialchars($reportAsOf !== '' ? $reportAsOf : '—') ?></td>
+                <td><?= htmlspecialchars($reportAsOf !== '' ? $reportAsOf : '-') ?></td>
 
                 <th>College</th>
 
-                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '—') ?></td>
+                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '-') ?></td>
 
             </tr>
 
@@ -170,7 +170,15 @@ $sectionRows = static function (string $key) use ($entries): array {
 
     <?php endforeach; ?>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
 <?php
+
+    $statusType = 'ongoing_researches';
+    $statusCollegeId = (int) ($proposal['college_id'] ?? 0);
+    $statusPeriod = \App\Support\QuarterlyReporting::periodFromSummary($summaryData);
+    require APP_PATH . '/views/proposals/_activity-documents-status.php';
 
     $workflowSteps = proposal_workflow_steps($proposal);
 
@@ -191,7 +199,7 @@ $sectionRows = static function (string $key) use ($entries): array {
 
             <?php if ($canApprove): ?>
 
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
 
                     <?= csrf_field() ?>
 
@@ -219,7 +227,7 @@ $sectionRows = static function (string $key) use ($entries): array {
 
 
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
 
     <section class="proposal-section">
 
@@ -241,11 +249,11 @@ $sectionRows = static function (string $key) use ($entries): array {
 
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
 
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
 
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
 
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
 
                         </div>
 

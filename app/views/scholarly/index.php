@@ -5,8 +5,8 @@
 /** @var array<int, list<array<string, mixed>>> $paperAttachments */
 /** @var array<int, list<array<string, mixed>>> $presentationAttachments */
 
-$pageTitle = 'My Scholarly Output | RIDE';
-$pageHeading = 'Published Papers & Presentations';
+$pageTitle = 'My Scholarly Output | RIDE Hub';
+$pageHeading = 'My Scholarly Output';
 $pageSubtitle = 'Keep a record of your published papers and conference presentations for university monitoring.';
 
 $statusLabels = ['published' => 'Published', 'accepted' => 'Accepted', 'in_press' => 'In Press'];

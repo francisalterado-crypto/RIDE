@@ -1,0 +1,158 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Support;
+
+use App\Models\Proposal;
+use App\Services\ResearchFormDocument;
+
+/**
+ * The Proposals page registry: what each row shows (form, progress, return note, linked research), which
+ * tab it belongs to, and the filters shared by the page and its CSV export.
+ *
+ * Tabs: action (waiting on the viewer), drafts (draft/returned), review (submitted/under review),
+ * approved (approved/ongoing/completed), requests (RDO request forms, any status), all.
+ */
+final class ProposalRegistry
+{
+    public const TABS = [
+        'all' => 'All',
+        'action' => 'Needs my action',
+        'drafts' => 'Drafts & returned',
+        'review' => 'In review',
+        'approved' => 'Approved',
+        'requests' => 'Requests',
+    ];
+
+    /**
+     * @param list<array<string, mixed>> $proposals
+     * @param callable(array<string, mixed>): bool $canApprove whether the viewer can act on it now
+     * @return list<array<string, mixed>> proposals with a 'registry' entry added
+     */
+    public static function rows(array $proposals, callable $canApprove): array
+    {
+        $returnedIds = [];
+        foreach ($proposals as $p) {
+            if ((string) ($p['status'] ?? '') === 'returned') {
+                $returnedIds[] = (int) $p['id'];
+            }
+        }
+        $returnNotes = Proposal::latestReturnComments($returnedIds);
+
+        $rows = [];
+        foreach ($proposals as $p) {
+            $status = (string) ($p['status'] ?? '');
+            $summary = json_decode((string) ($p['summary'] ?? ''), true);
+            $summary = is_array($summary) ? $summary : [];
+            $requestType = ResearchRequestForms::typeOf($p);
+            $progress = null;
+            if (ResearchFormDocument::formKey($p) !== null) {
+                $total = count(FormPreviewRequirements::forProposal($p));
+                $progress = ['filled' => $total - count(FormPreviewRequirements::missing($p)), 'total' => $total];
+            }
+            $created = (string) ($p['created_at'] ?? '');
+
+            $p['registry'] = [
+                'form' => self::formLabel($p),
+                'is_request' => $requestType !== null,
+                'group' => match (true) {
+                    in_array($status, ['draft', 'returned'], true) => 'drafts',
+                    in_array($status, ['submitted', 'under_review'], true) => 'review',
+                    in_array($status, ['approved', 'ongoing', 'completed'], true) => 'approved',
+                    default => 'other',
+                },
+                'needs_action' => $canApprove($p),
+                'year' => preg_match('/^(\d{4})/', $created, $m) === 1 ? $m[1] : '',
+                'progress' => $progress,
+                'return_note' => $status === 'returned' ? ($returnNotes[(int) $p['id']] ?? null) : null,
+                'linked_code' => $requestType !== null ? trim((string) ($summary['ride_control_no'] ?? '')) : '',
+                'linked_id' => $requestType !== null ? (int) ($summary['linked_proposal_id'] ?? 0) : 0,
+            ];
+            $rows[] = $p;
+        }
+
+        return $rows;
+    }
+
+    /** Form name with its office code where it has one, e.g. "RDO-32 Manuscript Writing for Publication". */
+    public static function formLabel(array $proposal): string
+    {
+        return proposal_form_label($proposal);
+    }
+
+    /** Whether a row is in a tab. Request forms only show under Requests and All. */
+    public static function inTab(array $row, string $tab): bool
+    {
+        $r = $row['registry'];
+
+        return match ($tab) {
+            'action' => $r['needs_action'],
+            'requests' => $r['is_request'],
+            'drafts', 'review', 'approved' => !$r['is_request'] && $r['group'] === $tab,
+            default => true,
+        };
+    }
+
+    /**
+     * @param array{tab?: string, form?: string, year?: string, q?: string} $filters
+     */
+    public static function matches(array $row, array $filters): bool
+    {
+        $r = $row['registry'];
+        if (!self::inTab($row, (string) ($filters['tab'] ?? 'all'))) {
+            return false;
+        }
+        if (($filters['form'] ?? '') !== '' && $r['form'] !== $filters['form']) {
+            return false;
+        }
+        if (($filters['year'] ?? '') !== '' && $r['year'] !== $filters['year']) {
+            return false;
+        }
+        $q = strtolower(trim((string) ($filters['q'] ?? '')));
+
+        return $q === '' || str_contains(self::searchText($row), $q);
+    }
+
+    public static function searchText(array $row): string
+    {
+        return strtolower(implode(' ', array_filter([
+            (string) ($row['project_code'] ?? ''),
+            (string) ($row['title'] ?? ''),
+            $row['registry']['form'],
+            trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? '')),
+            (string) ($row['college_name'] ?? ''),
+            status_label((string) ($row['status'] ?? '')),
+            !empty($row['current_step']) ? MonitoringRoles::stepLabel((string) $row['current_step']) : '',
+            $row['registry']['linked_code'],
+        ])));
+    }
+
+    /** @param list<array<string, mixed>> $rows */
+    public static function csv(array $rows): string
+    {
+        $out = fopen('php://temp', 'r+');
+        fputcsv($out, ['Code', 'Title', 'Form', 'College', 'Lead Researcher', 'Status', 'Step', 'For research (RIDE Control No.)', 'Created', 'Submitted', 'Approved']);
+        foreach ($rows as $row) {
+            fputcsv($out, [
+                (string) ($row['project_code'] ?? ''),
+                (string) ($row['title'] ?? ''),
+                $row['registry']['form'],
+                (string) ($row['college_name'] ?? ''),
+                trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? '')),
+                status_label((string) ($row['status'] ?? '')),
+                !empty($row['current_step']) ? MonitoringRoles::stepLabel((string) $row['current_step']) : '',
+                $row['registry']['linked_code'],
+                (string) ($row['created_at'] ?? ''),
+                (string) ($row['submitted_at'] ?? ''),
+                (string) ($row['approved_at'] ?? ''),
+            ]);
+        }
+        rewind($out);
+        $csv = (string) stream_get_contents($out);
+        fclose($out);
+
+        // BOM so Excel opens it as UTF-8.
+        return "\xEF\xBB\xBF" . $csv;
+    }
+}

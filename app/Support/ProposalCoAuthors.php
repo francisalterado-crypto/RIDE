@@ -199,7 +199,7 @@ final class ProposalCoAuthors
             $collegeName = trim((string) ($row['college_name'] ?? ''));
             $label = trim($lastName . ', ' . $firstName);
             if ($collegeName !== '') {
-                $label .= ' · ' . $collegeName;
+                $label .= ' | ' . $collegeName;
             }
 
             $options[] = [

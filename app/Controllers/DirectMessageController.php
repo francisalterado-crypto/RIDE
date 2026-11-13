@@ -48,9 +48,9 @@ final class DirectMessageController
             'partnerName' => $partnerName,
             'partnerRoleLabel' => $partnerRoleLabel,
             'messages' => $messages,
-            'pageTitle' => 'Conversation | RIDE',
-            'pageHeading' => 'Message',
-            'pageSubtitle' => $partnerName !== '' ? $partnerName . ' · ' . $partnerRoleLabel : $partnerRoleLabel,
+            'pageTitle' => 'Conversation | RIDE Hub',
+            'pageHeading' => 'Messages',
+            'pageSubtitle' => $partnerName !== '' ? $partnerName . ' | ' . $partnerRoleLabel : $partnerRoleLabel,
         ]);
     }
 

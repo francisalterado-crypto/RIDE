@@ -9,7 +9,7 @@ $pageTitle = (
     $isProgressRegistry
         ? 'Progress Report Registry'
         : ($isAssessmentRegistry ? 'Terminal Report Assessment Registry' : 'Terminal Report Registry')
-) . ' | RIDE';
+) . ' | RIDE Hub';
 $pageHeading = $isProgressRegistry
     ? 'Progress Report Registry'
     : ($isAssessmentRegistry ? 'Terminal Report Assessment Registry' : 'Terminal Report Registry');
@@ -30,7 +30,8 @@ $pageSubtitle = $isProgressRegistry
         </div>
 
         <?php if (empty($proposals)): ?>
-            <div class="proposal-empty-state">
+            <div class="empty-state">
+                <i class="fas fa-folder-open empty-icon" aria-hidden="true"></i>
                 <p>
                     <?= htmlspecialchars(
                         $isAssessmentRegistry
@@ -63,7 +64,7 @@ $pageSubtitle = $isProgressRegistry
                             <td><?= htmlspecialchars(ucfirst((string) $p['project_type'])) ?></td>
                             <td><?= htmlspecialchars(trim((string) (($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')))) ?></td>
                             <td><span class="badge badge-<?= htmlspecialchars($p['status']) ?>"><?= htmlspecialchars($p['status']) ?></span></td>
-                            <td><?= htmlspecialchars(str_replace('_', ' ', $p['current_step'] ?? '—')) ?></td>
+                            <td><?= htmlspecialchars(str_replace('_', ' ', $p['current_step'] ?? '-')) ?></td>
                             <td>
                                 <div class="proposal-row-actions">
                                     <a class="btn btn-sm" href="<?= base_url('proposals/' . $p['id']) ?>">Open</a>

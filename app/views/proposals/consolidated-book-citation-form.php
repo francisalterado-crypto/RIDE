@@ -10,7 +10,7 @@
 
 $isEdit = $proposal !== null;
 
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Book Citation | RIDE';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Book Citation | RIDE Hub';
 
 $pageHeading = 'Consolidated Book Citation';
 

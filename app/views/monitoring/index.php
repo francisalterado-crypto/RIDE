@@ -33,7 +33,8 @@ $actionWord = in_array($myStep, [MonitoringRoles::COORDINATOR_RESEARCH, Monitori
 
 // Forms each track files, so the filter only lists forms that can appear on this page.
 $researchForms = [
-    'manuscript', 'completed_researches', 'ongoing_researches', 'research_output_published', 'research_output_presented',
+    'manuscript', 'critical_activities_request', 'research_program_proposal', 'external_funding_proposal', 'paper_presentation',
+    'completed_researches', 'ongoing_researches', 'research_output_published', 'research_output_presented',
     'commercialized', 'resulted_in_extension', 'journal_citation', 'book_citation', 'inventions_um_copyrights', 'linkages',
     'consolidated_completed_researches', 'consolidated_ongoing_researches', 'consolidated_research_output_published',
     'consolidated_research_output_presented', 'consolidated_commercialized', 'consolidated_resulted_in_extension',
@@ -42,7 +43,7 @@ $researchForms = [
 ];
 $extensionForms = [
     'extension_program_proposal', 'trainings_conducted', 'technical_advisory', 'extension_linkages',
-    'outreach_activities', 'technology_adoption', 'ebalwasyon_ng_gawain',
+    'outreach_activities', 'technology_adoption',
 ];
 $filterForms = array_merge($showResearch ? $researchForms : [], $showExtension ? $extensionForms : []);
 $formFilterLabel = static fn (string $formType): string => proposal_form_label(['summary' => json_encode(['form_type' => $formType])]);
@@ -80,7 +81,7 @@ $scopeLabel = match ($scopeProjectType) {
     'extension' => 'Extension',
     default => 'Research and Extension',
 };
-$pageTitle = 'Monitoring | RIDE';
+$pageTitle = 'Monitoring | RIDE Hub';
 $pageHeading = 'Monitoring';
 $pageSubtitle = $roleTitle . ', '
     . ($universityWide ? 'all colleges' : (string) ($user['college_name'] ?? 'your college'))

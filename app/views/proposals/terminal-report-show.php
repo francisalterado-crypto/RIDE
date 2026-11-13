@@ -6,7 +6,7 @@
 /** @var string $approveLabel */
 /** @var string $stepLabel */
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
 $pageHeading = 'Terminal Report';
 $pageSubtitle = 'Project terminal report.';
 
@@ -20,7 +20,7 @@ if (!empty($proposal['summary'])) {
 
 $value = static function (string $key) use ($summaryData): string {
     $current = $summaryData[$key] ?? null;
-    return is_string($current) && $current !== '' ? $current : '—';
+    return is_string($current) && $current !== '' ? $current : '-';
 };
 
 $entries = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] : [];
@@ -114,7 +114,7 @@ $coauthors = is_array($summaryData['coauthors'] ?? null) ? $summaryData['coautho
 
     <section class="proposal-section">
         <h3 class="proposal-subtitle">Project/Study Overview</h3>
-        <p><?= nl2br(htmlspecialchars((string) ($summaryData['project_overview'] ?? '—'))) ?></p>
+        <p><?= nl2br(htmlspecialchars((string) ($summaryData['project_overview'] ?? '-'))) ?></p>
     </section>
 
     <section class="proposal-section trainings-conducted-section">
@@ -150,11 +150,14 @@ $coauthors = is_array($summaryData['coauthors'] ?? null) ? $summaryData['coautho
 
     <section class="proposal-section">
         <h3 class="proposal-subtitle">Revised targets if the project is delayed/advanced</h3>
-        <p><?= nl2br(htmlspecialchars((string) ($summaryData['revised_targets'] ?? '—'))) ?></p>
+        <p><?= nl2br(htmlspecialchars((string) ($summaryData['revised_targets'] ?? '-'))) ?></p>
         <h3 class="proposal-subtitle">How the project/study is going in general</h3>
-        <p><?= nl2br(htmlspecialchars((string) ($summaryData['general_progress'] ?? '—'))) ?></p>
+        <p><?= nl2br(htmlspecialchars((string) ($summaryData['general_progress'] ?? '-'))) ?></p>
     </section>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
     <?php
     $workflowSteps = proposal_workflow_steps($proposal);
     require APP_PATH . '/views/proposals/_approval-workflow.php';
@@ -166,7 +169,7 @@ $coauthors = is_array($summaryData['coauthors'] ?? null) ? $summaryData['coautho
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
                 </form>
@@ -180,7 +183,7 @@ $coauthors = is_array($summaryData['coauthors'] ?? null) ? $summaryData['coautho
     </section>
 </div>
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
     <section class="proposal-section">
         <h2 class="proposal-section-title">Comments &amp; History</h2>
         <?php if (empty($comments)): ?>
@@ -191,9 +194,9 @@ $coauthors = is_array($summaryData['coauthors'] ?? null) ? $summaryData['coautho
                     <li>
                         <div class="proposal-history-meta">
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
                         </div>
                         <div><?= nl2br(htmlspecialchars($c['comment'])) ?></div>
                     </li>

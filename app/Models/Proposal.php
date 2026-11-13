@@ -270,7 +270,19 @@ final class Proposal
         }
 
         $next = self::nextStep($step, $proposal);
-        if ($next === 'approved') {
+        if ($next === 'approved' && \App\Support\ResearchRequestForms::typeOf($proposal) !== null) {
+            // Request forms are approvals of a request, not new projects: own REQ- code, no monitoring.
+            $code = self::generateRequestCode($proposal);
+            Database::pdo()->prepare(
+                'UPDATE proposals SET status = \'approved\', current_step = NULL, project_code = ?, approved_at = NOW() WHERE id = ?'
+            )->execute([$code, $id]);
+            Notification::notifyProjectLeader(
+                (int) $proposal['user_id'],
+                'Request approved',
+                'Your request "' . $proposal['title'] . '" was approved. Code: ' . $code,
+                'proposals/' . $id
+            );
+        } elseif ($next === 'approved') {
             $code = self::generateProjectCode($proposal);
             $stmt = Database::pdo()->prepare(
                 'UPDATE proposals SET status = \'ongoing\', current_step = NULL, project_code = ?, approved_at = NOW() WHERE id = ?'
@@ -330,11 +342,57 @@ final class Proposal
         $code = $college->fetchColumn() ?: 'GEN';
         $year = date('Y');
         $stmt = Database::pdo()->prepare(
-            'SELECT COUNT(*) FROM proposals WHERE project_code IS NOT NULL AND ' . Sql::year('approved_at') . ' = ?'
+            'SELECT COUNT(*) FROM proposals WHERE project_code LIKE ? AND ' . Sql::year('approved_at') . ' = ?'
         );
-        $stmt->execute([$year]);
+        $stmt->execute(['RIDE-%', $year]);
         $seq = (int) $stmt->fetchColumn() + 1;
         return sprintf('RIDE-%s-%s-%03d', $year, $code, $seq);
+    }
+
+    /** Code of an approved RDO request form: REQ-<year>-<college>-<seq>, numbered per year. */
+    private static function generateRequestCode(array $proposal): string
+    {
+        $college = Database::pdo()->prepare('SELECT code FROM colleges WHERE id = ?');
+        $college->execute([$proposal['college_id']]);
+        $code = $college->fetchColumn() ?: 'GEN';
+        $year = date('Y');
+        $stmt = Database::pdo()->prepare('SELECT COUNT(*) FROM proposals WHERE project_code LIKE ?');
+        $stmt->execute(['REQ-' . $year . '-%']);
+        $seq = (int) $stmt->fetchColumn() + 1;
+
+        return sprintf('REQ-%s-%s-%03d', $year, $code, $seq);
+    }
+
+    /**
+     * Latest "return for revision" comment per proposal.
+     *
+     * @param list<int> $proposalIds
+     * @return array<int, array{comment: string, name: string, created_at: string}>
+     */
+    public static function latestReturnComments(array $proposalIds): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $proposalIds))));
+        if ($ids === []) {
+            return [];
+        }
+        $stmt = Database::pdo()->prepare(
+            'SELECT pc.proposal_id, pc.comment, pc.created_at, u.first_name, u.last_name
+             FROM proposal_comments pc
+             INNER JOIN users u ON u.id = pc.user_id
+             WHERE pc.action = \'return\' AND pc.proposal_id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')
+             ORDER BY pc.created_at ASC, pc.id ASC'
+        );
+        $stmt->execute($ids);
+        $out = [];
+        foreach ($stmt->fetchAll() ?: [] as $row) {
+            $out[(int) $row['proposal_id']] = [
+                'comment' => (string) $row['comment'],
+                'name' => trim((string) $row['first_name'] . ' ' . (string) $row['last_name']),
+                'created_at' => (string) $row['created_at'],
+            ];
+        }
+
+        return $out;
     }
 
     /** @return list<array> */
@@ -645,7 +703,12 @@ final class Proposal
         $sql .= ' ORDER BY p.updated_at DESC';
         $stmt = Database::pdo()->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll() ?: [];
+
+        // Approved request forms are not projects.
+        return array_values(array_filter(
+            $stmt->fetchAll() ?: [],
+            static fn (array $p): bool => \App\Support\ResearchRequestForms::typeOf($p) === null
+        ));
     }
 
     /** @return list<string> */

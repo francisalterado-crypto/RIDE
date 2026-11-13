@@ -4,7 +4,7 @@ $isEdit = $report !== null;
 
 $canManage = $canManage ?? true;
 
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Progress Report | RIDE';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Progress Report | RIDE Hub';
 
 $pageHeading = ($isEdit ? 'Edit' : 'New') . ' Progress Report';
 

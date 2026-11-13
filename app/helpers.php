@@ -138,7 +138,6 @@ function proposal_nav_scope(): ?string
         'proposals/create/extension-linkages',
         'proposals/create/outreach-activities',
         'proposals/create/technology-adoption',
-        'proposals/create/ebalwasyon-ng-gawain',
     ] as $extensionPath) {
         if ($path === $extensionPath || str_starts_with($path, $extensionPath . '/')) {
             return 'extension';
@@ -180,6 +179,22 @@ function proposal_nav_redirect_suffix(?string $scope = null): string
     $scope = $scope ?? proposal_nav_scope() ?? 'research';
 
     return proposal_nav_scope_query($scope);
+}
+
+/**
+ * Whether the Conducted Activities link sits inside the user's Extension Services menu. Users without
+ * that menu (e.g. the Coordinator of Research) get it as a top-level link instead.
+ */
+function conducted_activities_in_extension_nav(): bool
+{
+    if (!\App\Support\MonitoringRoles::canEnterConductedActivities()
+        || \App\Support\MonitoringRoles::isVpride()
+        || \App\Support\MonitoringRoles::isCoordinatorResearch()
+        || \App\Support\MonitoringRoles::isDirectorResearch()) {
+        return false;
+    }
+
+    return proposal_nav_has_dual_menu() || proposal_nav_scope() === 'extension';
 }
 
 function proposal_nav_group_label(): string
@@ -326,6 +341,11 @@ function title_case_words(string $value): string
     );
 }
 
+const PROSE_POST_FIELD_PATTERN = '/(^|_)(abstract|body|caption|comments?|message|narrative|notes?|remarks?|feedback|reason|description|summary|vision|mission'
+    . '|rationale|introduction|significance|objectives?|methods|methodology|outcomes|outputs|deliverables|strategies|indicator|impact|effects|inputs'
+    . '|considerations|development|cited|references|gaps|plan|analysis|overview|progress|targets|practices|learned|challenges|problems'
+    . '|available|responsibility|sharing|highlights_of_results|results|details|komento|content|text|bio)$/';
+
 function should_title_case_post_field(string $key): bool
 {
     $key = strtolower($key);
@@ -342,7 +362,12 @@ function should_title_case_post_field(string $key): bool
         return false;
     }
 
-    if ($key === 'url' || str_contains($key, '_url') || str_contains($key, '_link')) {
+    if ($key === 'url' || $key === 'link' || $key === 'doi' || str_contains($key, '_url') || str_contains($key, '_link')) {
+        return false;
+    }
+
+    // Sentence text (abstracts, objectives, comments, messages, narratives) keeps the case the user typed.
+    if (preg_match(PROSE_POST_FIELD_PATTERN, $key) === 1) {
         return false;
     }
 
@@ -376,6 +401,20 @@ function redirect(string $path): never
     exit;
 }
 
+/** The page holding the form behind the current POST, since proposal POST URLs have no GET route. */
+function form_page_path(): string
+{
+    $path = request_path();
+    if (preg_match('#^proposals/(\d+)/#', $path, $match) === 1) {
+        return 'proposals/' . $match[1] . '/edit';
+    }
+    if (preg_match('#^proposals/([a-z-]+)$#', $path, $match) === 1) {
+        return 'proposals/create/' . $match[1];
+    }
+
+    return $path !== '' ? $path : 'dashboard';
+}
+
 function view(string $name, array $data = []): void
 {
     extract($data, EXTR_SKIP);
@@ -391,6 +430,18 @@ function view(string $name, array $data = []): void
     $pageContent = ob_get_clean();
     $pageTitle = $pageTitle ?? config('app.name');
     require APP_PATH . '/views/layouts/main.php';
+}
+
+/** Renders a page of the public site (no sidebar; same for guests and signed-in users). */
+function view_public(string $name, array $data = []): void
+{
+    extract($data, EXTR_SKIP);
+    $contentView = APP_PATH . '/views/' . str_replace('.', '/', $name) . '.php';
+    $pageTitle = $pageTitle ?? 'RIDE';
+    ob_start();
+    require $contentView;
+    $pageContent = ob_get_clean();
+    require APP_PATH . '/views/layouts/public.php';
 }
 
 function old(string $key, string $default = ''): string
@@ -489,11 +540,6 @@ function proposal_is_wpu_funded_extension(?array $proposal): bool
         && !proposal_is_ebalwasyon_ng_gawain($proposal)
         && !proposal_is_attendance_sheet($proposal)
         && !proposal_is_resulted_in_extension($proposal);
-}
-
-function proposal_is_manuscript(?array $proposal): bool
-{
-    return proposal_form_type($proposal) === 'manuscript';
 }
 
 function proposal_is_completed_researches(?array $proposal): bool
@@ -695,7 +741,8 @@ function proposal_is_retired_downloadable_form(?array $proposal): bool
     return proposal_is_accomplishment_report($proposal)
         || proposal_is_technical_advisory_ar($proposal)
         || proposal_is_outreach_activities_ar($proposal)
-        || proposal_is_attendance_sheet($proposal);
+        || proposal_is_attendance_sheet($proposal)
+        || proposal_is_ebalwasyon_ng_gawain($proposal);
 }
 
 /** @return array<string, string> */
@@ -880,7 +927,7 @@ function proposal_is_quarterly_researches_report(?array $proposal): bool
         || proposal_is_technology_adoption($proposal);
 }
 
-/** Faculty-submitted project reports that follow the full research approval chain (coordinator → dean → director → VPRIDE). */
+/** Faculty-submitted project reports that follow the full research approval chain (coordinator > dean > director > VPRIDE). */
 function proposal_uses_faculty_submitted_monitoring_workflow(?array $proposal): bool
 {
     return proposal_is_progress_report($proposal)
@@ -935,20 +982,30 @@ function proposal_form_type(?array $proposal): string
     return is_string($formType) ? $formType : '';
 }
 
-/** Human-readable name of the form a proposal record was filed with, e.g. "Extension Program/Project Proposal". */
+/** Human-readable name of the form a proposal record was filed with, e.g. "Extension Project Proposal". */
 function proposal_form_label(?array $proposal): string
 {
+    // One name per form everywhere (Proposals, Monitoring, Reports, dashboards). Forms printed from an office
+    // template carry their short code, e.g. "RDO-20 Research Proposal Application".
+    $requestType = \App\Support\ResearchRequestForms::typeOf($proposal);
+    if ($requestType !== null) {
+        $definition = \App\Support\ResearchRequestForms::get($requestType) ?? [];
+
+        return trim(str_replace('WPU-QSF-RIDE-', '', (string) ($definition['code'] ?? '')) . ' ' . (string) ($definition['label'] ?? ''));
+    }
     if (proposal_is_wpu_funded_extension($proposal)) {
-        return 'Extension Program/Project Proposal';
+        return 'ESO-03 Extension Project Proposal';
     }
 
     $formType = proposal_form_type($proposal);
     if ($formType === '') {
-        return (($proposal['project_type'] ?? '') === 'extension') ? 'Extension Proposal' : 'Research Proposal';
+        return (($proposal['project_type'] ?? '') === 'extension') ? 'Extension Proposal' : 'RDO-20 Research Proposal Application';
+    }
+    if (str_starts_with($formType, 'consolidated_')) {
+        return 'Consolidated ' . proposal_form_label(['summary' => json_encode(['form_type' => substr($formType, 13)])]);
     }
 
     return match ($formType) {
-        'manuscript' => 'Manuscript Writing for Publication',
         'completed_researches' => 'Completed Researches',
         'ongoing_researches' => 'Ongoing Researches',
         'research_output_published' => 'Research Output Published',
@@ -969,11 +1026,16 @@ function proposal_form_label(?array $proposal): string
         'outreach_activities' => 'Outreach Activities',
         'technology_adoption' => 'Technology Adoption',
         'ebalwasyon_ng_gawain' => 'Ebalwasyon ng Gawain',
+        'accomplishment_report' => 'Accomplishment Report',
+        'technical_advisory_ar' => 'Technical Advisory AR',
+        'outreach_activities_ar' => 'Outreach Activities AR',
+        'attendance_sheet' => 'Attendance Sheet',
+        'wpu_funded_extension', 'extension_program_proposal' => 'ESO-03 Extension Project Proposal',
         default => ucwords(str_replace('_', ' ', $formType)),
     };
 }
 
-/** Applicant's Information / standard research proposal (no separate required-file uploads). */
+/** Research Proposal Application (WPU-QSF-RIDE-RDO-20) / standard research proposal (no separate required-file uploads). */
 function proposal_is_research_application(?array $proposal): bool
 {
     if (!is_array($proposal) || proposal_form_type($proposal) !== '') {
@@ -1130,7 +1192,7 @@ function proposal_workflow_steps(?array $proposal): array
 {
     $projectType = is_array($proposal) ? (string) ($proposal['project_type'] ?? 'research') : 'research';
     $isExtension = $projectType === 'extension';
-    $isManuscript = proposal_is_manuscript($proposal);
+    $requestFormType = \App\Support\ResearchRequestForms::typeOf($proposal);
     $isProgressReport = proposal_is_progress_report($proposal);
     $isTerminalReport = proposal_is_terminal_report($proposal);
     $isTerminalReportAssessment = proposal_is_terminal_report_assessment_form($proposal);
@@ -1171,7 +1233,7 @@ function proposal_workflow_steps(?array $proposal): array
         'key' => 'applicant',
         'title' => $isCoordinatorSubmittedReport
             ? ($isExtension ? 'Field Extensionist' : 'Research Coordinator')
-            : ($isManuscript ? 'Lead Researcher' : 'Faculty'),
+            : ($requestFormType !== null ? 'Researcher' : 'Faculty'),
         'description' => match (true) {
             $isProgressReport => 'Submit progress report',
             $isTerminalReport => 'Submit terminal report',
@@ -1179,7 +1241,7 @@ function proposal_workflow_steps(?array $proposal): array
             $isObrMatrix => 'Submit OBR matrix',
             $isExtension && proposal_is_quarterly_researches_report($proposal) => 'Submit quarterly extension report',
             proposal_is_quarterly_researches_report($proposal) => 'Submit quarterly researches report',
-            $isManuscript => 'Submit manuscript writing proposal',
+            $requestFormType !== null => 'Submit ' . strtolower((string) \App\Support\ResearchRequestForms::get($requestFormType)['label']),
             $isExtension => 'Submit extension proposal',
             default => 'Submit research proposal',
         },
@@ -1314,7 +1376,7 @@ function quarterly_reporting_require(array $post, array $existingSummary = [], ?
     if ($parsed === null) {
         $deadlineSummary = \App\Support\FacultyFormDeadlines::deadlineSummaryText();
         set_flash('error', 'Select a valid reporting period (deadlines: ' . $deadlineSummary . ').');
-        redirect(request_path() !== '' ? request_path() : 'dashboard');
+        redirect(form_page_path());
     }
 
     return $parsed;
@@ -1366,4 +1428,44 @@ function quarterly_reporting_is_overdue(array $summary): bool
         null,
         $formType !== '' ? $formType : null
     );
+}
+
+/**
+ * Sends the filled office form (.docx) of an RDO-20 application or RDO request form, to open in Word for
+ * viewing, printing or saving as PDF. A form with required fields still empty gets a short page listing them
+ * instead. $isUnsavedPreview: built from values not saved yet.
+ */
+/** 422 page listing what a form still needs before it can be previewed or printed. */
+function send_form_missing_page(array $missing, bool $isUnsavedPreview = false): void
+{
+    http_response_code(422);
+    $title = 'Fill in the form first';
+    echo '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        . '<title>' . $title . '</title><style>body{font-family:Inter,system-ui,sans-serif;max-width:640px;margin:3rem auto;padding:0 1rem;color:#1f2937}'
+        . 'h1{font-size:1.25rem}li{margin:.2rem 0}</style></head><body><h1>' . $title . '</h1>'
+        . '<p>The ' . ($isUnsavedPreview ? 'preview' : 'form') . ' is available once these are filled in:</p><ul>';
+    foreach ($missing as $label) {
+        echo '<li>' . htmlspecialchars($label) . '</li>';
+    }
+    echo '</ul><p><a href="javascript:history.back()">Go back to the form</a></p></body></html>';
+}
+
+function send_form_docx(array $proposal, bool $isUnsavedPreview = false): void
+{
+    $missing = \App\Support\FormPreviewRequirements::missing($proposal);
+    if ($missing !== []) {
+        send_form_missing_page($missing, $isUnsavedPreview);
+        return;
+    }
+
+    $bytes = (string) \App\Services\ResearchFormDocument::build($proposal);
+    $fileName = \App\Services\ResearchFormDocument::fileName($proposal);
+    if ($isUnsavedPreview) {
+        $fileName = preg_replace('/\.docx$/', ' (preview).docx', $fileName);
+    }
+    header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    header('Content-Disposition: attachment; filename="' . str_replace('"', '', (string) $fileName) . '"');
+    header('Content-Length: ' . strlen($bytes));
+    header('Cache-Control: private, no-store');
+    echo $bytes;
 }

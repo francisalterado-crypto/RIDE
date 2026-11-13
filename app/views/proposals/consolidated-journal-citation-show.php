@@ -6,7 +6,7 @@
 /** @var string $approveLabel */
 /** @var string $stepLabel */
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
 $pageHeading = 'Consolidated Journal Citation';
 $pageSubtitle = 'College consolidation of faculty journal citation reports approved by the RDO Director.';
 
@@ -56,9 +56,9 @@ $entries = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] :
             </tr>
             <tr>
                 <th>As of</th>
-                <td><?= htmlspecialchars($reportAsOf !== '' ? $reportAsOf : '—') ?></td>
+                <td><?= htmlspecialchars($reportAsOf !== '' ? $reportAsOf : '-') ?></td>
                 <th>College</th>
-                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '—') ?></td>
+                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '-') ?></td>
             </tr>
         </table>
     </section>
@@ -71,6 +71,9 @@ $entries = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] :
         ?>
     <?php endif; ?>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
 <?php
     $workflowSteps = proposal_workflow_steps($proposal);
     require APP_PATH . '/views/proposals/_approval-workflow.php';
@@ -82,7 +85,7 @@ $entries = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] :
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
                 </form>
@@ -96,7 +99,7 @@ $entries = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] :
     </section>
 </div>
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
     <section class="proposal-section">
         <h2 class="proposal-section-title">Comments &amp; History</h2>
         <?php if (empty($comments)): ?>
@@ -107,9 +110,9 @@ $entries = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] :
                     <li>
                         <div class="proposal-history-meta">
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
                         </div>
                         <div><?= nl2br(htmlspecialchars($c['comment'])) ?></div>
                     </li>

@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Access Denied | RIDE';
+$pageTitle = 'Access Denied | RIDE Hub';
 $pageHeading = 'Access Denied';
 $pageSubtitle = 'You do not have permission to view this resource.';
 ?>

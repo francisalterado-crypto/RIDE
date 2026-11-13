@@ -65,6 +65,7 @@ $router->post('/profile/signature/remove', [ProfileController::class, 'removeSig
 $router->get('/signatures/{userId}', [ProfileController::class, 'showSignature'], $auth);
 
 $router->get('/proposals', [ProposalController::class, 'index'], $auth);
+$router->get('/proposals/export', [ProposalController::class, 'exportRegistry'], $auth);
 $router->get('/proposals/terminal-report-registry', [ProposalController::class, 'terminalReportRegistry'], $auth);
 $router->get('/proposals/create', [ProposalController::class, 'create'], $auth);
 $router->get('/proposals/create/manuscript', [ProposalController::class, 'createManuscript'], $auth);
@@ -91,7 +92,6 @@ $router->get('/proposals/create/consolidated-linkages', [ProposalController::cla
 $router->get('/proposals/create/progress-report', [ProposalController::class, 'createProgressReport'], $auth);
 $router->get('/proposals/create/terminal-report', [ProposalController::class, 'createTerminalReport'], $auth);
 $router->get('/proposals/create/terminal-report-assessment-form', [ProposalController::class, 'createTerminalReportAssessmentForm'], $auth);
-$router->get('/proposals/create/obr-matrix', [ProposalController::class, 'createObrMatrix'], $auth);
 $router->get('/proposals/create/trainings-conducted', [ProposalController::class, 'createTrainingsConducted'], $auth);
 $router->get('/proposals/create/technical-advisory', [ProposalController::class, 'createTechnicalAdvisory'], $auth);
 $router->get('/proposals/create/extension-linkages', [ProposalController::class, 'createExtensionLinkages'], $auth);
@@ -121,7 +121,6 @@ $router->post('/proposals/consolidated-linkages', [ProposalController::class, 's
 $router->post('/proposals/progress-report', [ProposalController::class, 'storeProgressReport'], $auth);
 $router->post('/proposals/terminal-report', [ProposalController::class, 'storeTerminalReport'], $auth);
 $router->post('/proposals/terminal-report-assessment-form', [ProposalController::class, 'storeTerminalReportAssessmentForm'], $auth);
-$router->post('/proposals/obr-matrix', [ProposalController::class, 'storeObrMatrix'], $auth);
 $router->post('/proposals/trainings-conducted', [ProposalController::class, 'storeTrainingsConducted'], $auth);
 $router->post('/proposals/technical-advisory', [ProposalController::class, 'storeTechnicalAdvisory'], $auth);
 $router->post('/proposals/extension-linkages', [ProposalController::class, 'storeExtensionLinkages'], $auth);

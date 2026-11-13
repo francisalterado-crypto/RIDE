@@ -53,77 +53,77 @@ $entryValue = static function (array $row, string $key): string {
                     <tr class="consolidated-linkages-row">
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'program') !== '' ? $entryValue($row, 'program') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'program') !== '' ? $entryValue($row, 'program') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= (int) $index ?>][program]" class="proposal-textarea proposal-textarea-compact" rows="2"><?= htmlspecialchars($entryValue($row, 'program')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'partner') !== '' ? $entryValue($row, 'partner') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'partner') !== '' ? $entryValue($row, 'partner') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= (int) $index ?>][partner]" class="proposal-textarea proposal-textarea-compact" rows="2"><?= htmlspecialchars($entryValue($row, 'partner')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'linkage_forged') !== '' ? $entryValue($row, 'linkage_forged') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'linkage_forged') !== '' ? $entryValue($row, 'linkage_forged') : '-') ?>
                             <?php else: ?>
                                 <input type="text" name="entries[<?= (int) $index ?>][linkage_forged]" value="<?= htmlspecialchars($entryValue($row, 'linkage_forged')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'institution_type') !== '' ? $entryValue($row, 'institution_type') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'institution_type') !== '' ? $entryValue($row, 'institution_type') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= (int) $index ?>][institution_type]" class="proposal-textarea proposal-textarea-compact" rows="2"><?= htmlspecialchars($entryValue($row, 'institution_type')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'deliverables') !== '' ? $entryValue($row, 'deliverables') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'deliverables') !== '' ? $entryValue($row, 'deliverables') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= (int) $index ?>][deliverables]" class="proposal-textarea proposal-textarea-compact" rows="2"><?= htmlspecialchars($entryValue($row, 'deliverables')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= (int) $index ?>][date_started]" value="<?= htmlspecialchars($entryValue($row, 'date_started')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= (int) $index ?>][date_completed]" value="<?= htmlspecialchars($entryValue($row, 'date_completed')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'personnel') !== '' ? $entryValue($row, 'personnel') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'personnel') !== '' ? $entryValue($row, 'personnel') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= (int) $index ?>][personnel]" class="proposal-textarea proposal-textarea-compact" rows="2"><?= htmlspecialchars($entryValue($row, 'personnel')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'beneficiaries') !== '' ? $entryValue($row, 'beneficiaries') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'beneficiaries') !== '' ? $entryValue($row, 'beneficiaries') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= (int) $index ?>][beneficiaries]" class="proposal-textarea proposal-textarea-compact" rows="2"><?= htmlspecialchars($entryValue($row, 'beneficiaries')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '-') ?>
                             <?php else: ?>
                                 <input type="text" name="entries[<?= (int) $index ?>][college]" value="<?= htmlspecialchars($entryValue($row, 'college')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '-') ?>
                             <?php else: ?>
                                 <input type="text" name="entries[<?= (int) $index ?>][campus]" value="<?= htmlspecialchars($entryValue($row, 'campus')) ?>">
                             <?php endif; ?>
@@ -135,7 +135,7 @@ $entryValue = static function (array $row, string $key): string {
                                 <?php if ($driveLink !== ''): ?>
                                     <a href="<?= htmlspecialchars($driveLink) ?>" target="_blank" rel="noopener noreferrer">View file</a>
                                 <?php else: ?>
-                                    —
+                                    -
                                 <?php endif; ?>
                             <?php else: ?>
                                 <input

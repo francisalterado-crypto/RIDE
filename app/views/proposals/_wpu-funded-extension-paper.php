@@ -1,5 +1,5 @@
 <?php
-/** Shared paper (print) layout for the ESO-03 Extension Program/Project Proposal. */
+/** Shared paper (print) layout for the ESO-03 Extension Project Proposal. */
 /** @var array $proposal */
 /** @var string $stepLabel */
 
@@ -61,7 +61,7 @@ $budgetLineGroups = $rowsOrEmpty($summaryData['budget_line_groups'] ?? []);
         <p class="completed-researches-header-line">Republic of the Philippines</p>
         <p class="completed-researches-header-line completed-researches-header-line--strong">WESTERN PHILIPPINES UNIVERSITY</p>
         <p class="completed-researches-header-line">Office of Extension Services</p>
-        <h2 class="completed-researches-title">EXTENSION PROGRAM/PROJECT PROPOSAL</h2>
+        <h2 class="completed-researches-title">EXTENSION PROJECT PROPOSAL</h2>
         <p class="completed-researches-form-id">WPU-QSF-RIDE-ESO-03 Rev.00 (08.15.25)</p>
     </header>
 

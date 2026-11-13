@@ -60,7 +60,7 @@
                                 <?php if ($driveLink !== ''): ?>
                                     <a href="<?= htmlspecialchars($driveLink) ?>" target="_blank" rel="noopener noreferrer">View file</a>
                                 <?php else: ?>
-                                    —
+                                    -
                                 <?php endif; ?>
                             <?php else: ?>
                                 <input type="url" name="entries[<?= $index ?>][google_drive_link]" value="<?= htmlspecialchars($driveLink) ?>" placeholder="https://drive.google.com/...">

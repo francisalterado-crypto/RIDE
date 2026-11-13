@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Ongoing Projects | RIDE';
+$pageTitle = 'Ongoing Projects | RIDE Hub';
 $pageHeading = 'Ongoing Projects';
 $pageSubtitle = 'Approved projects under monitoring (milestones, reports, documents).';
 ?>

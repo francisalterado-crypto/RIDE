@@ -56,7 +56,7 @@ try {
     echo '<h1>Database connection failed</h1>';
     echo '<p>' . $message . '</p>';
     if (is_vercel()) {
-        echo '<p>Connect <a href="https://neon.tech">Neon</a> to your Vercel project (Storage → Neon, or Neon dashboard → Integrations → Vercel). That injects <code>DATABASE_URL</code> automatically. Or paste your Neon connection string manually under Project → Settings → Environment Variables, then redeploy.</p>';
+        echo '<p>Connect <a href="https://neon.tech">Neon</a> to your Vercel project (Storage > Neon, or Neon dashboard > Integrations > Vercel). That injects <code>DATABASE_URL</code> automatically. Or paste your Neon connection string manually under Project > Settings > Environment Variables, then redeploy.</p>';
     }
     echo '</body></html>';
     exit;

@@ -1,8 +1,8 @@
 <?php
-$pageTitle = (string) $project['title'] . ' | RIDE';
-$pageHeading = htmlspecialchars($project['title']);
-$pageSubtitle = 'Code: ' . htmlspecialchars($project['project_code'] ?? '—')
-    . ' · ' . status_label((string) $project['status']);
+$pageTitle = (string) $project['title'] . ' | RIDE Hub';
+$pageHeading = (string) $project['title'];
+$pageSubtitle = 'Code: ' . htmlspecialchars($project['project_code'] ?? '-')
+    . ' | ' . status_label((string) $project['status']);
 $tabs = ['overview' => 'Overview', 'milestones' => 'Milestones', 'reports' => 'Reports', 'documents' => 'Documents'];
 if ($innovation) $tabs['innovation'] = 'Innovation';
 if ($extension) $tabs['extension'] = 'Extension';
@@ -51,7 +51,7 @@ if ($extension) $tabs['extension'] = 'Extension';
         <button type="submit" class="btn btn-sm">Add</button>
     </form>
     <?php endif; ?>
-    <table style="margin-top:1rem;">
+    <table class="data-table data-table--spaced">
         <thead><tr><th>Title</th><th>Due</th><th>Status</th><th></th></tr></thead>
         <tbody>
         <?php foreach ($milestones as $m): ?>
@@ -61,7 +61,7 @@ if ($extension) $tabs['extension'] = 'Extension';
                 <td><span class="badge badge-<?= $m['status'] === 'overdue' ? 'suspended' : ($m['status'] === 'completed' ? 'completed' : 'draft') ?>"><?= htmlspecialchars($m['status']) ?></span></td>
                 <td>
                     <?php if ($canManage && $m['status'] !== 'completed'): ?>
-                    <form method="post" action="<?= base_url('projects/' . $project['id'] . '/milestones/' . $m['id'] . '/complete') ?>" style="display:inline;">
+                    <form method="post" action="<?= base_url('projects/' . $project['id'] . '/milestones/' . $m['id'] . '/complete') ?>" class="inline-action">
                         <?= csrf_field() ?>
                         <button type="submit" class="btn btn-sm btn-accent">Complete</button>
                     </form>
@@ -82,7 +82,7 @@ if ($extension) $tabs['extension'] = 'Extension';
             <a class="btn btn-sm btn-accent" href="<?= base_url('projects/' . $project['id'] . '/reports/create') ?>">New Report</a>
         <?php endif; ?>
     </div>
-    <table>
+    <table class="data-table">
         <thead><tr><th>Period</th><th>Type</th><th>Status</th><th>Due</th><th></th></tr></thead>
         <tbody>
         <?php foreach ($reports as $r): ?>
@@ -90,7 +90,7 @@ if ($extension) $tabs['extension'] = 'Extension';
                 <td><?= htmlspecialchars($r['period_label']) ?></td>
                 <td><?= htmlspecialchars($r['report_type']) ?></td>
                 <td><?= htmlspecialchars($r['status']) ?></td>
-                <td><?= htmlspecialchars($r['due_date'] ?? '—') ?></td>
+                <td><?= htmlspecialchars($r['due_date'] ?? '-') ?></td>
                 <td><a class="btn btn-sm" href="<?= base_url('projects/' . $project['id'] . '/reports/' . $r['id']) ?>">Open</a></td>
             </tr>
         <?php endforeach; ?>
@@ -161,7 +161,7 @@ if ($extension) $tabs['extension'] = 'Extension';
         </select>
         <noscript><button type="submit" class="btn btn-sm">Show Files</button></noscript>
     </form>
-    <table style="margin-top:1rem;">
+    <table class="data-table data-table--spaced">
         <thead><tr><th>Name</th><th>Category</th><th>Uploaded</th><th></th></tr></thead>
         <tbody>
         <?php if (empty($documents)): ?>
@@ -175,7 +175,7 @@ if ($extension) $tabs['extension'] = 'Extension';
                 <td>
                     <a class="btn btn-sm" href="<?= base_url('projects/' . $project['id'] . '/documents/' . $d['id']) ?>">Download</a>
                     <?php if ($canManage): ?>
-                        <form method="post" action="<?= base_url('projects/' . $project['id'] . '/documents/' . $d['id'] . '/delete') ?>" style="display:inline;" onsubmit="return confirm('Delete this document?');">
+                        <form method="post" action="<?= base_url('projects/' . $project['id'] . '/documents/' . $d['id'] . '/delete') ?>" class="inline-action" onsubmit="return confirm('Delete this document?');">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn btn-sm btn-outline">Delete</button>
                         </form>
@@ -239,7 +239,7 @@ if ($extension) $tabs['extension'] = 'Extension';
         <?php foreach ($items as $row): ?>
             <li>
                 <?php if ($listKey === 'beneficiaries'): ?>
-                    <?= htmlspecialchars($row['group_name']) ?> — <?= (int) $row['beneficiary_count'] ?> people (<?= (int) $row['period_year'] ?>)
+                    <?= htmlspecialchars($row['group_name']) ?> - <?= (int) $row['beneficiary_count'] ?> people (<?= (int) $row['period_year'] ?>)
                 <?php elseif ($listKey === 'mous'): ?>
                     <?= htmlspecialchars($row['partner_name']) ?>
                 <?php else: ?>

@@ -6,7 +6,7 @@
 /** @var bool $hasAvatar */
 /** @var string|null $avatarUrl */
 
-$pageTitle = 'Account Settings | RIDE';
+$pageTitle = 'Account Settings | RIDE Hub';
 $pageHeading = 'Account Settings';
 $pageSubtitle = 'Your profile, research links, signature, and password.';
 
@@ -45,6 +45,36 @@ $selectedCollegeId = old('profile_college_id', (string) ($user['college_id'] ?? 
                         <label for="profile_last_name">Last name</label>
                         <input id="profile_last_name" name="last_name" value="<?= old('profile_last_name', (string) ($user['last_name'] ?? '')) ?>" required maxlength="80">
                     </div>
+                    <div class="settings-field">
+                        <label for="profile_middle_name">Middle name</label>
+                        <input id="profile_middle_name" name="middle_name" value="<?= htmlspecialchars((string) ($user['middle_name'] ?? '')) ?>" maxlength="80">
+                    </div>
+                    <div class="settings-field">
+                        <label for="profile_title_prefix">Title/Prefix</label>
+                        <select id="profile_title_prefix" name="title_prefix">
+                            <option value="">Select title/prefix</option>
+                            <?php foreach (\App\Support\ProponentProfile::TITLE_PREFIXES as $prefix): ?>
+                                <option value="<?= htmlspecialchars($prefix) ?>" <?= ($user['title_prefix'] ?? '') === $prefix ? 'selected' : '' ?>><?= htmlspecialchars($prefix) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label for="profile_sex">Sex</label>
+                        <select id="profile_sex" name="sex">
+                            <option value="">Select sex</option>
+                            <?php foreach (\App\Support\ProponentProfile::SEXES as $sex): ?>
+                                <option value="<?= htmlspecialchars($sex) ?>" <?= ($user['sex'] ?? '') === $sex ? 'selected' : '' ?>><?= htmlspecialchars($sex) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="settings-field">
+                        <label for="profile_position">Position held</label>
+                        <input id="profile_position" name="position" value="<?= htmlspecialchars((string) ($user['position'] ?? '')) ?>" maxlength="120" placeholder="e.g. Assistant Professor IV">
+                    </div>
+                    <div class="settings-field">
+                        <label for="profile_contact_number">Contact number</label>
+                        <input id="profile_contact_number" name="contact_number" value="<?= htmlspecialchars((string) ($user['contact_number'] ?? '')) ?>" maxlength="30" placeholder="e.g. 0917 123 4567">
+                    </div>
                     <div class="settings-field settings-field--full">
                         <label for="profile_email">Email</label>
                         <input id="profile_email" type="email" name="email" value="<?= old('profile_email', (string) ($user['email'] ?? '')) ?>" required maxlength="150">
@@ -64,6 +94,19 @@ $selectedCollegeId = old('profile_college_id', (string) ($user['college_id'] ?? 
                         <label for="profile_program">Program</label>
                         <input id="profile_program" name="program" value="<?= old('profile_program', (string) ($user['program'] ?? '')) ?>" maxlength="150" placeholder="e.g. BS Computer Engineering">
                     </div>
+                    <div class="settings-field">
+                        <label for="profile_campus_id">Campus</label>
+                        <select id="profile_campus_id" name="campus_id">
+                            <option value="">Select campus</option>
+                            <?php foreach ($campuses ?? [] as $campus): ?>
+                                <option value="<?= (int) $campus['id'] ?>" <?= (int) ($user['campus_id'] ?? 0) === (int) $campus['id'] ? 'selected' : '' ?>><?= htmlspecialchars((string) $campus['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (($campuses ?? []) === []): ?>
+                            <p class="settings-hint">Save your college first to choose a campus.</p>
+                        <?php endif; ?>
+                    </div>
+                    <p class="settings-hint settings-field--full">These details fill in the proponent section of your Research Proposal Application and request forms.</p>
                 </div>
                 <div class="settings-actions">
                     <button type="submit" class="btn btn-accent">Save Profile</button>

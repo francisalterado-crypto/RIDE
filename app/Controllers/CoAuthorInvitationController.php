@@ -26,7 +26,7 @@ final class CoAuthorInvitationController
         view('coauthor-invitations.show', [
             'user' => $user,
             'invitation' => $invitation,
-            'pageTitle' => 'Co-author invitation | RIDE',
+            'pageTitle' => 'Co-author invitation | RIDE Hub',
             'pageHeading' => 'Co-author invitation',
             'pageSubtitle' => 'Review and respond to this request',
         ]);

@@ -4,7 +4,7 @@
 /** @var string $collegeName */
 
 $isEdit = $proposal !== null;
-$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Research Output Presented | RIDE';
+$pageTitle = ($isEdit ? 'Edit' : 'New') . ' Consolidated Research Output Presented | RIDE Hub';
 $pageHeading = 'Consolidated Research Output Presented';
 $pageSubtitle = $isEdit
     ? 'Update the consolidated research output presented report before saving or resubmitting.'
@@ -157,6 +157,7 @@ $sectionRows = static function (string $key) use ($entries): array {
             <select data-field="conference_type">
                 <option value="">Select type</option>
                 <option value="local">Local</option>
+                <option value="regional">Regional</option>
                 <option value="national">National</option>
                 <option value="international">International</option>
             </select>

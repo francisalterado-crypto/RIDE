@@ -4,7 +4,7 @@
 /** @var list<array<string, mixed>> $colleges */
 /** @var array<string, int> $collegeScopedSlugs */
 /** @var int $currentUserId */
-$pageTitle = 'Edit Account | RIDE';
+$pageTitle = 'Edit Account | RIDE Hub';
 $pageHeading = 'Edit Account';
 $pageSubtitle = 'Update account details, role assignment, college assignment, or reset the password.';
 $isCurrentUser = $currentUserId === (int) $account['id'];

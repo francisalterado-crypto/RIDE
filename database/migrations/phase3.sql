@@ -1,4 +1,4 @@
--- Research & Extension Monitoring: three-role workflow (Coordinator → Dean → VPRIDE)
+-- Research & Extension Monitoring: three-role workflow (Coordinator > Dean > VPRIDE)
 
 UPDATE roles SET slug = 'vpride', name = 'Admin / VPRIDE', description = 'Monitors all submitters and grants final approval after College Dean approval'
 WHERE slug = 'ride_director';

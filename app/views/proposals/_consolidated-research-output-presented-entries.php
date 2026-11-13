@@ -37,6 +37,7 @@ $entryValue = static function (array $row, string $key): string {
 $conferenceTypeLabel = static function (string $value): string {
     return match ($value) {
         'local' => 'Local',
+        'regional' => 'Regional',
         'national' => 'National',
         'international' => 'International',
         default => $value,
@@ -110,7 +111,7 @@ $presentationTypeLabel = static function (string $value): string {
                     <tr class="consolidated-research-output-presented-row">
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][research_title]"
@@ -122,7 +123,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="date"
@@ -133,7 +134,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="date"
@@ -144,7 +145,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'duration_months') !== '' ? $entryValue($row, 'duration_months') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'duration_months') !== '' ? $entryValue($row, 'duration_months') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="number"
@@ -158,7 +159,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'researchers') !== '' ? $entryValue($row, 'researchers') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'researchers') !== '' ? $entryValue($row, 'researchers') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][researchers]"
@@ -170,7 +171,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'paper_title') !== '' ? $entryValue($row, 'paper_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'paper_title') !== '' ? $entryValue($row, 'paper_title') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][paper_title]"
@@ -182,7 +183,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'presenter_name') !== '' ? $entryValue($row, 'presenter_name') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'presenter_name') !== '' ? $entryValue($row, 'presenter_name') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -194,7 +195,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'conference_title') !== '' ? $entryValue($row, 'conference_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'conference_title') !== '' ? $entryValue($row, 'conference_title') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][conference_title]"
@@ -206,7 +207,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'venue') !== '' ? $entryValue($row, 'venue') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'venue') !== '' ? $entryValue($row, 'venue') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -218,7 +219,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'presentation_date') !== '' ? $entryValue($row, 'presentation_date') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'presentation_date') !== '' ? $entryValue($row, 'presentation_date') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="date"
@@ -229,7 +230,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'organizer') !== '' ? $entryValue($row, 'organizer') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'organizer') !== '' ? $entryValue($row, 'organizer') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -243,12 +244,13 @@ $presentationTypeLabel = static function (string $value): string {
                             <?php if ($readOnly): ?>
                                 <?php
                                 $conferenceType = $entryValue($row, 'conference_type');
-                                echo htmlspecialchars($conferenceType !== '' ? $conferenceTypeLabel($conferenceType) : '—');
+                                echo htmlspecialchars($conferenceType !== '' ? $conferenceTypeLabel($conferenceType) : '-');
                                 ?>
                             <?php else: ?>
                                 <select name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][conference_type]">
                                     <option value="">Select type</option>
                                     <option value="local"<?= $entryValue($row, 'conference_type') === 'local' ? ' selected' : '' ?>>Local</option>
+                                    <option value="regional"<?= $entryValue($row, 'conference_type') === 'regional' ? ' selected' : '' ?>>Regional</option>
                                     <option value="national"<?= $entryValue($row, 'conference_type') === 'national' ? ' selected' : '' ?>>National</option>
                                     <option value="international"<?= $entryValue($row, 'conference_type') === 'international' ? ' selected' : '' ?>>International</option>
                                 </select>
@@ -258,7 +260,7 @@ $presentationTypeLabel = static function (string $value): string {
                             <?php if ($readOnly): ?>
                                 <?php
                                 $presentationType = $entryValue($row, 'presentation_type');
-                                echo htmlspecialchars($presentationType !== '' ? $presentationTypeLabel($presentationType) : '—');
+                                echo htmlspecialchars($presentationType !== '' ? $presentationTypeLabel($presentationType) : '-');
                                 ?>
                             <?php else: ?>
                                 <select name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][presentation_type]">
@@ -270,7 +272,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'award_received') !== '' ? $entryValue($row, 'award_received') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'award_received') !== '' ? $entryValue($row, 'award_received') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -282,7 +284,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -293,7 +295,7 @@ $presentationTypeLabel = static function (string $value): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -309,7 +311,7 @@ $presentationTypeLabel = static function (string $value): string {
                                 <?php if ($driveLink !== ''): ?>
                                     <a href="<?= htmlspecialchars($driveLink) ?>" target="_blank" rel="noopener noreferrer">View file</a>
                                 <?php else: ?>
-                                    —
+                                    -
                                 <?php endif; ?>
                             <?php else: ?>
                                 <input

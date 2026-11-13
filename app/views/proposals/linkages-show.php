@@ -6,7 +6,7 @@
 /** @var string $approveLabel */
 /** @var string $stepLabel */
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
 $pageHeading = 'Linkages';
 $pageSubtitle = 'Quarterly report of accomplishments in research linkages.';
 
@@ -30,14 +30,14 @@ $rows = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] : []
     <?php endif; ?>
 </div>
 
-<div class="proposal-paper completed-researches-paper trainings-conducted-paper linkages-paper">
+<div class="proposal-paper completed-researches-paper trainings-conducted-paper linkages-paper eso-extension-paper rdo-research-paper">
     <header class="completed-researches-header">
         <p class="completed-researches-header-line">Republic of the Philippines</p>
         <p class="completed-researches-header-line completed-researches-header-line--strong">WESTERN PHILIPPINES UNIVERSITY</p>
         <p class="completed-researches-header-line">Office of Research and Development</p>
         <p class="completed-researches-header-line">Quarterly Report of Accomplishments in Research</p>
         <h2 class="completed-researches-title">RESEARCH LINKAGES</h2>
-        <p class="completed-researches-form-id">WPU-QSF-RIDE-RDO-14 Rev.00 (09.15.25)</p>
+        <p class="completed-researches-form-id">WPU-QSF-RIDE-RDO-14 Rev.01 (10.12.26)</p>
     </header>
 
     <section class="proposal-section">
@@ -56,9 +56,9 @@ $rows = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] : []
             </tr>
             <tr>
                 <th>As of</th>
-                <td><?= htmlspecialchars($reportAsOf !== '' ? $reportAsOf : '—') ?></td>
+                <td><?= htmlspecialchars($reportAsOf !== '' ? $reportAsOf : '-') ?></td>
                 <th>College</th>
-                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '—') ?></td>
+                <td><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '-') ?></td>
             </tr>
         </table>
     </section>
@@ -67,7 +67,15 @@ $rows = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] : []
         <?php $readOnly = true; require APP_PATH . '/views/proposals/_linkages-entries.php'; ?>
     <?php endif; ?>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
     <?php
+    $statusType = 'linkages';
+    $statusCollegeId = (int) ($proposal['college_id'] ?? 0);
+    $statusPeriod = \App\Support\QuarterlyReporting::periodFromSummary($summaryData);
+    require APP_PATH . '/views/proposals/_activity-documents-status.php';
+
     $workflowSteps = proposal_workflow_steps($proposal);
     require APP_PATH . '/views/proposals/_approval-workflow.php';
     ?>
@@ -78,7 +86,7 @@ $rows = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] : []
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
                 </form>
@@ -92,7 +100,7 @@ $rows = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] : []
     </section>
 </div>
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
     <section class="proposal-section">
         <h2 class="proposal-section-title">Comments &amp; History</h2>
         <?php if (empty($comments)): ?>
@@ -103,9 +111,9 @@ $rows = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] : []
                     <li>
                         <div class="proposal-history-meta">
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
                         </div>
                         <div><?= nl2br(htmlspecialchars($c['comment'])) ?></div>
                     </li>

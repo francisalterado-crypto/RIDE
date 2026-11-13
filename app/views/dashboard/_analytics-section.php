@@ -40,7 +40,7 @@ $chartPrefix = 'dash-' . preg_replace('/[^a-z0-9_-]+/i', '-', $sectionKey);
 <section class="dashboard-analytics-section" style="--section-accent: <?= htmlspecialchars($sectionAccent) ?>;">
   <div class="header">
     <h2><i class="fas <?= htmlspecialchars($sectionIcon) ?>"></i> <?= htmlspecialchars($sectionTitle) ?></h2>
-    <div class="sub">Graph-driven insights · Workflow analytics · Real-time tracking</div>
+    <div class="sub">Graph-driven insights | Workflow analytics | Real-time tracking</div>
   </div>
 
   <div class="grid">
@@ -96,13 +96,13 @@ $chartPrefix = 'dash-' . preg_replace('/[^a-z0-9_-]+/i', '-', $sectionKey);
       </div>
       <div class="flex-between" style="margin-bottom: 12px;">
         <div><span class="stat-badge" style="font-size:2rem;"><?= $ongoingCount ?></span> <span class="label-sm">Ongoing Projects</span></div>
-        <div class="view-link" style="margin-top: 0;"><a href="<?= base_url('projects') ?>">View all →</a></div>
+        <div class="view-link" style="margin-top: 0;"><a href="<?= base_url('projects') ?>">View all</a></div>
       </div>
       <div style="background:#f8fafd; border-radius: 20px; padding: 12px; margin: 12px 0;">
         <div class="flex-between"><span><i class="fas fa-calendar-exclamation"></i> Overdue Milestones</span> <strong><?= $overdueMilestoneCount ?></strong></div>
         <div class="flex-between" style="margin-top: 6px;"><span><i class="fas fa-file-alt"></i> Overdue Report Drafts</span> <strong><?= $overdueReportCount ?></strong></div>
       </div>
-      <div class="view-link" style="margin-top: 0;"><a href="<?= base_url('projects') ?>">Review deadlines →</a></div>
+      <div class="view-link" style="margin-top: 0;"><a href="<?= base_url('projects') ?>">Review deadlines</a></div>
     </div>
 
     <div class="card">
@@ -112,10 +112,10 @@ $chartPrefix = 'dash-' . preg_replace('/[^a-z0-9_-]+/i', '-', $sectionKey);
       </div>
       <canvas id="<?= htmlspecialchars($chartPrefix) ?>-statusPieChart" width="180" height="130" style="max-height: 130px; width: 100%;"></canvas>
       <div class="flex-between" style="margin-top: 12px; font-size: .75rem; flex-wrap: wrap;">
-        <span>🟢 Ongoing:<?= $statusCounts['ongoing'] ?></span>
-        <span>🟠 Suspended:<?= $statusCounts['suspended'] ?></span>
-        <span>🔵 Under Review:<?= $statusCounts['under_review'] ?></span>
-        <span>🔴 Returned:<?= $statusCounts['returned'] ?></span>
+        <span>Ongoing:<?= $statusCounts['ongoing'] ?></span>
+        <span>Suspended:<?= $statusCounts['suspended'] ?></span>
+        <span>Under Review:<?= $statusCounts['under_review'] ?></span>
+        <span>Returned:<?= $statusCounts['returned'] ?></span>
       </div>
     </div>
   </div>
@@ -134,7 +134,7 @@ $chartPrefix = 'dash-' . preg_replace('/[^a-z0-9_-]+/i', '-', $sectionKey);
   <div class="chart-container" style="padding: 1.2rem;">
     <div class="flex-between" style="margin-bottom: 12px;">
       <div class="chart-title" style="margin-bottom:0;"><i class="fas fa-table-list"></i> Recent Proposals</div>
-      <div class="view-link" style="margin-top: 0;"><a href="<?= base_url('proposals') ?>">View all proposals →</a></div>
+      <div class="view-link" style="margin-top: 0;"><a href="<?= base_url('proposals') ?>">View all proposals</a></div>
     </div>
     <table class="recent-table">
       <thead>
@@ -148,7 +148,7 @@ $chartPrefix = 'dash-' . preg_replace('/[^a-z0-9_-]+/i', '-', $sectionKey);
             <?php
             $status = (string) ($proposal['status'] ?? 'draft');
             $dateRaw = (string) ($proposal['updated_at'] ?? $proposal['created_at'] ?? '');
-            $dateLabel = $dateRaw !== '' ? date('M j, Y', strtotime($dateRaw)) : '—';
+            $dateLabel = $dateRaw !== '' ? date('M j, Y', strtotime($dateRaw)) : '-';
             $statusClass = match ($status) {
                 'returned' => 'status-returned',
                 'under_review' => 'status-under-review',

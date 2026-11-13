@@ -890,10 +890,10 @@ final class ResearchFormConsolidation
     {
         $title = $base;
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return $title;

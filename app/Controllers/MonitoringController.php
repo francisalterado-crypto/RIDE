@@ -74,7 +74,7 @@ final class MonitoringController
         $roleTitle = MonitoringRoles::roleTitle();
         $pageHeading = $scopeLabel . ' Monitoring';
         $pageSubtitle = 'Signed in as ' . $roleTitle
-            . ($user['college_name'] && $scopeProjectType === null && !MonitoringRoles::isVpride() ? ' · ' . $user['college_name'] : '');
+            . ($user['college_name'] && $scopeProjectType === null && !MonitoringRoles::isVpride() ? ' | ' . $user['college_name'] : '');
 
         view('monitoring.index', [
             'user' => $user,
@@ -91,7 +91,7 @@ final class MonitoringController
             'isDirectorResearch' => MonitoringRoles::isDirectorResearch(),
             'isDirectorExtension' => MonitoringRoles::isDirectorExtension(),
             'scopeProjectType' => $scopeProjectType,
-            'pageTitle' => $pageHeading . ' | RIDE',
+            'pageTitle' => $pageHeading . ' | RIDE Hub',
             'pageHeading' => $pageHeading,
             'pageSubtitle' => $pageSubtitle,
         ]);

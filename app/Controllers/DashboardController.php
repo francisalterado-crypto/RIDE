@@ -498,8 +498,8 @@ final class DashboardController
             'facultyContacts' => $facultyContacts,
             'facultyRecipients' => $facultyRecipients,
             'directUnreadCount' => $directUnreadCount,
-            'pageTitle' => 'Message | RIDE',
-            'pageHeading' => 'Message',
+            'pageTitle' => 'Messages | RIDE Hub',
+            'pageHeading' => 'Messages',
             'pageSubtitle' => $directMessagingEnabled
                 ? 'Announcements and direct messages'
                 : 'Announcement for all accounts',

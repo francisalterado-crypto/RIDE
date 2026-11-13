@@ -14,7 +14,7 @@
 
 /** @var int $currentUserId */
 
-$pageTitle = 'Manage Accounts | RIDE';
+$pageTitle = 'Manage Accounts | RIDE Hub';
 
 $pageHeading = 'Manage Accounts';
 
@@ -116,7 +116,7 @@ $collegeCount = count($colleges);
 
                             <i class="fas fa-university" aria-hidden="true"></i>
 
-                            <?= htmlspecialchars((string) ($pending['college_name'] ?? '—')) ?>
+                            <?= htmlspecialchars((string) ($pending['college_name'] ?? '-')) ?>
 
                         </span>
 
@@ -124,7 +124,7 @@ $collegeCount = count($colleges);
 
                             <i class="fas fa-clock" aria-hidden="true"></i>
 
-                            Requested <?= htmlspecialchars((string) ($pending['created_at'] ?? '—')) ?>
+                            Requested <?= htmlspecialchars((string) ($pending['created_at'] ?? '-')) ?>
 
                         </span>
 
@@ -499,13 +499,13 @@ $collegeCount = count($colleges);
 
                                 <td><?= htmlspecialchars((string) $college['name']) ?></td>
 
-                                <td><?= htmlspecialchars((string) ($college['cluster_name'] ?? '—')) ?></td>
+                                <td><?= htmlspecialchars((string) ($college['cluster_name'] ?? '-')) ?></td>
 
                                 <td class="col-actions">
 
                                     <div class="accounts-row-actions">
 
-                                        <a class="btn btn-sm icon-btn" href="<?= base_url('admin/accounts/colleges/' . $college['id'] . '/edit') ?>" title="Edit college" aria-label="Edit college">
+                                        <a class="btn btn-sm btn-outline icon-btn" href="<?= base_url('admin/accounts/colleges/' . $college['id'] . '/edit') ?>" title="Edit college" aria-label="Edit college">
                                             <i class="fas fa-pencil-alt" aria-hidden="true"></i>
                                         </a>
 
@@ -584,10 +584,10 @@ $collegeCount = count($colleges);
                         ?>
                         <tr>
                             <td><?= htmlspecialchars((string) $cluster['name']) ?></td>
-                            <td><?= $memberNames !== [] ? htmlspecialchars(implode(', ', $memberNames)) : '—' ?></td>
+                            <td><?= $memberNames !== [] ? htmlspecialchars(implode(', ', $memberNames)) : '-' ?></td>
                             <td class="col-actions">
                                 <div class="accounts-row-actions">
-                                    <a class="btn btn-sm icon-btn" href="<?= base_url('admin/accounts/clusters/' . $cluster['id'] . '/edit') ?>" title="Edit cluster" aria-label="Edit cluster">
+                                    <a class="btn btn-sm btn-outline icon-btn" href="<?= base_url('admin/accounts/clusters/' . $cluster['id'] . '/edit') ?>" title="Edit cluster" aria-label="Edit cluster">
                                         <i class="fas fa-pencil-alt" aria-hidden="true"></i>
                                     </a>
                                     <form
@@ -644,7 +644,7 @@ $collegeCount = count($colleges);
 
                     class="accounts-search no-capitalize"
 
-                    placeholder="Search name, email, role, college…"
+                    placeholder="Search name, email, role, college..."
 
                     aria-label="Search active accounts"
 
@@ -714,7 +714,7 @@ $collegeCount = count($colleges);
 
                             <td class="col-email"><code><?= htmlspecialchars((string) $account['email']) ?></code></td>
 
-                            <td><?= htmlspecialchars((string) ($account['role_names'] ?? '—')) ?></td>
+                            <td><?= htmlspecialchars((string) ($account['role_names'] ?? '-')) ?></td>
 
                             <td>
                                 <?= htmlspecialchars((string) ($account['college_name'] ?? 'University-wide')) ?>
@@ -723,15 +723,15 @@ $collegeCount = count($colleges);
                                 <?php endif; ?>
                             </td>
 
-                            <td class="col-program" title="<?= htmlspecialchars((string) ($account['program'] ?? '')) ?>"><?= htmlspecialchars((string) ($account['program'] ?? '—')) ?></td>
+                            <td class="col-program" title="<?= htmlspecialchars((string) ($account['program'] ?? '')) ?>"><?= htmlspecialchars((string) ($account['program'] ?? '-')) ?></td>
 
-                            <td class="col-created"><?= htmlspecialchars((string) ($account['created_at'] ?? '—')) ?></td>
+                            <td class="col-created"><?= htmlspecialchars((string) ($account['created_at'] ?? '-')) ?></td>
 
                             <td class="col-actions">
 
                                 <div class="accounts-row-actions">
 
-                                    <a class="btn btn-sm icon-btn" href="<?= base_url('admin/accounts/' . $account['id'] . '/edit') ?>" title="Edit account" aria-label="Edit account">
+                                    <a class="btn btn-sm btn-outline icon-btn" href="<?= base_url('admin/accounts/' . $account['id'] . '/edit') ?>" title="Edit account" aria-label="Edit account">
                                         <i class="fas fa-pencil-alt" aria-hidden="true"></i>
                                     </a>
 

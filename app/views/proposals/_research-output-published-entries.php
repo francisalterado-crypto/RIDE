@@ -79,7 +79,7 @@ $entryValue = static function (array $row, string $key): string {
                     <tr class="research-output-published-row">
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][research_title]"
@@ -91,7 +91,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="date"
@@ -102,7 +102,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="date"
@@ -113,7 +113,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'duration_months') !== '' ? $entryValue($row, 'duration_months') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'duration_months') !== '' ? $entryValue($row, 'duration_months') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="number"
@@ -127,7 +127,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'authors_researchers') !== '' ? $entryValue($row, 'authors_researchers') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'authors_researchers') !== '' ? $entryValue($row, 'authors_researchers') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][authors_researchers]"
@@ -139,7 +139,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'article_title') !== '' ? $entryValue($row, 'article_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'article_title') !== '' ? $entryValue($row, 'article_title') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][article_title]"
@@ -151,7 +151,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'journal_book_title') !== '' ? $entryValue($row, 'journal_book_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'journal_book_title') !== '' ? $entryValue($row, 'journal_book_title') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][journal_book_title]"
@@ -163,7 +163,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'editors') !== '' ? $entryValue($row, 'editors') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'editors') !== '' ? $entryValue($row, 'editors') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -175,7 +175,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'volume_issue') !== '' ? $entryValue($row, 'volume_issue') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'volume_issue') !== '' ? $entryValue($row, 'volume_issue') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -187,7 +187,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'pages') !== '' ? $entryValue($row, 'pages') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'pages') !== '' ? $entryValue($row, 'pages') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="text"
@@ -199,7 +199,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'publication_year') !== '' ? $entryValue($row, 'publication_year') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'publication_year') !== '' ? $entryValue($row, 'publication_year') : '-') ?>
                             <?php else: ?>
                                 <input
                                     type="number"
@@ -214,7 +214,7 @@ $entryValue = static function (array $row, string $key): string {
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'indexing') !== '' ? $entryValue($row, 'indexing') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'indexing') !== '' ? $entryValue($row, 'indexing') : '-')) ?>
                             <?php else: ?>
                                 <textarea
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][indexing]"

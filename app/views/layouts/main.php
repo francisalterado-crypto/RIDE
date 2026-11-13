@@ -9,6 +9,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
     <title><?= htmlspecialchars((string) $pageTitle) ?></title>
     <link rel="icon" type="image/png" href="<?= base_url('assets/images/ride-logo.png') ?>" sizes="32x32">
     <link rel="apple-touch-icon" href="<?= base_url('assets/images/ride-logo.png') ?>">
+    <?php if (\App\Core\Auth::check()): ?>
+    <script>document.documentElement.classList.add('ride-preload'); try { if (localStorage.getItem('ride:sidebar-collapsed') === '1') { document.documentElement.classList.add('sidebar-collapsed'); } } catch (e) {}</script>
+    <?php endif; ?>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <?php if (!$isAuthStandalone): ?>
@@ -19,7 +22,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=<?= htmlspecialchars($appCssVersion) ?>">
     <?php endif; ?>
 </head>
-<body class="<?= \App\Core\Auth::check() ? 'app-body' : ($isAuthStandalone ? 'auth-body auth-standalone' : 'auth-body') ?>">
+<body data-app-base="<?= htmlspecialchars(base_url()) ?>" class="<?= \App\Core\Auth::check() ? 'app-body' : ($isAuthStandalone ? 'auth-body auth-standalone' : 'auth-body') ?>">
 <?php if (\App\Core\Auth::check()): ?>
     <?php
     $u = \App\Core\Auth::user();
@@ -36,17 +39,20 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
         $unreadMessageNavCount = $unreadAdminMessageCount + $unreadDirectMessageCount;
     ?>
     <div class="app-wrapper">
-        <aside class="sidebar">
+        <aside class="sidebar" id="app-sidebar">
             <div class="sidebar-header">
                 <div class="logo-area">
                     <div class="logo-icon">
-                        <img src="<?= base_url('assets/images/ride-logo.png') ?>" alt="RIDE — Research, Innovation, Development and Extension" width="40" height="40">
+                        <img src="<?= base_url('assets/images/ride-logo.png') ?>" alt="RIDE - Research, Innovation, Development and Extension" width="40" height="40">
                     </div>
                     <div class="logo-text">
-                        <h2>RIDE</h2>
-                        <span>Research &amp; Extension</span>
+                        <h2>RIDE Hub</h2>
+                        <span>Information Management System for RIDE</span>
                     </div>
                 </div>
+                <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-controls="app-sidebar" aria-expanded="true" title="Collapse sidebar">
+                    <i class="fas fa-angle-double-left" aria-hidden="true"></i><span class="sr-only">Collapse sidebar</span>
+                </button>
             </div>
             <nav class="nav-menu">
                 <?php $isVprideAccount = \App\Support\MonitoringRoles::isVpride(); ?>
@@ -55,7 +61,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 </a>
                 <a href="<?= base_url('messages') ?>" class="nav-item<?= nav_active('messages') ? ' active' : '' ?>">
                     <i class="fas fa-envelope-open-text"></i>
-                    <span>Message</span>
+                    <span>Messages</span>
                     <?php if ($unreadMessageNavCount > 0): ?>
                         <span class="nav-mark-count"><?= $unreadMessageNavCount > 99 ? '99+' : $unreadMessageNavCount ?></span>
                     <?php endif; ?>
@@ -110,6 +116,11 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <a href="<?= base_url('projects') ?>" class="nav-item<?= nav_active('projects') ? ' active' : '' ?>">
                     <i class="fas fa-project-diagram"></i> <span>Projects</span>
                 </a>
+                <?php if (\App\Support\MonitoringRoles::canEnterConductedActivities() && !conducted_activities_in_extension_nav()): ?>
+                <a href="<?= base_url('activities') ?>" class="nav-item<?= nav_active('activities') ? ' active' : '' ?>">
+                    <i class="fas fa-clipboard-list"></i> <span>Conducted Activities</span>
+                </a>
+                <?php endif; ?>
                 <a href="<?= base_url('forms') ?>" class="nav-item<?= nav_active('forms') ? ' active' : '' ?>">
                     <i class="fas fa-file-download"></i> <span>Downloadable Forms</span>
                 </a>
@@ -118,7 +129,6 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 </a>
                 <?php
                 $newProposalActive = nav_active('proposals/create');
-                $manuscriptNavActive = nav_active('proposals/create/manuscript');
                 $completedResearchesNavActive = nav_active('proposals/create/completed-researches');
                 $ongoingResearchesNavActive = nav_active('proposals/create/ongoing-researches');
                 $researchOutputPublishedNavActive = nav_active('proposals/create/research-output-published');
@@ -149,17 +159,14 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     );
                 $terminalReportAssessmentFormNavActive = nav_active('proposals/create/terminal-report-assessment-form')
                     || (nav_active('proposals/terminal-report-registry') && $registryFormType === 'terminal_report_assessment_form');
-                $obrMatrixNavActive = nav_active('proposals/create/obr-matrix');
                 $trainingsConductedNavActive = nav_active('proposals/create/trainings-conducted');
                 $technicalAdvisoryNavActive = nav_active('proposals/create/technical-advisory');
                 $extensionLinkagesNavActive = nav_active('proposals/create/extension-linkages');
                 $outreachActivitiesNavActive = nav_active('proposals/create/outreach-activities');
                 $technologyAdoptionNavActive = nav_active('proposals/create/technology-adoption');
-                $ebalwasyonNgGawainNavActive = nav_active('proposals/create/ebalwasyon-ng-gawain');
                 $requiredFilesNavActive = nav_active('proposals/create/required-files')
                     || preg_match('#^proposals/\d+/edit/required-files$#', request_path()) === 1;
                 $applicantNavActive = nav_active('proposals/create')
-                    && !$manuscriptNavActive
                     && !$completedResearchesNavActive
                     && !$ongoingResearchesNavActive
                     && !$researchOutputPublishedNavActive
@@ -177,16 +184,14 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     && !$progressReportNavActive
                     && !$terminalReportNavActive
                     && !$terminalReportAssessmentFormNavActive
-                    && !$obrMatrixNavActive
                     && !$trainingsConductedNavActive
                     && !$technicalAdvisoryNavActive
                     && !$extensionLinkagesNavActive
                     && !$outreachActivitiesNavActive
                     && !$technologyAdoptionNavActive
-                    && !$ebalwasyonNgGawainNavActive
                     && !$requiredFilesNavActive;
                 $proposalNavItemsActive = $newProposalActive || $requiredFilesNavActive
-                    || $manuscriptNavActive || $completedResearchesNavActive || $ongoingResearchesNavActive
+                    || $completedResearchesNavActive || $ongoingResearchesNavActive
                     || $researchOutputPublishedNavActive || $researchOutputPresentedNavActive || $commercializedNavActive
                     || $resultedInExtensionNavActive || $journalCitationNavActive || $bookCitationNavActive
                     || $inventionsUmCopyrightsNavActive || $linkagesNavActive || $consolidatedCompletedResearchesNavActive
@@ -196,12 +201,12 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     || $consolidatedBookCitationNavActive || $consolidatedInventionsUmCopyrightsNavActive
                     || $consolidatedLinkagesNavActive
                     || $progressReportNavActive
-                    || $obrMatrixNavActive
                     || $trainingsConductedNavActive || $technicalAdvisoryNavActive || $extensionLinkagesNavActive
-                    || $outreachActivitiesNavActive || $technologyAdoptionNavActive || $ebalwasyonNgGawainNavActive;
+                    || $outreachActivitiesNavActive || $technologyAdoptionNavActive;
                 $isFacultyAccount = \App\Core\Auth::hasRole('faculty');
                 $hasDualProposalMenu = proposal_nav_has_dual_menu();
-                $showManuscriptNav = \App\Support\MonitoringRoles::canAccessManuscript();
+                $showResearchRequestsNav = \App\Support\MonitoringRoles::canFileResearchRequests();
+                $researchRequestsNavActive = $showResearchRequestsNav && nav_active('research-requests');
                 $showCompletedResearchesNav = \App\Support\MonitoringRoles::canAccessCompletedResearches();
                 $showOngoingResearchesNav = \App\Support\MonitoringRoles::canAccessOngoingResearches();
                 $showResearchOutputPublishedNav = \App\Support\MonitoringRoles::canAccessResearchOutputPublished();
@@ -226,42 +231,41 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 $showProgressReportNav = \App\Support\MonitoringRoles::canAccessProgressReport() && !$hideDirectorResearchFormNav;
                 $showTerminalReportNav = \App\Support\MonitoringRoles::canAccessTerminalReport() && !$hideDirectorResearchFormNav;
                 $showTerminalReportAssessmentFormNav = \App\Support\MonitoringRoles::canAccessTerminalReport() && !$hideDirectorResearchFormNav;
-                $showObrMatrixNav = \App\Support\MonitoringRoles::canAccessObrMatrix();
                 $showTrainingsConductedNav = \App\Support\MonitoringRoles::canAccessTrainingsConducted();
                 $showTechnicalAdvisoryNav = \App\Support\MonitoringRoles::canAccessTechnicalAdvisory();
                 $showExtensionLinkagesNav = \App\Support\MonitoringRoles::canAccessExtensionLinkages();
                 $showOutreachActivitiesNav = \App\Support\MonitoringRoles::canAccessOutreachActivities();
                 $showTechnologyAdoptionNav = \App\Support\MonitoringRoles::canAccessTechnologyAdoption();
-                $showEbalwasyonNgGawainNav = \App\Support\MonitoringRoles::canAccessEbalwasyonNgGawain();
-                $showConsolidatedReportsNav = \App\Support\MonitoringRoles::isCoordinatorResearch();
                 $showResearchProposalNav = !\App\Support\MonitoringRoles::isVpride()
-                    && !$showConsolidatedReportsNav
                     && !$hideDirectorResearchFormNav;
-                $disableManuscriptHighlight = \App\Support\MonitoringRoles::isCoordinator();
+                if (\App\Support\MonitoringRoles::isCoordinatorResearch()) {
+                    // The R&D Coordinator prepares the quarterly reports themselves (generated from Research
+                    // Accomplishments), so the Consolidated versions are no longer offered to them.
+                    $showConsolidatedCompletedResearchesNav = $showConsolidatedOngoingResearchesNav = false;
+                    $showConsolidatedResearchOutputPublishedNav = $showConsolidatedResearchOutputPresentedNav = false;
+                    $showConsolidatedCommercializedNav = $showConsolidatedResultedInExtensionNav = false;
+                    $showConsolidatedJournalCitationNav = $showConsolidatedBookCitationNav = false;
+                    $showConsolidatedInventionsUmCopyrightsNav = $showConsolidatedLinkagesNav = false;
+                }
+                $showResearchAccomplishmentsNav = $showResearchProposalNav
+                    && \App\Support\MonitoringRoles::canEnterResearchAccomplishments();
+                $researchAccomplishmentsNavActive = $showResearchAccomplishmentsNav && nav_active('research-accomplishments');
                 $hideCoordinatorProposalIntroNav = \App\Support\MonitoringRoles::isCoordinator()
                     && !\App\Support\MonitoringRoles::isCoordinatorExtension();
-                $consolidatedReportsNavActive = $consolidatedOngoingResearchesNavActive
-                    || $consolidatedResearchOutputPublishedNavActive
-                    || $consolidatedResearchOutputPresentedNavActive
-                    || $consolidatedCommercializedNavActive
-                    || $consolidatedResultedInExtensionNavActive
-                    || $consolidatedJournalCitationNavActive
-                    || $consolidatedBookCitationNavActive
-                    || $consolidatedInventionsUmCopyrightsNavActive
-                    || $consolidatedLinkagesNavActive
-                    || $consolidatedCompletedResearchesNavActive
-                    || $obrMatrixNavActive;
                 $terminalReportNavGroupActive = $hasDualProposalMenu
                     ? proposal_nav_scoped_active(
                         $progressReportNavActive || $terminalReportNavActive || $terminalReportAssessmentFormNavActive,
                         'research'
                     )
                     : ($terminalReportNavActive || $terminalReportAssessmentFormNavActive);
-                $researchProposalNavActive = $hasDualProposalMenu
+                $showConductedActivitiesNav = conducted_activities_in_extension_nav();
+                $conductedActivitiesNavActive = $showConductedActivitiesNav && nav_active('activities');
+                $researchProposalNavActive = ($hasDualProposalMenu
                     ? proposal_nav_scoped_active($proposalNavItemsActive, 'research')
-                    : $proposalNavItemsActive;
+                    : ($proposalNavItemsActive || $conductedActivitiesNavActive))
+                    || $researchAccomplishmentsNavActive || $researchRequestsNavActive;
                 $researchExtensionNavActive = $hasDualProposalMenu
-                    && proposal_nav_scoped_active($proposalNavItemsActive, 'extension');
+                    && (proposal_nav_scoped_active($proposalNavItemsActive, 'extension') || $conductedActivitiesNavActive);
                 ?>
                 <?php if ($showResearchProposalNav): ?>
                 <div class="nav-group nav-group-collapsible" id="research-proposal-nav" data-nav-collapsible>
@@ -297,21 +301,6 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </div>
                 </div>
                 <?php endif; ?>
-                <?php if ($showConsolidatedReportsNav): ?>
-                <div class="nav-group nav-group-collapsible" id="consolidated-reports-nav" data-nav-collapsible>
-                    <button type="button" class="nav-item nav-item-toggle<?= $consolidatedReportsNavActive ? ' active' : '' ?>" id="consolidated-reports-nav-toggle" aria-expanded="true" aria-controls="consolidated-reports-submenu">
-                        <i class="fas fa-layer-group" aria-hidden="true"></i>
-                        <span>Consolidated Reports</span>
-                        <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
-                    </button>
-                    <div class="nav-submenu" id="consolidated-reports-submenu">
-                    <?php
-                    $menuScope = 'research';
-                    require APP_PATH . '/views/layouts/_consolidated-reports-nav-submenu.php';
-                    ?>
-                    </div>
-                </div>
-                <?php endif; ?>
                 <?php if ($showTerminalReportNav): ?>
                 <div class="nav-group nav-group-collapsible" id="terminal-report-nav" data-nav-collapsible>
                     <button type="button" class="nav-item nav-item-toggle<?= $terminalReportNavGroupActive ? ' active' : '' ?>" id="terminal-report-nav-toggle" aria-expanded="true" aria-controls="terminal-report-submenu">
@@ -332,9 +321,6 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                         <i class="fas fa-chart-pie"></i> <span>Reports</span>
                     </a>
                 <?php endif; ?>
-                    <a href="<?= base_url('admin/public-site') ?>" class="nav-item<?= nav_active('admin/public-site') ? ' active' : '' ?>">
-                        <i class="fas fa-globe"></i> <span>Public Site</span>
-                    </a>
                 <?php endif; ?>
                 <?php if (\App\Core\Auth::hasRole('ride_admin')): ?>
                     <a href="<?= base_url('admin/accounts') ?>" class="nav-item<?= nav_active('admin/accounts') ? ' active' : '' ?>">
@@ -342,6 +328,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </a>
                     <a href="<?= base_url('admin/scholarly') ?>" class="nav-item<?= nav_active('admin/scholarly') ? ' active' : '' ?>">
                         <i class="fas fa-book-open"></i> <span>Faculty Papers</span>
+                    </a>
+                    <a href="<?= base_url('admin/public-site') ?>" class="nav-item<?= nav_active('admin/public-site') ? ' active' : '' ?>">
+                        <i class="fas fa-globe"></i> <span>Public Site</span>
                     </a>
                     <a href="<?= base_url('admin/highlights') ?>" class="nav-item<?= nav_active('admin/highlights') ? ' active' : '' ?>">
                         <i class="fas fa-images"></i> <span>Login Highlights</span>
@@ -362,7 +351,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <?php endif; ?>
             </nav>
             <div class="sidebar-footer">
-                <div class="profile-mini">
+                <a class="profile-mini" href="<?= base_url('profile') ?>" title="Account settings"<?= nav_active('profile') ? ' aria-current="page"' : '' ?>>
                     <?php $sidebarAvatarUrl = user_avatar_url($u); ?>
                     <?php if ($sidebarAvatarUrl !== null): ?>
                         <img
@@ -376,16 +365,50 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <div class="profile-info">
                         <p><?= htmlspecialchars($displayName) ?></p>
                         <small><?= htmlspecialchars((string) $u['email']) ?></small>
+                        <span class="profile-link-hint">Account settings</span>
                     </div>
-                </div>
-                <a href="<?= base_url('logout') ?>" class="logout-btn">
+                    <i class="fas fa-chevron-right profile-chevron" aria-hidden="true"></i>
+                </a>
+                <a href="<?= base_url('logout') ?>" class="logout-btn" title="Logout">
                     <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
                 </a>
             </div>
         </aside>
+        <script>
+        // Apply remembered menu state and scroll position before the first paint, so the sidebar does not jump.
+        (function () {
+            var sidebar = document.getElementById('app-sidebar');
+            try {
+                sidebar.querySelectorAll('[data-nav-collapsible]').forEach(function (group) {
+                    if (localStorage.getItem('ride:nav:' + group.id.replace(/-nav$/, '') + '-collapsed') === '1') {
+                        group.classList.add('is-collapsed');
+                        var menu = group.querySelector('.nav-submenu');
+                        if (menu) { menu.hidden = true; }
+                        var t = group.querySelector('.nav-item-toggle');
+                        if (t) { t.setAttribute('aria-expanded', 'false'); }
+                    }
+                });
+                sidebar.querySelectorAll('[data-nav-subgroup]').forEach(function (group) {
+                    if (localStorage.getItem('ride:nav:' + group.id + '-collapsed') === '1' && !group.classList.contains('has-active')) {
+                        group.classList.add('is-collapsed');
+                        var items = group.querySelector('.nav-subgroup-items');
+                        if (items) { items.hidden = true; }
+                        var t = group.querySelector('.nav-subgroup-toggle');
+                        if (t) { t.setAttribute('aria-expanded', 'false'); }
+                    }
+                });
+                var top = sessionStorage.getItem('ride:sidebar-scroll');
+                if (top !== null) { sidebar.scrollTop = parseInt(top, 10) || 0; }
+            } catch (e) {}
+        })();
+        </script>
+        <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
 
         <main class="main-content">
             <div class="top-bar">
+                <button type="button" class="topbar-menu-btn" id="sidebar-open" aria-controls="app-sidebar" aria-expanded="false" title="Menu">
+                    <i class="fas fa-bars" aria-hidden="true"></i><span class="sr-only">Open menu</span>
+                </button>
                 <div class="page-title">
                     <h1><?= htmlspecialchars($heading) ?></h1>
                     <?php if ($subtitle !== ''): ?>
@@ -403,7 +426,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                             <i class="fas fa-bell"></i>
                         </div>
                     <?php endif; ?>
-                    <a href="<?= base_url('profile') ?>" class="user-welcome">
+                    <a href="<?= base_url('profile') ?>" class="user-welcome" title="Account Settings">
                         <i class="fas fa-user-circle"></i> <?= htmlspecialchars($roleLabel) ?>
                     </a>
                 </div>

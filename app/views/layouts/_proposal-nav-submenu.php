@@ -16,20 +16,49 @@ $isExtensionMenu = $menuScope === 'extension';
 
     <a href="<?= base_url('proposals/create' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($applicantNavActive) ? ' active' : '' ?>">
 
-        <span><?= $isExtensionMenu ? 'Extension Program/Project Proposal' : 'Applicant&apos;s Information' ?></span>
+        <span><?= $isExtensionMenu ? 'Extension Project Proposal' : 'Research Proposal Application' ?></span>
 
     </a>
 
 <?php endif; ?>
 
-<?php if (!$isExtensionMenu && $showManuscriptNav && !$hideCoordinatorProposalIntroNav): ?>
+<?php if (!$isExtensionMenu && $showResearchRequestsNav): ?>
+    <?php foreach (\App\Support\ResearchRequestForms::all() as $requestDefinition): ?>
+        <a href="<?= base_url('research-requests/new/' . $requestDefinition['slug']) ?>" class="nav-subitem<?= nav_active('research-requests/new/' . $requestDefinition['slug']) ? ' active' : '' ?>">
+            <span><?= htmlspecialchars((string) $requestDefinition['label']) ?></span>
+        </a>
+    <?php endforeach; ?>
+<?php endif; ?>
 
-    <a href="<?= base_url('proposals/create/manuscript' . $scopeQuery) ?>" class="nav-subitem<?= ($navActive($manuscriptNavActive) && !$disableManuscriptHighlight) ? ' active' : '' ?>">
-
-        <span>Manuscript Writing for Publication</span>
-
+<?php if (!$isExtensionMenu && $showResearchAccomplishmentsNav): ?>
+    <a href="<?= base_url('research-accomplishments') ?>" class="nav-subitem<?= $researchAccomplishmentsNavActive ? ' active' : '' ?>">
+        <span>Research Accomplishments</span>
     </a>
+<?php endif; ?>
 
+<?php
+$researchQuarterlyNavActive = $navActive($completedResearchesNavActive)
+    || $navActive($ongoingResearchesNavActive)
+    || $navActive($researchOutputPublishedNavActive)
+    || $navActive($researchOutputPresentedNavActive)
+    || $navActive($commercializedNavActive)
+    || $navActive($resultedInExtensionNavActive)
+    || $navActive($journalCitationNavActive)
+    || $navActive($bookCitationNavActive)
+    || $navActive($inventionsUmCopyrightsNavActive)
+    || $navActive($linkagesNavActive);
+$groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::canPrepareResearchQuarterlyReports()
+    && ($showCompletedResearchesNav || $showOngoingResearchesNav || $showResearchOutputPublishedNav
+        || $showResearchOutputPresentedNav || $showCommercializedNav || $showResultedInExtensionNav
+        || $showJournalCitationNav || $showBookCitationNav || $showInventionsUmCopyrightsNav || $showLinkagesNav);
+?>
+<?php if ($groupResearchQuarterlyNav): ?>
+<div class="nav-subgroup<?= $researchQuarterlyNavActive ? ' has-active' : '' ?>" id="research-quarterly-report-nav" data-nav-subgroup>
+    <button type="button" class="nav-subitem nav-subgroup-toggle<?= $researchQuarterlyNavActive ? ' is-current' : '' ?>" aria-expanded="true" aria-controls="research-quarterly-report-subitems">
+        <span>Quarterly Report</span>
+        <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
+    </button>
+    <div class="nav-subgroup-items" id="research-quarterly-report-subitems">
 <?php endif; ?>
 
 <?php if (!$isExtensionMenu && $showCompletedResearchesNav): ?>
@@ -232,6 +261,11 @@ $isExtensionMenu = $menuScope === 'extension';
 
 <?php endif; ?>
 
+<?php if ($groupResearchQuarterlyNav): ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if (!$isExtensionMenu && $showProgressReportNav && !$isFacultyAccount): ?>
 
     <a href="<?= base_url('proposals/create/progress-report' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($progressReportNavActive) ? ' active' : '' ?>">
@@ -242,14 +276,10 @@ $isExtensionMenu = $menuScope === 'extension';
 
 <?php endif; ?>
 
-<?php if (!$isExtensionMenu && $showObrMatrixNav): ?>
-
-    <a href="<?= base_url('proposals/create/obr-matrix' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($obrMatrixNavActive) ? ' active' : '' ?>">
-
-        <span><?= $navLabel('OBR Matrix') ?></span>
-
+<?php if ($isExtensionMenu && $showConductedActivitiesNav): ?>
+    <a href="<?= base_url('activities') ?>" class="nav-subitem<?= $conductedActivitiesNavActive ? ' active' : '' ?>">
+        <span>Conducted Activities</span>
     </a>
-
 <?php endif; ?>
 
 <?php
@@ -323,14 +353,4 @@ $groupQuarterlyReportNav = $isExtensionMenu && \App\Support\MonitoringRoles::isC
 <?php if ($groupQuarterlyReportNav): ?>
     </div>
 </div>
-<?php endif; ?>
-
-<?php if ($isExtensionMenu && $showEbalwasyonNgGawainNav): ?>
-
-    <a href="<?= base_url('proposals/create/ebalwasyon-ng-gawain' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($ebalwasyonNgGawainNavActive) ? ' active' : '' ?>">
-
-        <span>Ebalwasyon ng Gawain</span>
-
-    </a>
-
 <?php endif; ?>

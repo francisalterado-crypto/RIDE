@@ -336,10 +336,10 @@ trait ManagesConsolidatedResearchForms
 
         $title = (string) $config['consolidated_title'];
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return [

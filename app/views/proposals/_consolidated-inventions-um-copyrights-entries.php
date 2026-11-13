@@ -156,7 +156,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '—')) ?>
+                                    <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '-')) ?>
 
                                 <?php else: ?>
 
@@ -170,7 +170,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '—') ?>
+                                    <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '-') ?>
 
                                 <?php else: ?>
 
@@ -184,7 +184,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= htmlspecialchars($entryValue($row, 'date_developed_completed') !== '' ? $entryValue($row, 'date_developed_completed') : '—') ?>
+                                    <?= htmlspecialchars($entryValue($row, 'date_developed_completed') !== '' ? $entryValue($row, 'date_developed_completed') : '-') ?>
 
                                 <?php else: ?>
 
@@ -198,7 +198,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= nl2br(htmlspecialchars($entryValue($row, 'inventors_researchers') !== '' ? $entryValue($row, 'inventors_researchers') : '—')) ?>
+                                    <?= nl2br(htmlspecialchars($entryValue($row, 'inventors_researchers') !== '' ? $entryValue($row, 'inventors_researchers') : '-')) ?>
 
                                 <?php else: ?>
 
@@ -212,7 +212,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= htmlspecialchars($entryValue($row, 'patent_registration_copyright_number') !== '' ? $entryValue($row, 'patent_registration_copyright_number') : '—') ?>
+                                    <?= htmlspecialchars($entryValue($row, 'patent_registration_copyright_number') !== '' ? $entryValue($row, 'patent_registration_copyright_number') : '-') ?>
 
                                 <?php else: ?>
 
@@ -226,7 +226,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= htmlspecialchars($entryValue($row, 'date_of_issue_application') !== '' ? $entryValue($row, 'date_of_issue_application') : '—') ?>
+                                    <?= htmlspecialchars($entryValue($row, 'date_of_issue_application') !== '' ? $entryValue($row, 'date_of_issue_application') : '-') ?>
 
                                 <?php else: ?>
 
@@ -240,7 +240,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= nl2br(htmlspecialchars($entryValue($row, 'adopter') !== '' ? $entryValue($row, 'adopter') : '—')) ?>
+                                    <?= nl2br(htmlspecialchars($entryValue($row, 'adopter') !== '' ? $entryValue($row, 'adopter') : '-')) ?>
 
                                 <?php else: ?>
 
@@ -254,7 +254,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= nl2br(htmlspecialchars($entryValue($row, 'commercial_product_name') !== '' ? $entryValue($row, 'commercial_product_name') : '—')) ?>
+                                    <?= nl2br(htmlspecialchars($entryValue($row, 'commercial_product_name') !== '' ? $entryValue($row, 'commercial_product_name') : '-')) ?>
 
                                 <?php else: ?>
 
@@ -268,7 +268,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '—') ?>
+                                    <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '-') ?>
 
                                 <?php else: ?>
 
@@ -282,7 +282,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                 <?php if ($readOnly): ?>
 
-                                    <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '—') ?>
+                                    <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '-') ?>
 
                                 <?php else: ?>
 
@@ -306,7 +306,7 @@ $columnCount = $readOnly ? 11 : 12;
 
                                     <?php else: ?>
 
-                                        —
+                                        -
 
                                     <?php endif; ?>
 

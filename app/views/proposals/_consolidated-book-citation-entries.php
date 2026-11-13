@@ -120,7 +120,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'title_original_article_cited') !== '' ? $entryValue($row, 'title_original_article_cited') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'title_original_article_cited') !== '' ? $entryValue($row, 'title_original_article_cited') : '-')) ?>
 
                             <?php else: ?>
 
@@ -134,7 +134,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'authors_original_article') !== '' ? $entryValue($row, 'authors_original_article') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'authors_original_article') !== '' ? $entryValue($row, 'authors_original_article') : '-')) ?>
 
                             <?php else: ?>
 
@@ -148,7 +148,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'title_publication_original') !== '' ? $entryValue($row, 'title_publication_original') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'title_publication_original') !== '' ? $entryValue($row, 'title_publication_original') : '-')) ?>
 
                             <?php else: ?>
 
@@ -162,7 +162,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'title_new_book_chapter') !== '' ? $entryValue($row, 'title_new_book_chapter') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'title_new_book_chapter') !== '' ? $entryValue($row, 'title_new_book_chapter') : '-')) ?>
 
                             <?php else: ?>
 
@@ -176,7 +176,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'authors_book_chapter') !== '' ? $entryValue($row, 'authors_book_chapter') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'authors_book_chapter') !== '' ? $entryValue($row, 'authors_book_chapter') : '-')) ?>
 
                             <?php else: ?>
 
@@ -190,7 +190,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'title_book_chapter_published') !== '' ? $entryValue($row, 'title_book_chapter_published') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'title_book_chapter_published') !== '' ? $entryValue($row, 'title_book_chapter_published') : '-')) ?>
 
                             <?php else: ?>
 
@@ -204,7 +204,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'volume_issue') !== '' ? $entryValue($row, 'volume_issue') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'volume_issue') !== '' ? $entryValue($row, 'volume_issue') : '-') ?>
 
                             <?php else: ?>
 
@@ -218,7 +218,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'pages') !== '' ? $entryValue($row, 'pages') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'pages') !== '' ? $entryValue($row, 'pages') : '-') ?>
 
                             <?php else: ?>
 
@@ -232,7 +232,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'year_publication') !== '' ? $entryValue($row, 'year_publication') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'year_publication') !== '' ? $entryValue($row, 'year_publication') : '-') ?>
 
                             <?php else: ?>
 
@@ -246,7 +246,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'isbn') !== '' ? $entryValue($row, 'isbn') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'isbn') !== '' ? $entryValue($row, 'isbn') : '-') ?>
 
                             <?php else: ?>
 
@@ -260,7 +260,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'publisher') !== '' ? $entryValue($row, 'publisher') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'publisher') !== '' ? $entryValue($row, 'publisher') : '-')) ?>
 
                             <?php else: ?>
 
@@ -274,7 +274,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'college') !== '' ? $entryValue($row, 'college') : '-') ?>
 
                             <?php else: ?>
 
@@ -288,7 +288,7 @@ $entryValue = static function (array $row, string $key): string {
 
                             <?php if ($readOnly): ?>
 
-                                <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'campus') !== '' ? $entryValue($row, 'campus') : '-') ?>
 
                             <?php else: ?>
 
@@ -312,7 +312,7 @@ $entryValue = static function (array $row, string $key): string {
 
                                 <?php else: ?>
 
-                                    —
+                                    -
 
                                 <?php endif; ?>
 

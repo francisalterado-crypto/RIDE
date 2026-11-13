@@ -442,7 +442,7 @@ final class AdminScholarlyController
 
                 'email' => $member['email'],
 
-                'college_name' => $member['college_name'] ?? '—',
+                'college_name' => $member['college_name'] ?? '-',
 
                 'program' => $member['program'] ?? '',
 

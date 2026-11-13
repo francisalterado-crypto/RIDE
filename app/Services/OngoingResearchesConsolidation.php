@@ -755,10 +755,10 @@ final class OngoingResearchesConsolidation
     {
         $title = 'Consolidated Ongoing Researches';
         if ($collegeName !== '') {
-            $title .= ' — ' . $collegeName;
+            $title .= ' - ' . $collegeName;
         }
         if ($reportAsOf !== '') {
-            $title .= ' — ' . $reportAsOf;
+            $title .= ' - ' . $reportAsOf;
         }
 
         return $title;

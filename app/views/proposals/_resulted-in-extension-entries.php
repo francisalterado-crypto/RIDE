@@ -76,70 +76,70 @@ $entryValue = static function (array $row, string $key): string {
                     <tr class="completed-researches-row resulted-in-extension-row">
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'research_title') !== '' ? $entryValue($row, 'research_title') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][research_title]" class="proposal-textarea proposal-textarea-compact" rows="2" placeholder="Research title"><?= htmlspecialchars($entryValue($row, 'research_title')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'researchers') !== '' ? $entryValue($row, 'researchers') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'researchers') !== '' ? $entryValue($row, 'researchers') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][researchers]" class="proposal-textarea proposal-textarea-compact" rows="2" placeholder="Researcher(s)"><?= htmlspecialchars($entryValue($row, 'researchers')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_started') !== '' ? $entryValue($row, 'date_started') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][date_started]" value="<?= htmlspecialchars($entryValue($row, 'date_started')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date_completed') !== '' ? $entryValue($row, 'date_completed') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][date_completed]" value="<?= htmlspecialchars($entryValue($row, 'date_completed')) ?>">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'extension_program_activity') !== '' ? $entryValue($row, 'extension_program_activity') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'extension_program_activity') !== '' ? $entryValue($row, 'extension_program_activity') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][extension_program_activity]" class="proposal-textarea proposal-textarea-compact" rows="2" placeholder="Extension program/activity"><?= htmlspecialchars($entryValue($row, 'extension_program_activity')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= nl2br(htmlspecialchars($entryValue($row, 'faculty_staff_involved') !== '' ? $entryValue($row, 'faculty_staff_involved') : '—')) ?>
+                                <?= nl2br(htmlspecialchars($entryValue($row, 'faculty_staff_involved') !== '' ? $entryValue($row, 'faculty_staff_involved') : '-')) ?>
                             <?php else: ?>
                                 <textarea name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][faculty_staff_involved]" class="proposal-textarea proposal-textarea-compact" rows="2" placeholder="Faculty/staff involved"><?= htmlspecialchars($entryValue($row, 'faculty_staff_involved')) ?></textarea>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'budget_source') !== '' ? $entryValue($row, 'budget_source') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'budget_source') !== '' ? $entryValue($row, 'budget_source') : '-') ?>
                             <?php else: ?>
                                 <input type="text" name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][budget_source]" value="<?= htmlspecialchars($entryValue($row, 'budget_source')) ?>" placeholder="Budget source">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'budget_amount') !== '' ? $entryValue($row, 'budget_amount') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'budget_amount') !== '' ? $entryValue($row, 'budget_amount') : '-') ?>
                             <?php else: ?>
                                 <input type="text" name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][budget_amount]" value="<?= htmlspecialchars($entryValue($row, 'budget_amount')) ?>" placeholder="Amount">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'venue') !== '' ? $entryValue($row, 'venue') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'venue') !== '' ? $entryValue($row, 'venue') : '-') ?>
                             <?php else: ?>
                                 <input type="text" name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][venue]" value="<?= htmlspecialchars($entryValue($row, 'venue')) ?>" placeholder="Venue">
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if ($readOnly): ?>
-                                <?= htmlspecialchars($entryValue($row, 'date') !== '' ? $entryValue($row, 'date') : '—') ?>
+                                <?= htmlspecialchars($entryValue($row, 'date') !== '' ? $entryValue($row, 'date') : '-') ?>
                             <?php else: ?>
                                 <input type="date" name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][date]" value="<?= htmlspecialchars($entryValue($row, 'date')) ?>">
                             <?php endif; ?>
@@ -151,7 +151,7 @@ $entryValue = static function (array $row, string $key): string {
                                 <?php if ($driveLink !== ''): ?>
                                     <a href="<?= htmlspecialchars($driveLink) ?>" target="_blank" rel="noopener noreferrer">View file</a>
                                 <?php else: ?>
-                                    —
+                                    -
                                 <?php endif; ?>
                             <?php else: ?>
                                 <input

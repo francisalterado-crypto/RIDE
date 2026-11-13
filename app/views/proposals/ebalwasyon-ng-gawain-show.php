@@ -6,8 +6,8 @@
 /** @var string $approveLabel */
 /** @var string $stepLabel */
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
-$pageHeading = htmlspecialchars($proposal['title']);
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
+$pageHeading = (string) $proposal['title'];
 $pageSubtitle = 'Review the submitted activity evaluation (WPU-QSF-RIDE-ESO-16).';
 
 $summaryData = [];
@@ -21,7 +21,7 @@ if (!empty($proposal['summary'])) {
 $display = static function (string $value): string {
     $trimmed = trim($value);
 
-    return $trimmed === '' ? '—' : nl2br(htmlspecialchars($trimmed));
+    return $trimmed === '' ? '-' : nl2br(htmlspecialchars($trimmed));
 };
 
 $summaryField = static function (string $key) use ($summaryData): string {
@@ -73,7 +73,7 @@ $scale = ebalwasyon_ng_gawain_scale();
             </tr>
             <tr>
                 <th>College</th>
-                <td colspan="3"><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '—') ?></td>
+                <td colspan="3"><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '-') ?></td>
             </tr>
             <tr>
                 <th>Paksang Gawain</th>
@@ -83,14 +83,14 @@ $scale = ebalwasyon_ng_gawain_scale();
                 <th>Pangalan ng Dumalo</th>
                 <td><?= $display($summaryField('pangalan_ng_dumalo')) ?></td>
                 <th>Petsa</th>
-                <td><?= htmlspecialchars($summaryField('petsa') !== '' ? $summaryField('petsa') : '—') ?></td>
+                <td><?= htmlspecialchars($summaryField('petsa') !== '' ? $summaryField('petsa') : '-') ?></td>
             </tr>
             <tr>
                 <th>Kasarian</th>
                 <td><?= $display($kasarianLabel) ?></td>
                 <th>Marka</th>
                 <td>
-                    <?= htmlspecialchars($markaDisplay !== '' ? $markaDisplay : '—') ?>
+                    <?= htmlspecialchars($markaDisplay !== '' ? $markaDisplay : '-') ?>
                     <?php if ($legendDisplay !== ''): ?>
                         <div class="proposal-table-meta"><?= htmlspecialchars($legendDisplay) ?></div>
                     <?php endif; ?>
@@ -150,14 +150,17 @@ $scale = ebalwasyon_ng_gawain_scale();
         </table>
         <p class="ebalwasyon-legend">
             Legend (Resulta ng Ebalwasyon):
-            4.50–5.00 – Best / Lubhang Katangi-tangi;
-            3.50–4.49 – Better / Katangi-tangi;
-            2.50–3.49 – Good / Kasiya-siya;
-            1.50–2.49 – Fair / Kainaman;
-            1.00–1.49 – Poor / Mahina
+            4.50-5.00 - Best / Lubhang Katangi-tangi;
+            3.50-4.49 - Better / Katangi-tangi;
+            2.50-3.49 - Good / Kasiya-siya;
+            1.50-2.49 - Fair / Kainaman;
+            1.00-1.49 - Poor / Mahina
         </p>
     </section>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
 <?php
     $workflowSteps = proposal_workflow_steps($proposal);
     require APP_PATH . '/views/proposals/_approval-workflow.php';
@@ -169,7 +172,7 @@ $scale = ebalwasyon_ng_gawain_scale();
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
                 </form>
@@ -183,7 +186,7 @@ $scale = ebalwasyon_ng_gawain_scale();
     </section>
 </div>
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
     <section class="proposal-section">
         <h2 class="proposal-section-title">Comments &amp; History</h2>
         <?php if (empty($comments)): ?>
@@ -194,9 +197,9 @@ $scale = ebalwasyon_ng_gawain_scale();
                     <li>
                         <div class="proposal-history-meta">
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
                         </div>
                         <div><?= nl2br(htmlspecialchars($c['comment'])) ?></div>
                     </li>

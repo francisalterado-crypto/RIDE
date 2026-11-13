@@ -6,8 +6,8 @@
 /** @var string $approveLabel */
 /** @var string $stepLabel */
 
-$pageTitle = (string) $proposal['title'] . ' | RIDE';
-$pageHeading = htmlspecialchars($proposal['title']);
+$pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
+$pageHeading = (string) $proposal['title'];
 $pageSubtitle = 'Review the submitted attendance form (WPU-QSF-RIDE-ESO-17).';
 
 $summaryData = [];
@@ -21,7 +21,7 @@ if (!empty($proposal['summary'])) {
 $display = static function (string $value): string {
     $trimmed = trim($value);
 
-    return $trimmed === '' ? '—' : nl2br(htmlspecialchars($trimmed));
+    return $trimmed === '' ? '-' : nl2br(htmlspecialchars($trimmed));
 };
 
 $summaryField = static function (string $key) use ($summaryData): string {
@@ -72,7 +72,7 @@ if ($timePm !== '') {
             </tr>
             <tr>
                 <th>College</th>
-                <td colspan="3"><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '—') ?></td>
+                <td colspan="3"><?= htmlspecialchars($collegeDisplay !== '' ? $collegeDisplay : '-') ?></td>
             </tr>
             <tr>
                 <th>Title of Activity</th>
@@ -82,11 +82,11 @@ if ($timePm !== '') {
                 <th>Venue</th>
                 <td><?= $display($summaryField('venue')) ?></td>
                 <th>Date</th>
-                <td><?= htmlspecialchars($summaryField('activity_date') !== '' ? $summaryField('activity_date') : '—') ?></td>
+                <td><?= htmlspecialchars($summaryField('activity_date') !== '' ? $summaryField('activity_date') : '-') ?></td>
             </tr>
             <tr>
                 <th>Time</th>
-                <td colspan="3"><?= htmlspecialchars($timeDisplay !== [] ? implode(' / ', $timeDisplay) : '—') ?></td>
+                <td colspan="3"><?= htmlspecialchars($timeDisplay !== [] ? implode(' / ', $timeDisplay) : '-') ?></td>
             </tr>
         </table>
     </section>
@@ -103,6 +103,9 @@ if ($timePm !== '') {
 
     <?php $readOnly = true; require APP_PATH . '/views/proposals/_attendance-sheet-table.php'; ?>
 
+</div>
+
+<div class="app-panel proposal-workflow-panel">
 <?php
     $workflowSteps = proposal_workflow_steps($proposal);
     require APP_PATH . '/views/proposals/_approval-workflow.php';
@@ -114,7 +117,7 @@ if ($timePm !== '') {
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" style="display:inline;">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
                 </form>
@@ -128,7 +131,7 @@ if ($timePm !== '') {
     </section>
 </div>
 
-<div class="proposal-paper proposal-history-paper">
+<div class="app-panel proposal-history-paper">
     <section class="proposal-section">
         <h2 class="proposal-section-title">Comments &amp; History</h2>
         <?php if (empty($comments)): ?>
@@ -139,9 +142,9 @@ if ($timePm !== '') {
                     <li>
                         <div class="proposal-history-meta">
                             <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
-                            • <?= htmlspecialchars($c['action']) ?>
+                            | <?= htmlspecialchars($c['action']) ?>
                             <?php if ($c['step']): ?> (<?= htmlspecialchars($c['step']) ?>)<?php endif; ?>
-                            • <?= htmlspecialchars($c['created_at']) ?>
+                            | <?= htmlspecialchars($c['created_at']) ?>
                         </div>
                         <div><?= nl2br(htmlspecialchars($c['comment'])) ?></div>
                     </li>

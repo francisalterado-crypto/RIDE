@@ -1,4 +1,4 @@
-# RIDE Integrated Monitoring & Workflow Approval System
+# RIDE Hub - Information Management System for RIDE
 
 PHP web application (XAMPP) with a Java REST API client for integration and public showcase workflows.
 

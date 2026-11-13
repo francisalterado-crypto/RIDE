@@ -7,15 +7,15 @@ $isEdit = $proposal !== null;
 $lockedProjectType = $isEdit ? null : ($lockedProjectType ?? proposal_nav_scope());
 $isExtensionNav = $lockedProjectType === 'extension';
 $proposalLabel = $isExtensionNav ? 'Extension' : 'Research';
-$pageTitle = ($isEdit ? 'Edit' : ($isExtensionNav ? $proposalLabel . ' Proposal' : 'Applicant\'s Information')) . ' | RIDE';
+$pageTitle = ($isEdit ? 'Edit' : ($isExtensionNav ? $proposalLabel . ' Proposal' : 'Research Proposal Application')) . ' | RIDE Hub';
 $pageHeading = $isEdit
-    ? 'Edit ' . $proposalLabel . ' Proposal'
-    : ($isExtensionNav ? $proposalLabel . ' Proposal' : 'Applicant\'s Information');
+    ? 'Edit ' . ($isExtensionNav ? $proposalLabel . ' Proposal' : 'Research Proposal Application')
+    : ($isExtensionNav ? $proposalLabel . ' Proposal' : 'Research Proposal Application');
 $pageSubtitle = $isEdit
     ? 'Update your proposal fields and save or resubmit for review.'
     : ($isExtensionNav
         ? 'Complete all sections of the extension proposal form before saving or submitting.'
-        : 'Complete all sections of the applicant\'s information and research proposal form before saving or submitting.');
+        : 'Research Proposal Application Form (WPU-QSF-RIDE-RDO-20). Your details as proponent come from your profile.');
 $types = ['research', 'innovation', 'development', 'extension'];
 $user = \App\Core\Auth::user() ?? [];
 $colleges = $colleges ?? [];
@@ -77,78 +77,23 @@ $sixPsOptions = [
     'products_processes_developed' => 'Products/Processes developed',
     'policies_formulated' => 'Policies formulated',
 ];
-$applicantPrefixOptions = [
-    'Doctor',
-    'Professor',
-    'Associate Professor',
-    'Assistant Professor',
-    'Instructor',
-    'Staff',
-];
-$applicantPrefixAliases = [
-    'Dr.' => 'Doctor',
-    'Prof.' => 'Professor',
-    'Asso. Prof.' => 'Associate Professor',
-    'Asst. Prof.' => 'Assistant Professor',
-];
-$applicantSexOptions = ['Male', 'Female'];
-$applicantCampusOptions = [
-    'Main Campus',
-    'Puerto Princesa City Campus',
-    'Quezon Campus',
-    'Nido Campus',
-    'Culion Campus',
-    'Busuanga Campus',
-    'Rio Tuba Extension School',
-    'Canique Extension School',
-    'Binduyan Marine Research Station',
-];
 $selectedSixPs = array_fill_keys(
     array_values(array_filter($summaryData['six_ps'] ?? $sampleSummaryData['six_ps'] ?? [], static fn ($value): bool => is_string($value))),
     true
 );
 $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-$applicantLastNameValue = $field('applicant_last_name');
-$applicantFirstNameValue = $field('applicant_first_name');
-$applicantMiddleNameValue = $field('applicant_middle_name');
-$applicantTitlePrefixValue = $field('applicant_title_prefix');
-if (isset($applicantPrefixAliases[$applicantTitlePrefixValue])) {
-    $applicantTitlePrefixValue = $applicantPrefixAliases[$applicantTitlePrefixValue];
-}
-$applicantSexValue = $field('applicant_sex');
-$applicantPositionValue = $field('applicant_position');
-$applicantEmailValue = $field('applicant_email');
-$applicantContactNumberValue = $field('applicant_contact_number');
-$applicantCollegeDepartmentValue = $field('applicant_college_department');
-if ($applicantCollegeDepartmentValue === '' && !$isEdit) {
-    $userCollegeId = (int) ($user['college_id'] ?? 0);
-    if ($userCollegeId > 0) {
-        foreach ($colleges as $college) {
-            if ((int) ($college['id'] ?? 0) === $userCollegeId) {
-                $applicantCollegeDepartmentValue = (string) ($college['name'] ?? '');
-                break;
-            }
-        }
-    }
-    if ($applicantCollegeDepartmentValue === '' && !empty($user['college_name'])) {
-        $applicantCollegeDepartmentValue = (string) $user['college_name'];
+// Part I (The Proponent) comes from the proponent's profile; the controller copies it into the form on save.
+$proponentUserId = $isEdit ? (int) ($proposal['user_id'] ?? 0) : (int) ($user['id'] ?? 0);
+$proponent = \App\Support\ProponentProfile::applicantFields($proponentUserId);
+if ($isEdit && trim(implode('', $proponent)) === '') {
+    foreach (array_keys($proponent) as $key) {
+        $proponent[$key] = $field($key);
     }
 }
-$collegeDepartmentOptions = array_values(array_filter(
-    array_map(static fn (array $college): string => trim((string) ($college['name'] ?? '')), $colleges),
-    static fn (string $name): bool => $name !== ''
-));
-$hasLegacyCollegeDepartment = $applicantCollegeDepartmentValue !== ''
-    && !in_array($applicantCollegeDepartmentValue, $collegeDepartmentOptions, true);
-$applicantProgramValue = $field('applicant_program');
-$applicantCampusValue = $field('applicant_campus');
-if ($applicantCampusValue === '' && !$isEdit && !empty($user['campus_name'])) {
-    $applicantCampusValue = (string) $user['campus_name'];
-}
-$hasLegacyCampus = $applicantCampusValue !== ''
-    && !in_array($applicantCampusValue, $applicantCampusOptions, true);
-$applicantGoogleScholarValue = $field('applicant_google_scholar_link');
-$applicantResearchGateValue = $field('applicant_researchgate_link');
+$isOwnProfile = $proponentUserId === (int) ($user['id'] ?? 0);
+$fundingSupport = array_values(array_filter($summaryData['funding_support'] ?? [], 'is_string'));
+$selectedSdgs = array_fill_keys(array_values(array_filter($summaryData['sdgs'] ?? [], 'is_string')), true);
+$selectedAchieve = array_fill_keys(array_values(array_filter($summaryData['ched_achieve'] ?? [], 'is_string')), true);
 $coAuthors = $summaryData['coauthors'] ?? $sampleSummaryData['coauthors'] ?? [];
 if (!is_array($coAuthors)) {
     $coAuthors = [];
@@ -201,123 +146,79 @@ $ethicsRequired = $proposal !== null
     : false;
 ?>
 
-<form class="proposal-paper completed-researches-paper trainings-conducted-paper" method="post" action="<?= $isEdit ? base_url('proposals/' . $proposal['id'] . '/update') : base_url('proposals') ?>">
+<form class="webform rdo-webform" id="rpa-form" data-preview-rules="<?= htmlspecialchars(\App\Support\FormPreviewRequirements::forScript(\App\Support\FormPreviewRequirements::forResearchApplication())) ?>" method="post" action="<?= $isEdit ? base_url('proposals/' . $proposal['id'] . '/update') : base_url('proposals') ?>">
     <?= csrf_field() ?>
     <?php if ($lockedProjectType !== null): ?>
         <input type="hidden" name="nav_scope" value="<?= htmlspecialchars($lockedProjectType) ?>">
         <input type="hidden" name="project_type" value="<?= htmlspecialchars($lockedProjectType) ?>">
     <?php endif; ?>
+    <?php if ($isEdit): ?>
+        <input type="hidden" name="preview_proposal_id" value="<?= (int) $proposal['id'] ?>">
+    <?php endif; ?>
 
-    <section class="proposal-section">
-        <h2 class="proposal-section-title">Applicant&apos;s Information</h2>
+    <div class="webform-hero">
+        <div>
+            <p class="webform-eyebrow">Office of Research and Development, Form WPU-QSF-RIDE-RDO-20</p>
+            <h2 class="webform-hero-title">Research Proposal Application</h2>
+            <p class="webform-hero-text">Fill out each section below. When every required part is filled, <strong>Print Preview</strong> downloads the filled office form (.docx) on the letterhead, ready to print.</p>
+            <p class="webform-hint webform-req-legend"><span class="webform-req">*</span> Required before Print Preview.</p>
+            <p class="webform-hint js-preview-hint" aria-live="polite"></p>
+        </div>
+        <button type="submit" class="btn btn-outline webform-preview-btn js-preview-btn" formaction="<?= base_url('proposals/preview/research-application') ?>" formnovalidate disabled>Print Preview</button>
+    </div>
 
-        <table class="proposal-table">
-            <tr>
-                <th>Name of Applicant</th>
-                <td>
-                    <span class="proposal-inline-label">Last Name</span>
-                    <input name="applicant_last_name" value="<?= htmlspecialchars($applicantLastNameValue) ?>" placeholder="Enter last name">
-                </td>
-                <td>
-                    <span class="proposal-inline-label">First Name</span>
-                    <input name="applicant_first_name" value="<?= htmlspecialchars($applicantFirstNameValue) ?>" placeholder="Enter first name">
-                </td>
-                <td>
-                    <span class="proposal-inline-label">Middle Name</span>
-                    <input name="applicant_middle_name" value="<?= htmlspecialchars($applicantMiddleNameValue) ?>" placeholder="Enter middle name">
-                </td>
-            </tr>
-            <tr>
-                <th>Title/Prefix</th>
-                <td colspan="2">
-                    <select name="applicant_title_prefix">
-                        <option value="">Select title/prefix</option>
-                        <?php foreach ($applicantPrefixOptions as $prefix): ?>
-                            <option value="<?= htmlspecialchars($prefix) ?>" <?= $applicantTitlePrefixValue === $prefix ? 'selected' : '' ?>><?= htmlspecialchars($prefix) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-                <td>
-                    <label class="proposal-inline-label" for="applicant_sex">Sex</label>
-                    <select id="applicant_sex" name="applicant_sex">
-                        <option value="">Select sex</option>
-                        <?php foreach ($applicantSexOptions as $sex): ?>
-                            <option value="<?= htmlspecialchars($sex) ?>" <?= $applicantSexValue === $sex ? 'selected' : '' ?>><?= htmlspecialchars($sex) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <th>Position held</th>
-                <td colspan="3">
-                    <input name="applicant_position" value="<?= htmlspecialchars($applicantPositionValue) ?>" placeholder="Enter position held">
-                </td>
-            </tr>
-            <tr>
-                <th>E-mail</th>
-                <td><input type="email" name="applicant_email" value="<?= htmlspecialchars($applicantEmailValue) ?>" placeholder="Enter e-mail"></td>
-                <td>Contact Number</td>
-                <td><input name="applicant_contact_number" value="<?= htmlspecialchars($applicantContactNumberValue) ?>" placeholder="Enter contact number"></td>
-            </tr>
-            <tr>
-                <th>College/Department</th>
-                <td colspan="3">
-                    <select id="applicant_college_department" name="applicant_college_department">
-                        <option value="">Select college/department</option>
-                        <?php if ($hasLegacyCollegeDepartment): ?>
-                            <option value="<?= htmlspecialchars($applicantCollegeDepartmentValue) ?>" selected><?= htmlspecialchars($applicantCollegeDepartmentValue) ?></option>
-                        <?php endif; ?>
-                        <?php foreach ($colleges as $college): ?>
-                            <?php $collegeName = trim((string) ($college['name'] ?? '')); ?>
-                            <?php if ($collegeName === ''): ?>
-                                <?php continue; ?>
-                            <?php endif; ?>
-                            <option
-                                value="<?= htmlspecialchars($collegeName) ?>"
-                                <?= $applicantCollegeDepartmentValue === $collegeName ? 'selected' : '' ?>
-                            ><?= htmlspecialchars($collegeName) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <th>Program</th>
-                <td colspan="3"><input name="applicant_program" value="<?= htmlspecialchars($applicantProgramValue) ?>" placeholder="Enter program"></td>
-            </tr>
-            <tr>
-                <th>Campus</th>
-                <td colspan="3">
-                    <select id="applicant_campus" name="applicant_campus">
-                        <option value="">Select campus</option>
-                        <?php if ($hasLegacyCampus): ?>
-                            <option value="<?= htmlspecialchars($applicantCampusValue) ?>" selected><?= htmlspecialchars($applicantCampusValue) ?></option>
-                        <?php endif; ?>
-                        <?php foreach ($applicantCampusOptions as $campus): ?>
-                            <option
-                                value="<?= htmlspecialchars($campus) ?>"
-                                <?= $applicantCampusValue === $campus ? 'selected' : '' ?>
-                            ><?= htmlspecialchars($campus) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <th>Google Scholar account link</th>
-                <td colspan="3"><input type="url" name="applicant_google_scholar_link" value="<?= htmlspecialchars($applicantGoogleScholarValue) ?>" placeholder="Enter Google Scholar account link"></td>
-            </tr>
-            <tr>
-                <th>ResearchGate account link</th>
-                <td colspan="3"><input type="url" name="applicant_researchgate_link" value="<?= htmlspecialchars($applicantResearchGateValue) ?>" placeholder="Enter ResearchGate account link"></td>
-            </tr>
-            <tr>
-                <th>Co-Author(s)</th>
-                <td colspan="3" class="proposal-coauthors-cell">
+    <nav class="webform-steps" aria-label="Form sections">
+            <a href="#rpa-sec-proponent"><span>1</span>The Proponent</a>
+            <a href="#rpa-sec-project"><span>2</span>Project Information</a>
+            <a href="#rpa-sec-abstract"><span>3</span>Abstract</a>
+            <a href="#rpa-sec-background"><span>4</span>Background</a>
+            <a href="#rpa-sec-objectives"><span>5</span>Objectives &amp; Methods</a>
+            <a href="#rpa-sec-considerations"><span>6</span>GAD, Ethics &amp; Alignment</a>
+            <a href="#rpa-sec-outcomes"><span>7</span>Expected Outcomes</a>
+            <a href="#rpa-sec-budget"><span>8</span>Budget</a>
+            <a href="#rpa-sec-plan"><span>9</span>Implementation Plan</a>
+            <a href="#rpa-sec-literature"><span>10</span>Literature Cited</a>
+    </nav>
+
+    <section class="webform-card" id="rpa-sec-proponent">
+        <header class="webform-card-head">
+            <span class="webform-card-num">1</span>
+            <div>
+                <h2>The Proponent</h2>
+                <p>Filled in from <?= $isOwnProfile ? 'your' : 'the proponent\'s' ?> profile.<?php if ($isOwnProfile): ?> To change these details, <a href="<?= base_url('profile') ?>" target="_blank" rel="noopener">update your profile</a>, then reload this page.<?php endif; ?></p>
+            </div>
+        </header>
+        <?php $show = static fn (string $key): string => $proponent[$key] !== '' ? htmlspecialchars($proponent[$key]) : '<span class="muted">Not set in profile</span>'; ?>
+        <div class="webform-grid webform-grid--3">
+            <?php foreach ([
+                'applicant_last_name' => 'Last Name', 'applicant_first_name' => 'First Name', 'applicant_middle_name' => 'Middle Name',
+                'applicant_title_prefix' => 'Title/Prefix', 'applicant_sex' => 'Sex', 'applicant_contact_number' => 'Contact Number',
+                'applicant_email' => 'E-mail', 'applicant_college_department' => 'College/Unit/Center', 'applicant_campus' => 'Campus',
+            ] as $key => $label): ?>
+                <div class="webform-field">
+                    <span class="webform-label"><?= htmlspecialchars($label) ?></span>
+                    <p class="webform-readonly"><?= $show($key) ?></p>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="webform-grid">
+            <div class="webform-field">
+                <span class="webform-label">Google Scholar account link</span>
+                <p class="webform-readonly"><?= $show('applicant_google_scholar_link') ?></p>
+            </div>
+            <div class="webform-field">
+                <span class="webform-label">ResearchGate account link</span>
+                <p class="webform-readonly"><?= $show('applicant_researchgate_link') ?></p>
+            </div>
+        </div>
+        <div class="webform-subsection">
+            <h3>Co-Author(s)</h3>
                     <div class="proposal-coauthors-wrap">
                         <?php if ($facultyCoAuthorOptions !== []): ?>
                         <div class="proposal-coauthor-picker">
                             <p class="proposal-section-note">Tag registered faculty from the RIDE account registry. They receive a notification and must accept before they can view this proposal on their dashboard.</p>
                             <label for="faculty-coauthor-search" class="proposal-coauthor-picker-label">Search faculty</label>
-                            <input type="search" id="faculty-coauthor-search" class="proposal-coauthor-search" placeholder="Type name or college…" autocomplete="off">
+                            <input type="search" id="faculty-coauthor-search" class="proposal-coauthor-search" placeholder="Type name or college..." autocomplete="off">
                             <select id="faculty-coauthor-select" class="proposal-coauthor-select" size="6" aria-label="Registered faculty co-authors">
                                 <?php foreach ($facultyCoAuthorOptions as $option): ?>
                                     <option
@@ -333,15 +234,15 @@ $ethicsRequired = $proposal !== null
                         </div>
                         <?php endif; ?>
                         <p class="trainings-conducted-scroll-hint proposal-section-note">Scroll horizontally to view all columns. Use &ldquo;Add Row&rdquo; for co-authors not registered in RIDE.</p>
-                        <div class="proposal-table-wrap trainings-conducted-table-wrap">
-                        <table id="proposal-coauthors-table" class="proposal-table proposal-coauthors-table trainings-conducted-table">
+                        <div class="webform-table-wrap">
+                        <table id="proposal-coauthors-table" class="webform-table proposal-coauthors-table">
                             <thead>
                                 <tr>
                                     <th>Source</th>
                                     <th>Last Name</th>
                                     <th>First Name</th>
                                     <th>Middle Name</th>
-                                    <th class="proposal-coauthors-action-col">Action</th>
+                                    <th class="webform-table-action proposal-coauthors-action-col"><span class="sr-only">Remove</span></th>
                                 </tr>
                             </thead>
                             <tbody id="proposal-coauthors-body">
@@ -397,8 +298,8 @@ $ethicsRequired = $proposal !== null
                                                 placeholder="Enter middle name"
                                             ><?= htmlspecialchars((string) ($coAuthor['middle_name'] ?? '')) ?></textarea>
                                         </td>
-                                        <td class="proposal-coauthors-action-cell">
-                                            <button type="button" class="btn btn-outline btn-sm" data-action="delete-coauthor">Delete Row</button>
+                                        <td class="webform-table-action proposal-coauthors-action-cell">
+                                            <button type="button" class="webform-icon-btn" data-action="delete-coauthor" title="Remove" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -409,129 +310,193 @@ $ethicsRequired = $proposal !== null
                             <button type="button" id="add-coauthor-row" class="btn btn-outline btn-sm">Add Row</button>
                         </div>
                     </div>
-                </td>
-            </tr>
-        </table>
-        <p class="proposal-section-note">Provide the primary applicant&apos;s information in the fields above.</p>
+        </div>
+        <p class="webform-hint">All information (excluding co-author/s) is the project/study leader&apos;s only.</p>
     </section>
 
-    <section class="proposal-section">
-        <h2 class="proposal-section-title">Project Information</h2>
-
-        <table class="proposal-table">
-            <tr>
-                <th>Title of Proposed Research</th>
-                <td colspan="3">
-                    <input name="title" value="<?= htmlspecialchars($titleValue) ?>" placeholder="Indicate the title of research" required>
-                </td>
-            </tr>
-            <tr>
-                <th>Period Covered</th>
-                <td>
-                    <input name="period_covered" value="<?= htmlspecialchars($field('period_covered')) ?>" placeholder="e.g. June 2026 to May 2027">
-                </td>
-                <th>Duration in Months</th>
-                <td>
-                    <input name="duration_months" value="<?= htmlspecialchars($field('duration_months')) ?>" placeholder="e.g. 12">
-                </td>
-            </tr>
-            <tr>
-                <th>Funding/Support</th>
-                <td colspan="3">
-                    <input name="funding_source" value="<?= htmlspecialchars($fundingSourceValue) ?>" placeholder="WPU funded, University Supported through Official time, external, etc.">
-                </td>
-            </tr>
-        </table>
-        <p class="proposal-section-note">For Funding/Support, indicate if the research is WPU Funded or University Supported through Official time.</p>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Project Classification</h3>
-
-        <table class="proposal-table">
-            <tr>
-                <th>Project Type</th>
-                <td>
-                    <?php if ($lockedProjectType !== null): ?>
-                        <input type="text" value="<?= htmlspecialchars(ucfirst($lockedProjectType)) ?>" readonly>
-                    <?php else: ?>
-                    <select name="project_type" required>
+    <section class="webform-card" id="rpa-sec-project">
+        <header class="webform-card-head">
+            <span class="webform-card-num">2</span>
+            <div>
+                <h2>Project Information</h2>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-title">Title of Proposed Research <span class="webform-req">*</span></label>
+                <input id="rpa-title" name="title" value="<?= htmlspecialchars($titleValue) ?>" placeholder="Indicate the title of research" required>
+            </div>
+            <div class="webform-field">
+                <label for="rpa-period">Period Covered <span class="webform-req">*</span></label>
+                <input id="rpa-period" name="period_covered" value="<?= htmlspecialchars($field('period_covered')) ?>" placeholder="e.g. June 2026 to May 2027">
+            </div>
+            <div class="webform-field">
+                <label for="rpa-duration">Duration in Months <span class="webform-req">*</span></label>
+                <input id="rpa-duration" name="duration_months" type="number" min="0" value="<?= htmlspecialchars($field('duration_months')) ?>" placeholder="e.g. 12">
+            </div>
+            <div class="webform-field webform-field--full">
+                <span class="webform-label">Funding/Support <span class="webform-req">*</span></span>
+                <div class="proposal-check-grid">
+                    <?php foreach (\App\Support\ResearchFormOptions::FUNDING_SUPPORT as $value => $label): ?>
+                        <label class="proposal-check-item">
+                            <input type="checkbox" name="funding_support[]" value="<?= htmlspecialchars($value) ?>" <?= in_array($value, $fundingSupport, true) ? 'checked' : '' ?>>
+                            <span><?= htmlspecialchars($label) ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label for="rpa-funding-source">Funding source</label>
+                <input id="rpa-funding-source" name="funding_source" value="<?= htmlspecialchars($fundingSourceValue) ?>" placeholder="e.g. DOST-PCAARRD">
+                <p class="webform-hint">For external funding/support, indicate the funding source.</p>
+            </div>
+            <div class="webform-field">
+                <label for="rpa-project-type">Project Type</label>
+                <?php if ($lockedProjectType !== null): ?>
+                    <input id="rpa-project-type" type="text" value="<?= htmlspecialchars(ucfirst($lockedProjectType)) ?>" readonly>
+                <?php else: ?>
+                    <select id="rpa-project-type" name="project_type" required>
                         <?php foreach ($types as $t): ?>
                             <option value="<?= $t ?>" <?= $projectTypeValue === $t ? 'selected' : '' ?>><?= ucfirst($t) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <?php endif; ?>
-                </td>
-                <th>Risk Level</th>
-                <td>
-                    <select name="risk_level">
-                        <?php foreach (['low', 'medium', 'high'] as $r): ?>
-                            <option value="<?= $r ?>" <?= $riskLevelValue === $r ? 'selected' : '' ?>><?= ucfirst($r) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <th>Ethics Review</th>
-                <td colspan="3">
-                    <label class="proposal-checkbox-row">
-                        <input type="checkbox" name="ethics_required" value="1" <?= $ethicsRequired ? 'checked' : '' ?>>
-                        Requires ethics review
-                    </label>
-                </td>
-            </tr>
-        </table>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Abstract <span>(not more than 300 words)</span></h3>
-        <textarea name="abstract" class="proposal-textarea proposal-textarea-lg" placeholder="Provide a concise abstract of the proposed research."><?= htmlspecialchars($field('abstract')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Introduction <span>(rationale, background, and proposed approach)</span></h3>
-        <textarea name="introduction" class="proposal-textarea" placeholder="Describe the rationale and background of the project."><?= htmlspecialchars($field('introduction')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Research Gaps <span>(about 100 words or more, with in-text citations)</span></h3>
-        <textarea name="research_gaps" class="proposal-textarea" placeholder="Describe the research gaps the proposal intends to address."><?= htmlspecialchars($field('research_gaps')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Significance of the Study <span>(about 100 words or more)</span></h3>
-        <textarea name="significance" class="proposal-textarea" placeholder="Explain why the study matters and its expected contribution."><?= htmlspecialchars($field('significance')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Objectives</h3>
-        <textarea name="objectives" class="proposal-textarea" placeholder="State the general and specific objectives of the study."><?= htmlspecialchars($field('objectives')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Materials and Methods/Description of Project Activities</h3>
-        <p class="proposal-section-note">Describe what will be done to produce the expected results and accomplish the project objectives.</p>
-        <textarea name="methods" class="proposal-textarea proposal-textarea-lg" placeholder="Outline the methodology, process, or project activities."><?= htmlspecialchars($field('methods')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Gender and Development <span>(explain the participation of men and women in the proposed research)</span></h3>
-        <textarea name="gender_development" class="proposal-textarea" placeholder="Explain gender and development considerations for this proposal."><?= htmlspecialchars($field('gender_development')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Ethical Considerations</h3>
-        <textarea name="ethical_considerations" class="proposal-textarea" placeholder="List any ethical considerations, safeguards, or compliance requirements."><?= htmlspecialchars($field('ethical_considerations')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Expected Outcomes <span>(if applicable)</span></h3>
-        <textarea name="expected_outcomes" class="proposal-textarea" placeholder="Describe the measurable changes or results expected at the end of the project."><?= htmlspecialchars($field('expected_outcomes')) ?></textarea>
-
-        <div class="proposal-checkboxes">
-            <div>
-                <strong>Expected 6Ps</strong> <span class="proposal-section-note-inline">(tick whichever is possible)</span>
+                <?php endif; ?>
             </div>
+            <div class="webform-field">
+                <label for="rpa-risk">Risk Level</label>
+                <select id="rpa-risk" name="risk_level">
+                    <?php foreach (['low', 'medium', 'high'] as $level): ?>
+                        <option value="<?= $level ?>" <?= $riskLevelValue === $level ? 'selected' : '' ?>><?= ucfirst($level) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label class="proposal-check-item">
+                    <input type="checkbox" name="ethics_required" value="1" <?= $ethicsRequired ? 'checked' : '' ?>>
+                    <span>Requires ethics review</span>
+                </label>
+            </div>
+        </div>
+    </section>
+
+    <section class="webform-card" id="rpa-sec-abstract">
+        <header class="webform-card-head">
+            <span class="webform-card-num">3</span>
+            <div>
+                <h2>Abstract</h2>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-abstract">Abstract (not more than 300 words) <span class="webform-req">*</span></label>
+                <textarea id="rpa-abstract" name="abstract" rows="6" data-autoresize placeholder="Provide a concise abstract of the proposed research."><?= htmlspecialchars($field('abstract')) ?></textarea>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label for="rpa-graphical-abstract">Graphical Abstract (if applicable)</label>
+                <input id="rpa-graphical-abstract" type="url" name="graphical_abstract_link" value="<?= htmlspecialchars($field('graphical_abstract_link')) ?>" placeholder="Link to the graphical abstract image (e.g. Google Drive)">
+            </div>
+        </div>
+    </section>
+
+    <section class="webform-card" id="rpa-sec-background">
+        <header class="webform-card-head">
+            <span class="webform-card-num">4</span>
+            <div>
+                <h2>Background</h2>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-introduction">Introduction <span class="webform-req">*</span></label>
+                <textarea id="rpa-introduction" name="introduction" rows="5" data-autoresize placeholder="Rationale and background of the project, and the proposed approach."><?= htmlspecialchars($field('introduction')) ?></textarea>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label for="rpa-research_gaps">Research Gaps <span class="webform-req">*</span></label>
+                <textarea id="rpa-research_gaps" name="research_gaps" rows="4" data-autoresize placeholder="About 100 words or more, with in-text citations."><?= htmlspecialchars($field('research_gaps')) ?></textarea>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label for="rpa-significance">Significance of the Study <span class="webform-req">*</span></label>
+                <textarea id="rpa-significance" name="significance" rows="4" data-autoresize placeholder="About 100 words or more, with in-text citations if necessary."><?= htmlspecialchars($field('significance')) ?></textarea>
+            </div>
+        </div>
+    </section>
+
+    <section class="webform-card" id="rpa-sec-objectives">
+        <header class="webform-card-head">
+            <span class="webform-card-num">5</span>
+            <div>
+                <h2>Objectives &amp; Methods</h2>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-objectives">Objectives <span class="webform-req">*</span></label>
+                <textarea id="rpa-objectives" name="objectives" rows="4" data-autoresize placeholder="State the general and specific objectives of the study."><?= htmlspecialchars($field('objectives')) ?></textarea>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label for="rpa-methods">Materials and Methods/Description of Project Activities <span class="webform-req">*</span></label>
+                <textarea id="rpa-methods" name="methods" rows="6" data-autoresize placeholder="Outline the methodology, process, or project activities."><?= htmlspecialchars($field('methods')) ?></textarea>
+                <p class="webform-hint">Describe what will be done to produce the expected results. The activities must be a means to achieving the results.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="webform-card" id="rpa-sec-considerations">
+        <header class="webform-card-head">
+            <span class="webform-card-num">6</span>
+            <div>
+                <h2>GAD, Ethics &amp; Alignment</h2>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-gender_development">Gender and Development <span class="webform-req">*</span></label>
+                <textarea id="rpa-gender_development" name="gender_development" rows="3" data-autoresize placeholder="Explain the involvement/participation of men and women in the proposed research."><?= htmlspecialchars($field('gender_development')) ?></textarea>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label for="rpa-ethical_considerations">Ethical Considerations <span class="webform-req">*</span></label>
+                <textarea id="rpa-ethical_considerations" name="ethical_considerations" rows="3" data-autoresize placeholder="Ethical considerations, safeguards, or compliance requirements."><?= htmlspecialchars($field('ethical_considerations')) ?></textarea>
+            </div>
+        </div>
+        <div class="webform-subsection">
+            <h3>CHED A.C.H.I.E.V.E. <span class="webform-req">*</span></h3>
+            <div class="proposal-check-grid">
+                <?php foreach (\App\Support\ResearchFormOptions::CHED_ACHIEVE as $value => $label): ?>
+                    <label class="proposal-check-item">
+                        <input type="checkbox" name="ched_achieve[]" value="<?= htmlspecialchars($value) ?>" <?= isset($selectedAchieve[$value]) ? 'checked' : '' ?>>
+                        <span><?= htmlspecialchars($label) ?></span>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <div class="webform-subsection">
+            <h3>Sustainable Development Goal/s (SDG/s) <span class="webform-req">*</span></h3>
+            <div class="proposal-check-grid">
+                <?php foreach (\App\Support\ResearchFormOptions::SDGS as $value => $label): ?>
+                    <label class="proposal-check-item">
+                        <input type="checkbox" name="sdgs[]" value="<?= htmlspecialchars($value) ?>" <?= isset($selectedSdgs[$value]) ? 'checked' : '' ?>>
+                        <span><?= htmlspecialchars($label) ?></span>
+                    </label>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <section class="webform-card" id="rpa-sec-outcomes">
+        <header class="webform-card-head">
+            <span class="webform-card-num">7</span>
+            <div>
+                <h2>Expected Outcomes</h2>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-expected_outcomes">Expected Outcomes <span class="webform-req">*</span></label>
+                <textarea id="rpa-expected_outcomes" name="expected_outcomes" rows="4" data-autoresize placeholder="Measurable changes by the end of the project, e.g. products/processes developed, used in extension programs, commercialization."><?= htmlspecialchars($field('expected_outcomes')) ?></textarea>
+            </div>
+        </div>
+        <div class="webform-subsection">
+            <h3>Expected 6Ps <span class="webform-hint">(tick whichever is possible)</span></h3>
             <div class="proposal-check-grid">
                 <?php foreach ($sixPsOptions as $value => $label): ?>
                     <label class="proposal-check-item">
@@ -541,116 +506,117 @@ $ethicsRequired = $proposal !== null
                 <?php endforeach; ?>
             </div>
         </div>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Literature Cited</h3>
-        <textarea name="literature_cited" class="proposal-textarea" placeholder="List the major references and literature cited."><?= htmlspecialchars($field('literature_cited')) ?></textarea>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Budget</h3>
-        <ul class="proposal-guidelines">
-            <li>Include only costs which directly relate to efficiently carrying out the activities and producing the objectives set forth in the proposal.</li>
-            <li>The budget should be realistic and based on planned activities and actual project needs.</li>
-            <li>The budget should include all costs associated with managing and administering the project.</li>
-            <li>Indirect or administrative overhead costs such as staff salaries and office rent are not funded and should not be part of the funding request.</li>
-        </ul>
-
-        <div class="proposal-budget-total">
-            <label for="budget_total">Total Amount Requested</label>
-            <input id="budget_total" name="budget_total" value="<?= htmlspecialchars($field('budget_total')) ?>" placeholder="0.00">
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-sustainability_plan">Sustainability Plan <span class="webform-req">*</span></label>
+                <textarea id="rpa-sustainability_plan" name="sustainability_plan" rows="3" data-autoresize placeholder="How the results and activities will be sustained after the project."><?= htmlspecialchars($field('sustainability_plan')) ?></textarea>
+            </div>
         </div>
-
-        <table class="proposal-table proposal-budget-table">
-            <tr>
-                <th>Item including unit cost and quantity</th>
-                <th>Amount</th>
-                <th>Justification</th>
-            </tr>
-            <?php foreach ($budgetItems as $index => $item): ?>
-                <tr>
-                    <td>
-                        <textarea
-                            name="budget_items[<?= $index ?>][item]"
-                            class="proposal-budget-input"
-                            rows="1"
-                            data-autoresize
-                        ><?= htmlspecialchars((string) ($item['item'] ?? '')) ?></textarea>
-                    </td>
-                    <td><input name="budget_items[<?= $index ?>][amount]" value="<?= htmlspecialchars((string) ($item['amount'] ?? '')) ?>"></td>
-                    <td>
-                        <textarea
-                            name="budget_items[<?= $index ?>][justification]"
-                            class="proposal-budget-input"
-                            rows="1"
-                            data-autoresize
-                        ><?= htmlspecialchars((string) ($item['justification'] ?? '')) ?></textarea>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            <tr>
-                <th>Resources Available</th>
-                <td colspan="2">
-                    <textarea
-                        name="resources_available"
-                        class="proposal-budget-input"
-                        rows="2"
-                        data-autoresize
-                        placeholder="List internal resources or counterpart support available for the project."
-                    ><?= htmlspecialchars($field('resources_available')) ?></textarea>
-                </td>
-            </tr>
-        </table>
     </section>
 
-    <section class="proposal-section trainings-conducted-section">
-        <h3 class="proposal-subtitle">Implementation Plan and Time Frame</h3>
-        <p class="trainings-conducted-scroll-hint proposal-section-note">Scroll horizontally to view all columns.</p>
-        <div class="proposal-table-wrap trainings-conducted-table-wrap">
-            <table class="proposal-table proposal-plan-table trainings-conducted-table">
-                <tr>
-                    <th rowspan="2" class="proposal-plan-activity">Activity</th>
-                    <th colspan="12">Time Frame</th>
-                </tr>
-                <tr>
-                    <?php foreach ($months as $month): ?>
-                        <th class="proposal-plan-month"><?= htmlspecialchars($month) ?></th>
-                    <?php endforeach; ?>
-                </tr>
-                <?php foreach ($implementationPlan as $index => $row): ?>
-                    <?php $selectedMonths = array_fill_keys(array_values(array_filter($row['months'] ?? [], static fn ($value): bool => is_string($value))), true); ?>
+    <section class="webform-card" id="rpa-sec-budget">
+        <header class="webform-card-head">
+            <span class="webform-card-num">8</span>
+            <div>
+                <h2>Budget</h2>
+                <p>For in-house/internally funded research only. Include only direct costs; indirect costs such as staff salaries and office rent are not funded.</p>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field">
+                <label for="rpa-budget-total">Total Amount Requested</label>
+                <div class="webform-affix"><span>₱</span><input id="rpa-budget-total" name="budget_total" inputmode="decimal" value="<?= htmlspecialchars($field('budget_total')) ?>" placeholder="0.00"></div>
+            </div>
+        </div>
+        <div class="webform-repeater">
+            <?php foreach ($budgetItems as $index => $item): ?>
+                <div class="webform-item">
+                    <div class="webform-item-head"><span class="webform-item-label">Budget item <?= $index + 1 ?></span></div>
+                    <div class="webform-grid">
+                        <div class="webform-field webform-field--full"><label>Item including unit cost and quantity</label><textarea rows="1" data-autoresize name="budget_items[<?= $index ?>][item]"><?= htmlspecialchars((string) ($item['item'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Amount</label><div class="webform-affix"><span>₱</span><input inputmode="decimal" name="budget_items[<?= $index ?>][amount]" value="<?= htmlspecialchars((string) ($item['amount'] ?? '')) ?>" placeholder="0.00"></div></div>
+                        <div class="webform-field"><label>Justification</label><textarea rows="1" data-autoresize name="budget_items[<?= $index ?>][justification]"><?= htmlspecialchars((string) ($item['justification'] ?? '')) ?></textarea></div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-resources_available">Resources Available</label>
+                <textarea id="rpa-resources_available" name="resources_available" rows="2" data-autoresize placeholder="Internal resources or counterpart support available for the project."><?= htmlspecialchars($field('resources_available')) ?></textarea>
+            </div>
+        </div>
+    </section>
+
+    <section class="webform-card" id="rpa-sec-plan">
+        <header class="webform-card-head">
+            <span class="webform-card-num">9</span>
+            <div>
+                <h2>Implementation Plan and Time Frame</h2>
+                <p>Tick the months of each activity.</p>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field">
+                <label for="rpa-plan-from">From CY <span class="webform-req">*</span></label>
+                <input id="rpa-plan-from" type="number" name="plan_year_from" min="2000" max="2100" value="<?= htmlspecialchars($field('plan_year_from')) ?>" placeholder="e.g. 2026">
+            </div>
+            <div class="webform-field">
+                <label for="rpa-plan-to">To CY</label>
+                <input id="rpa-plan-to" type="number" name="plan_year_to" min="2000" max="2100" value="<?= htmlspecialchars($field('plan_year_to')) ?>" placeholder="e.g. 2027">
+            </div>
+        </div>
+        <div class="webform-table-wrap">
+            <table class="webform-table rdo-plan-table">
+                <thead>
                     <tr>
-                        <td class="proposal-plan-activity-cell">
-                            <textarea
-                                name="implementation_plan[<?= $index ?>][activity]"
-                                class="proposal-plan-activity-input"
-                                rows="2"
-                                data-autoresize
-                                placeholder="Activity <?= $index + 1 ?>"
-                            ><?= htmlspecialchars((string) ($row['activity'] ?? '')) ?></textarea>
-                        </td>
-                        <?php foreach ($months as $month): ?>
-                            <td class="proposal-plan-check">
-                                <input type="checkbox" name="implementation_plan[<?= $index ?>][months][]" value="<?= htmlspecialchars($month) ?>" <?= isset($selectedMonths[$month]) ? 'checked' : '' ?>>
-                            </td>
-                        <?php endforeach; ?>
+                        <th>Activity <span class="webform-req">*</span></th>
+                        <?php foreach ($months as $month): ?><th><?= htmlspecialchars($month) ?></th><?php endforeach; ?>
                     </tr>
-                <?php endforeach; ?>
+                </thead>
+                <tbody>
+                    <?php foreach ($implementationPlan as $index => $row): ?>
+                        <?php $selectedMonths = array_fill_keys(array_values(array_filter($row['months'] ?? [], static fn ($value): bool => is_string($value))), true); ?>
+                        <tr>
+                            <td><textarea rows="1" data-autoresize name="implementation_plan[<?= $index ?>][activity]" placeholder="Activity <?= $index + 1 ?>" aria-label="Activity <?= $index + 1 ?>"><?= htmlspecialchars((string) ($row['activity'] ?? '')) ?></textarea></td>
+                            <?php foreach ($months as $month): ?>
+                                <td class="rdo-plan-check"><input type="checkbox" name="implementation_plan[<?= $index ?>][months][]" value="<?= htmlspecialchars($month) ?>" <?= isset($selectedMonths[$month]) ? 'checked' : '' ?> aria-label="Activity <?= $index + 1 ?>, <?= htmlspecialchars($month) ?>"></td>
+                            <?php endforeach; ?>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
             </table>
         </div>
     </section>
 
-    <?php
-    $workflowSteps = proposal_workflow_steps($proposal ?? ['status' => 'draft', 'project_type' => $projectTypeValue]);
-    require APP_PATH . '/views/proposals/_approval-workflow.php';
-    ?>
+    <section class="webform-card" id="rpa-sec-literature">
+        <header class="webform-card-head">
+            <span class="webform-card-num">10</span>
+            <div>
+                <h2>Literature Cited</h2>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="rpa-literature_cited">Literature Cited <span class="webform-req">*</span></label>
+                <textarea id="rpa-literature_cited" name="literature_cited" rows="5" data-autoresize placeholder="List the major references and literature cited."><?= htmlspecialchars($field('literature_cited')) ?></textarea>
+            </div>
+        </div>
+    </section>
 
-    <div class="actions proposal-form-actions">
-        <button type="submit" class="btn"><?= $isEdit ? 'Save Changes' : 'Save Draft' ?></button>
+    <section class="webform-card">
+        <?php
+        $workflowSteps = proposal_workflow_steps($proposal ?? ['status' => 'draft', 'project_type' => $projectTypeValue]);
+        require APP_PATH . '/views/proposals/_approval-workflow.php';
+        ?>
+    </section>
+
+    <div class="webform-actionbar">
         <?php if ($isEdit): ?>
             <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id']) ?>">Cancel</a>
         <?php endif; ?>
+        <button type="submit" class="btn btn-outline js-preview-btn" formaction="<?= base_url('proposals/preview/research-application') ?>" formnovalidate disabled>Print Preview</button>
+        <button type="submit" class="btn"><?= $isEdit ? 'Save Changes' : 'Save Draft' ?></button>
     </div>
 </form>
 
@@ -739,13 +705,15 @@ $ethicsRequired = $proposal !== null
 
     const createDeleteCell = () => {
         const cell = document.createElement('td');
-        cell.className = 'proposal-coauthors-action-cell';
+        cell.className = 'webform-table-action proposal-coauthors-action-cell';
 
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'btn btn-outline btn-sm';
+        button.className = 'webform-icon-btn';
         button.dataset.action = 'delete-coauthor';
-        button.textContent = 'Delete Row';
+        button.title = 'Remove';
+        button.setAttribute('aria-label', 'Remove');
+        button.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
         cell.appendChild(button);
 
         return cell;
@@ -863,3 +831,5 @@ $ethicsRequired = $proposal !== null
     updateRowNames();
 })();
 </script>
+
+<script src="<?= base_url('assets/js/form-preview-gate.js') ?>?v=<?= htmlspecialchars((string) @filemtime(BASE_PATH . '/public/assets/js/form-preview-gate.js')) ?>"></script>

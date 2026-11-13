@@ -10,12 +10,12 @@
 /** @var array<int, list<array<string, mixed>>> $paperAttachments */
 /** @var array<int, list<array<string, mixed>>> $presentationAttachments */
 
-$pageTitle = 'Faculty Scholarly Output | RIDE';
-$pageHeading = 'Published Papers & Presentations';
+$pageTitle = 'Faculty Papers | RIDE Hub';
+$pageHeading = 'Faculty Papers';
 $pageSubtitle = 'Monitor published papers and paper presentations submitted by faculty university-wide.';
 ?>
 
-<form method="get" action="<?= base_url('admin/scholarly') ?>" class="card" style="margin-bottom: 1.5rem;">
+<form method="get" action="<?= base_url('admin/scholarly') ?>" class="card">
     <h2>Filter by College</h2>
     <div class="grid grid-2">
         <div>
@@ -32,7 +32,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
     </div>
 </form>
 
-<div class="grid grid-4" style="margin-bottom: 1.5rem;">
+<div class="grid grid-4 grid-spaced">
     <div class="card stat">
         <div class="value"><?= (int) $paperStats['total'] ?></div>
         <div class="label">Published Papers</div>
@@ -52,7 +52,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
 </div>
 
 <?php if (!empty($facultySummary)): ?>
-<div class="card" style="margin-bottom: 1.5rem;">
+<div class="card">
     <h2>Faculty Summary</h2>
     <p class="muted">Faculty with at least one published paper or paper presentation<?= $collegeId ? ' in the selected college' : '' ?>.</p>
     <div class="proposal-table-wrap">
@@ -75,7 +75,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
                         <span class="muted"><?= htmlspecialchars((string) $row['email']) ?></span>
                     </td>
                     <td><?= htmlspecialchars((string) $row['college_name']) ?></td>
-                    <td><?= htmlspecialchars((string) ($row['program'] ?: '—')) ?></td>
+                    <td><?= htmlspecialchars((string) ($row['program'] ?: '-')) ?></td>
                     <td><?= (int) $row['papers'] ?></td>
                     <td><?= (int) $row['presentations'] ?></td>
                     <td><?= (int) $row['papers'] + (int) $row['presentations'] ?></td>
@@ -100,7 +100,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
                 <?php foreach ($faculty as $member): ?>
                     <option value="<?= (int) $member['id'] ?>">
                         <?= htmlspecialchars(trim($member['first_name'] . ' ' . $member['last_name'])) ?>
-                        — <?= htmlspecialchars((string) ($member['college_name'] ?? 'No college')) ?>
+                        - <?= htmlspecialchars((string) ($member['college_name'] ?? 'No college')) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -138,7 +138,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
 
             <label for="paper_supporting_documents">Supporting Documents</label>
             <input id="paper_supporting_documents" type="file" name="supporting_documents[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip">
-            <p class="muted" style="margin-top: 0.25rem;">Optional. PDF, Word, Excel, images, or ZIP; max 10 MB each.</p>
+            <p class="muted field-hint">Optional. PDF, Word, Excel, images, or ZIP; max 10 MB each.</p>
 
             <div class="actions">
                 <button type="submit" class="btn btn-accent">Save Paper</button>
@@ -158,7 +158,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
                 <?php foreach ($faculty as $member): ?>
                     <option value="<?= (int) $member['id'] ?>">
                         <?= htmlspecialchars(trim($member['first_name'] . ' ' . $member['last_name'])) ?>
-                        — <?= htmlspecialchars((string) ($member['college_name'] ?? 'No college')) ?>
+                        - <?= htmlspecialchars((string) ($member['college_name'] ?? 'No college')) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -190,7 +190,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
 
             <label for="presentation_supporting_documents">Supporting Documents</label>
             <input id="presentation_supporting_documents" type="file" name="supporting_documents[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip">
-            <p class="muted" style="margin-top: 0.25rem;">Optional. PDF, Word, Excel, images, or ZIP; max 10 MB each.</p>
+            <p class="muted field-hint">Optional. PDF, Word, Excel, images, or ZIP; max 10 MB each.</p>
 
             <div class="actions">
                 <button type="submit" class="btn btn-accent">Save Presentation</button>
@@ -199,7 +199,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
     </div>
 </div>
 
-<div class="card" style="margin-top: 1.5rem;">
+<div class="card">
     <h2>All Published Papers</h2>
     <?php if (empty($papers)): ?>
         <p class="muted">No published papers recorded yet.</p>
@@ -234,9 +234,9 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
                             <?php endif; ?>
                         </td>
                         <td><?= htmlspecialchars(trim($paper['first_name'] . ' ' . $paper['last_name'])) ?></td>
-                        <td><?= htmlspecialchars((string) ($paper['college_name'] ?? '—')) ?></td>
+                        <td><?= htmlspecialchars((string) ($paper['college_name'] ?? '-')) ?></td>
                         <td><?= htmlspecialchars((string) $paper['journal_name']) ?></td>
-                        <td><?= htmlspecialchars((string) ($paper['publication_year'] ?? ($paper['publication_date'] ? substr((string) $paper['publication_date'], 0, 4) : '—'))) ?></td>
+                        <td><?= htmlspecialchars((string) ($paper['publication_year'] ?? ($paper['publication_date'] ? substr((string) $paper['publication_date'], 0, 4) : '-'))) ?></td>
                         <td><?= htmlspecialchars(ucwords(str_replace('_', ' ', (string) $paper['status']))) ?></td>
                         <td>
                             <?php if (empty($attachments)): ?>
@@ -259,7 +259,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
     <?php endif; ?>
 </div>
 
-<div class="card" style="margin-top: 1.5rem;">
+<div class="card">
     <h2>All Paper Presentations</h2>
     <?php if (empty($presentations)): ?>
         <p class="muted">No paper presentations recorded yet.</p>
@@ -294,9 +294,9 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
                             <?php endif; ?>
                         </td>
                         <td><?= htmlspecialchars(trim($presentation['first_name'] . ' ' . $presentation['last_name'])) ?></td>
-                        <td><?= htmlspecialchars((string) ($presentation['college_name'] ?? '—')) ?></td>
+                        <td><?= htmlspecialchars((string) ($presentation['college_name'] ?? '-')) ?></td>
                         <td><?= htmlspecialchars((string) $presentation['conference_name']) ?></td>
-                        <td><?= htmlspecialchars((string) ($presentation['presentation_date'] ?? '—')) ?></td>
+                        <td><?= htmlspecialchars((string) ($presentation['presentation_date'] ?? '-')) ?></td>
                         <td><?= htmlspecialchars(ucfirst((string) $presentation['presentation_type'])) ?></td>
                         <td>
                             <?php if (empty($attachments)): ?>
