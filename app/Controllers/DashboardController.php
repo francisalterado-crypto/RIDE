@@ -239,16 +239,20 @@ final class DashboardController
         $overdueReports = array_values(array_filter(ProgressReport::overdue(null, $collegeId), $inScope));
 
         $collegeNames = [];
+        $collegeIds = [];
         foreach (\App\Models\College::all() as $college) {
             $collegeNames[(int) $college['id']] = (string) ($college['code'] ?? '') !== '' ? (string) $college['code'] : (string) $college['name'];
+            if ((string) ($college['unit_type'] ?? 'college') === 'college') {
+                $collegeIds[] = (int) $college['id'];
+            }
         }
 
         // Directors and VPRIDE compare colleges; deans compare their two tracks.
         $breakdown = [];
         if ($collegeId === null) {
-            // Every college is listed, so colleges with no activity stand out.
-            foreach ($collegeNames as $name) {
-                $breakdown[$name] = ['in_review' => 0, 'ongoing' => 0, 'completed' => 0];
+            // Every college is listed, so colleges with no activity stand out; centers appear only when they have proposals.
+            foreach ($collegeIds as $id) {
+                $breakdown[$collegeNames[$id]] = ['in_review' => 0, 'ongoing' => 0, 'completed' => 0];
             }
             foreach (Proposal::forMonitoring(null, null, $singleType) as $p) {
                 if (!in_array((string) $p['project_type'], $types, true)) {

@@ -4,7 +4,7 @@
 /** @var list<int> $memberCollegeIds */
 $pageTitle = 'Edit Cluster | RIDE Hub';
 $pageHeading = 'Edit Cluster';
-$pageSubtitle = 'Rename this cluster or change which colleges belong to it.';
+$pageSubtitle = 'Rename this cluster, set its track, or change which colleges and centers belong to it.';
 ?>
 
 <div class="accounts-page">
@@ -28,10 +28,25 @@ $pageSubtitle = 'Rename this cluster or change which colleges belong to it.';
             value="<?= old('edit_cluster_name', (string) ($cluster['name'] ?? '')) ?>"
             required
             maxlength="100"
-            placeholder="e.g. Cluster 1"
+            placeholder="e.g. Extension Cluster 1"
         >
 
-        <label>Colleges in this cluster</label>
+        <?php $clusterTrack = (string) ($cluster['track'] ?? 'extension'); ?>
+        <label for="edit_cluster_track">Track</label>
+        <select id="edit_cluster_track" name="cluster_track">
+            <?php foreach (\App\Models\Cluster::TRACKS as $trackKey => $trackLabel): ?>
+                <option value="<?= $trackKey ?>"<?= $clusterTrack === $trackKey ? ' selected' : '' ?>><?= $trackLabel ?></option>
+            <?php endforeach; ?>
+        </select>
+        <p class="muted">Changing the track clears this cluster's members, since research and extension group units differently.</p>
+
+        <label for="edit_cluster_leader">Head / Coordinator</label>
+        <input id="edit_cluster_leader" name="leader_name" maxlength="150" value="<?= htmlspecialchars((string) ($cluster['leader_name'] ?? '')) ?>" placeholder="e.g. Arlene L. Avillanosa (University Researcher V)">
+
+        <label for="edit_cluster_notes">Notes (staff, extensionists)</label>
+        <textarea id="edit_cluster_notes" name="cluster_notes" rows="3"><?= htmlspecialchars((string) ($cluster['notes'] ?? '')) ?></textarea>
+
+        <label>Colleges and centers in this cluster</label>
         <p class="muted">Check every college that belongs to <?= htmlspecialchars((string) $cluster['name']) ?>. Unchecking a college removes it from the cluster (it becomes unassigned, not deleted).</p>
         <?php if ($colleges === []): ?>
             <p class="muted accounts-empty-note">No colleges added yet.</p>
@@ -46,8 +61,9 @@ $pageSubtitle = 'Rename this cluster or change which colleges belong to it.';
                             <?= in_array((int) $college['id'], $memberCollegeIds, true) ? 'checked' : '' ?>
                         >
                         <?= htmlspecialchars((string) $college['name']) ?> (<code><?= htmlspecialchars((string) $college['code']) ?></code>)
-                        <?php if (!empty($college['cluster_name']) && (int) ($college['cluster_id'] ?? 0) !== (int) $cluster['id']): ?>
-                            <span class="muted">(currently in <?= htmlspecialchars((string) $college['cluster_name']) ?>)</span>
+                        <?php $currentName = (string) ($college[$clusterTrack . '_cluster_name'] ?? ''); ?>
+                        <?php if ($currentName !== '' && (int) ($college[\App\Models\Cluster::memberColumn($clusterTrack)] ?? 0) !== (int) $cluster['id']): ?>
+                            <span class="muted">(currently in <?= htmlspecialchars($currentName) ?>)</span>
                         <?php endif; ?>
                     </label>
                 <?php endforeach; ?>

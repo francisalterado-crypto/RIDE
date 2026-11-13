@@ -20,7 +20,7 @@ final class User
                     ' . Sql::groupConcat('r.slug', ', ', 'r.name', true) . ' AS role_slugs
              FROM users u
              LEFT JOIN colleges c ON c.id = u.college_id
-             LEFT JOIN clusters cl ON cl.id = c.cluster_id
+             LEFT JOIN clusters cl ON cl.id = c.extension_cluster_id
              LEFT JOIN user_roles ur ON ur.user_id = u.id
              LEFT JOIN roles r ON r.id = ur.role_id
              WHERE u.is_active = 1

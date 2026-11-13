@@ -389,9 +389,9 @@ $collegeCount = count($colleges);
 
         <div class="card accounts-college-card">
 
-            <h2>College Settings</h2>
+            <h2>Colleges and Centers</h2>
 
-            <p class="muted">Add colleges for account assignment and proposal prefill. A college can only be deleted when no accounts or proposals are linked to it.</p>
+            <p class="muted">Colleges and the research/extension centers, used for account assignment, proposal prefill and clusters. A unit can only be deleted when no accounts or proposals are linked to it.</p>
 
 
 
@@ -433,22 +433,52 @@ $collegeCount = count($colleges);
 
                 <div class="accounts-form-field">
 
-                    <label for="college_cluster_id">Cluster</label>
-
-                    <select id="college_cluster_id" name="cluster_id">
-                        <option value="">No cluster</option>
+                    <label for="college_extension_cluster_id">Extension Group (ESO)</label>
+                    <select id="college_extension_cluster_id" name="extension_cluster_id">
+                        <option value="">No extension cluster</option>
                         <?php foreach ($clusters as $cluster): ?>
+                            <?php if (($cluster['track'] ?? 'extension') !== 'extension') { continue; } ?>
                             <option value="<?= (int) $cluster['id'] ?>"><?= htmlspecialchars((string) $cluster['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
+                </div>
 
+                <div class="accounts-form-field">
+                    <label for="college_research_cluster_id">Research Cluster (RDO)</label>
+                    <select id="college_research_cluster_id" name="research_cluster_id">
+                        <option value="">No research cluster</option>
+                        <?php foreach ($clusters as $cluster): ?>
+                            <?php if (($cluster['track'] ?? '') !== 'research') { continue; } ?>
+                            <option value="<?= (int) $cluster['id'] ?>"><?= htmlspecialchars((string) $cluster['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
 
 
+
+                <div class="accounts-form-field">
+                    <label for="college_unit_type">Type</label>
+                    <select id="college_unit_type" name="unit_type">
+                        <?php foreach (\App\Models\College::UNIT_TYPES as $typeKey => $typeLabel): ?>
+                            <option value="<?= $typeKey ?>"><?= $typeLabel ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="accounts-form-field">
+                    <label for="college_office">Office (centers only)</label>
+                    <select id="college_office" name="office">
+                        <option value="">None</option>
+                        <?php foreach (\App\Models\College::OFFICES as $officeKey => $officeLabel): ?>
+                            <option value="<?= $officeKey ?>"><?= $officeLabel ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <div class="accounts-form-actions accounts-form-field-span-2">
 
-                    <button type="submit" class="btn btn-accent">Add College</button>
+                    <button type="submit" class="btn btn-accent">Add College / Center</button>
 
                 </div>
 
@@ -474,7 +504,11 @@ $collegeCount = count($colleges);
 
                                 <th>Name</th>
 
-                                <th>Cluster</th>
+                                <th>Type</th>
+
+                                <th>ESO Group</th>
+
+                                <th>Research Cluster</th>
 
                                 <th class="col-actions">Actions</th>
 
@@ -492,7 +526,11 @@ $collegeCount = count($colleges);
 
                                 <td><?= htmlspecialchars((string) $college['name']) ?></td>
 
-                                <td><?= htmlspecialchars((string) ($college['cluster_name'] ?? '-')) ?></td>
+                                <td><?= htmlspecialchars(\App\Models\College::UNIT_TYPES[(string) ($college['unit_type'] ?? 'college')] ?? 'College') ?><?= !empty($college['office']) ? ' (' . htmlspecialchars((string) $college['office']) . ')' : '' ?></td>
+
+                                <td><?= htmlspecialchars((string) ($college['extension_cluster_name'] ?? '-')) ?></td>
+
+                                <td><?= htmlspecialchars((string) ($college['research_cluster_name'] ?? '-')) ?></td>
 
                                 <td class="col-actions">
 
@@ -542,13 +580,21 @@ $collegeCount = count($colleges);
 
     <div class="card accounts-cluster-card">
         <h2>Cluster Settings</h2>
-        <p class="muted">Group colleges into clusters (e.g. Cluster 1 = CET, CAS). Field extensionists and monitoring views are scoped by these groups.</p>
+        <p class="muted">Research (RDO) and extension (ESO) group colleges and centers differently, so each cluster belongs to one track. A college or center can be in one research cluster and one extension cluster.</p>
 
         <form method="post" action="<?= base_url('admin/accounts/clusters') ?>" class="accounts-form-grid accounts-cluster-add-form">
             <?= csrf_field() ?>
             <div class="accounts-form-field">
                 <label for="cluster_name">Cluster Name</label>
-                <input id="cluster_name" name="cluster_name" value="<?= old('cluster_name') ?>" required maxlength="100" placeholder="e.g. Cluster 4">
+                <input id="cluster_name" name="cluster_name" value="<?= old('cluster_name') ?>" required maxlength="100" placeholder="e.g. Extension Cluster 4">
+            </div>
+            <div class="accounts-form-field">
+                <label for="cluster_track">Track</label>
+                <select id="cluster_track" name="cluster_track">
+                    <?php foreach (\App\Models\Cluster::TRACKS as $trackKey => $trackLabel): ?>
+                        <option value="<?= $trackKey ?>"><?= $trackLabel ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="accounts-form-actions">
                 <button type="submit" class="btn btn-accent">Add Cluster</button>
@@ -563,7 +609,9 @@ $collegeCount = count($colleges);
                     <thead>
                         <tr>
                             <th>Cluster</th>
-                            <th>Colleges</th>
+                            <th>Track</th>
+                            <th>Head</th>
+                            <th>Colleges and Centers</th>
                             <th class="col-actions">Actions</th>
                         </tr>
                     </thead>
@@ -572,11 +620,13 @@ $collegeCount = count($colleges);
                         <?php
                         $memberNames = array_values(array_map(
                             static fn (array $c): string => (string) $c['name'],
-                            array_filter($colleges, static fn (array $c): bool => (int) ($c['cluster_id'] ?? 0) === (int) $cluster['id'])
+                            array_filter($colleges, static fn (array $c): bool => (int) ($c[\App\Models\Cluster::memberColumn((string) ($cluster['track'] ?? 'extension'))] ?? 0) === (int) $cluster['id'])
                         ));
                         ?>
                         <tr>
                             <td><?= htmlspecialchars((string) $cluster['name']) ?></td>
+                            <td><?= htmlspecialchars(\App\Models\Cluster::TRACKS[(string) ($cluster['track'] ?? 'extension')] ?? '-') ?></td>
+                            <td><?= htmlspecialchars((string) ($cluster['leader_name'] ?? '-')) ?></td>
                             <td><?= $memberNames !== [] ? htmlspecialchars(implode(', ', $memberNames)) : '-' ?></td>
                             <td class="col-actions">
                                 <div class="accounts-row-actions">

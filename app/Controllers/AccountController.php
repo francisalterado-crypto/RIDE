@@ -430,7 +430,8 @@ final class AccountController
 
         $code = strtoupper(trim((string) ($_POST['college_code'] ?? '')));
         $name = trim((string) ($_POST['college_name'] ?? ''));
-        $clusterId = (int) ($_POST['cluster_id'] ?? 0) ?: null;
+        $extensionClusterId = (int) ($_POST['extension_cluster_id'] ?? 0) ?: null;
+        $researchClusterId = (int) ($_POST['research_cluster_id'] ?? 0) ?: null;
 
         if ($code === '' || $name === '') {
             set_flash('error', 'College code and name are required.');
@@ -456,7 +457,14 @@ final class AccountController
             redirect('admin/accounts');
         }
 
-        $collegeId = College::create($code, $name, $clusterId);
+        $collegeId = College::create(
+            $code,
+            $name,
+            $extensionClusterId,
+            $researchClusterId,
+            (string) ($_POST['unit_type'] ?? 'college'),
+            (string) ($_POST['office'] ?? '')
+        );
 
         AuditLog::record('college', $collegeId, 'create', [
             'code' => $code,
@@ -500,7 +508,8 @@ final class AccountController
 
         $code = strtoupper(trim((string) ($_POST['college_code'] ?? '')));
         $name = trim((string) ($_POST['college_name'] ?? ''));
-        $clusterId = (int) ($_POST['cluster_id'] ?? 0) ?: null;
+        $extensionClusterId = (int) ($_POST['extension_cluster_id'] ?? 0) ?: null;
+        $researchClusterId = (int) ($_POST['research_cluster_id'] ?? 0) ?: null;
 
         $_SESSION['_old'] = [
             'edit_college_code' => $code,
@@ -527,7 +536,15 @@ final class AccountController
             redirect('admin/accounts/colleges/' . $id . '/edit');
         }
 
-        College::update($id, $code, $name, $clusterId);
+        College::update(
+            $id,
+            $code,
+            $name,
+            $extensionClusterId,
+            $researchClusterId,
+            (string) ($_POST['unit_type'] ?? ($college['unit_type'] ?? 'college')),
+            (string) ($_POST['office'] ?? ($college['office'] ?? ''))
+        );
 
         AuditLog::record('college', $id, 'update', [
             'code' => $code,
@@ -602,9 +619,10 @@ final class AccountController
             redirect('admin/accounts');
         }
 
-        $clusterId = Cluster::create($name);
+        $track = Cluster::normalizeTrack((string) ($_POST['cluster_track'] ?? 'extension'));
+        $clusterId = Cluster::create($name, $track);
 
-        AuditLog::record('cluster', $clusterId, 'create', ['name' => $name]);
+        AuditLog::record('cluster', $clusterId, 'create', ['name' => $name, 'track' => $track]);
 
         set_flash('success', 'Cluster added successfully.');
         redirect('admin/accounts');
@@ -661,11 +679,18 @@ final class AccountController
 
         $collegeIds = array_map('intval', (array) ($_POST['college_ids'] ?? []));
 
-        Cluster::update($id, $name);
+        $track = Cluster::normalizeTrack((string) ($_POST['cluster_track'] ?? $cluster['track']));
+        Cluster::update($id, $name, $track);
+        Cluster::updateDetails(
+            $id,
+            substr(trim((string) ($_POST['leader_name'] ?? '')), 0, 150) ?: null,
+            trim((string) ($_POST['cluster_notes'] ?? '')) ?: null
+        );
         Cluster::syncColleges($id, $collegeIds);
 
         AuditLog::record('cluster', $id, 'update', [
             'name' => $name,
+            'track' => $track,
             'previous_name' => $cluster['name'],
             'college_ids' => $collegeIds,
         ]);
@@ -706,27 +731,29 @@ final class AccountController
             redirect('admin/accounts');
         }
 
+        // Codes follow the RIDE organizational chart (KI, SSRDC, GREAT-CRIOA, ICEN-AQUA); older codes count as present.
         $centers = [
-            ['code' => 'TPSP', 'name' => 'The Palawan Scientists and Publications (TPS&P)'],
-            ['code' => 'BDLEC', 'name' => 'BioDiscovery Learning Center (BDLeC)'],
-            ['code' => 'ABBA', 'name' => 'Aquatic, Biodiversity, Biotechnology and Aquaculture (ABBA) R&D Center'],
-            ['code' => 'TBTI', 'name' => 'Palawan Too-Big-To-Ignore (TBTI Hub)'],
-            ['code' => 'HALAL', 'name' => 'Halal Research and Training (Halal) Center'],
-            ['code' => 'TELP', 'name' => 'Tribal Ecosystems and Livelihood Partnerships (TELP)'],
-            ['code' => 'COTLEC', 'name' => 'Community-based Technology and Learning Center (CotLeC)'],
-            ['code' => 'SSRDEC', 'name' => 'Social Science Research and Development Center (SSRDeC)'],
-            ['code' => 'ASL', 'name' => 'Agritourism Showcase Leisure (ASL Park)'],
-            ['code' => 'FPC', 'name' => 'Food Processing Center'],
-            ['code' => 'ATBI', 'name' => 'Agri-Aqua Technology Business Incubation (ATBI) Center'],
-            ['code' => 'AMCEN', 'name' => 'Regional Advanced Manufacturing Center (AMCen)'],
-            ['code' => 'MEIC', 'name' => 'Metals & Engineering Innovation Center (MEIC)'],
-            ['code' => 'KIH', 'name' => 'Knowledge and Innovation Hub'],
-            ['code' => 'CRAFIT', 'name' => 'Cashew Research and Food Technology Innovation Center (CRAFIT)'],
-            ['code' => 'PALBIORECC', 'name' => 'Palawan Biodiversity Research and Conservation Center (PALBioReCC)'],
-            ['code' => 'GREAT', 'name' => 'Agro-Ecological Farming System (GREAT) Center'],
-            ['code' => 'BMRS', 'name' => 'Binduyan Marine Research Station (BMRS)'],
-            ['code' => 'ICENAQUA', 'name' => 'Inland Center for Aquaculture R&D (ICEN-AQUA)'],
-            ['code' => 'WPS-CORP', 'name' => 'West Philippine Sea Conservation, Research & Policy (WPS-CoRP) Center'],
+            ['code' => 'TPSP', 'name' => 'The Palawan Scientists and Publications (TPS&P)', 'office' => 'RDO'],
+            ['code' => 'BDLEC', 'name' => 'BioDiscovery Learning Center (BDLeC)', 'office' => 'RDO'],
+            ['code' => 'ABBA', 'name' => 'Aquatic, Biodiversity, Biotechnology and Aquaculture (ABBA) R&D Center', 'office' => 'RDO'],
+            ['code' => 'TBTI', 'name' => 'Palawan Too-Big-To-Ignore (TBTI Hub)', 'office' => 'RDO'],
+            ['code' => 'HALAL', 'name' => 'Halal Research and Training (Halal) Center', 'office' => 'RDO'],
+            ['code' => 'TELP', 'name' => 'Tribal Ecosystems and Livelihood Partnerships (TELP)', 'office' => 'ESO'],
+            ['code' => 'COTLEC', 'name' => 'Community-based Technology and Learning Center (CotLeC)', 'office' => 'RDO'],
+            ['code' => 'SSRDC', 'name' => 'Social Science Research and Development Center (SSRDC)', 'office' => 'RDO', 'aliases' => ['SSRDEC']],
+            ['code' => 'ASL', 'name' => 'Agritourism Showcase Leisure (ASL Park)', 'office' => 'RDO'],
+            ['code' => 'FPC', 'name' => 'Food Processing Center', 'office' => 'RDO'],
+            ['code' => 'ATBI', 'name' => 'Agri-Aqua Technology Business Incubation (ATBI) Center', 'office' => 'RDO'],
+            ['code' => 'AMCEN', 'name' => 'Regional Advanced Manufacturing Center (AMCen)', 'office' => 'TTPO'],
+            ['code' => 'MEIC', 'name' => 'Metals & Engineering Innovation Center (MEIC)', 'office' => 'TTPO'],
+            ['code' => 'KI', 'name' => 'Knowledge and Innovation Hub (KI)', 'office' => 'TTPO', 'aliases' => ['KIH']],
+            ['code' => 'CRAFIT', 'name' => 'Cashew Research and Food Technology Innovation Center (CRAFIT)', 'office' => 'RDO'],
+            ['code' => 'PALBIORECC', 'name' => 'Palawan Biodiversity Research and Conservation Center (PALBioReCC)', 'office' => 'RDO'],
+            ['code' => 'GREAT-CRIOA', 'name' => 'Agro-Ecological Farming System (GREAT-CRIOA) Center', 'office' => 'RDO', 'aliases' => ['GREAT']],
+            ['code' => 'BMRS', 'name' => 'Binduyan Marine Research Station (BMRS)', 'office' => 'RDO'],
+            ['code' => 'ICEN-AQUA', 'name' => 'Inland Center for Aquaculture R&D (ICEN-AQUA)', 'office' => 'RDO', 'aliases' => ['ICENAQUA']],
+            ['code' => 'WPS-CORP', 'name' => 'West Philippine Sea Conservation, Research & Policy (WPS-CoRP) Center', 'office' => 'RDO'],
+            ['code' => 'WESTPHIL-CASH-RIC', 'name' => 'WESTPHIL CASH RIC', 'office' => 'RDO'],
         ];
 
         $added = 0;
@@ -738,11 +765,13 @@ final class AccountController
                 continue;
             }
 
-            if (College::codeExists($code)) {
-                continue;
+            foreach ([$code, ...($center['aliases'] ?? [])] as $existingCode) {
+                if (College::codeExists($existingCode)) {
+                    continue 2;
+                }
             }
 
-            College::create($code, $name);
+            College::create($code, $name, null, null, 'center', (string) $center['office']);
             $added++;
         }
 

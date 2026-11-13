@@ -41,15 +41,35 @@ $pageSubtitle = 'Update the college code or name used for account assignment and
             placeholder="e.g. College of Information Technology"
         >
 
-        <label for="edit_college_cluster_id">Cluster</label>
-        <select id="edit_college_cluster_id" name="cluster_id">
-            <option value="">No cluster</option>
-            <?php foreach ($clusters as $cluster): ?>
-                <option value="<?= (int) $cluster['id'] ?>"<?= (int) ($college['cluster_id'] ?? 0) === (int) $cluster['id'] ? ' selected' : '' ?>>
-                    <?= htmlspecialchars((string) $cluster['name']) ?>
-                </option>
+        <?php $unitType = (string) ($college['unit_type'] ?? 'college'); ?>
+        <label for="edit_college_unit_type">Type</label>
+        <select id="edit_college_unit_type" name="unit_type">
+            <?php foreach (\App\Models\College::UNIT_TYPES as $typeKey => $typeLabel): ?>
+                <option value="<?= $typeKey ?>"<?= $unitType === $typeKey ? ' selected' : '' ?>><?= $typeLabel ?></option>
             <?php endforeach; ?>
         </select>
+
+        <label for="edit_college_office">Office (centers only)</label>
+        <select id="edit_college_office" name="office">
+            <option value="">None</option>
+            <?php foreach (\App\Models\College::OFFICES as $officeKey => $officeLabel): ?>
+                <option value="<?= $officeKey ?>"<?= (string) ($college['office'] ?? '') === $officeKey ? ' selected' : '' ?>><?= $officeLabel ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <?php foreach (['extension' => 'ESO Group', 'research' => 'Research Cluster'] as $track => $trackLabel): ?>
+            <?php $column = \App\Models\Cluster::memberColumn($track); ?>
+            <label for="edit_college_<?= $column ?>"><?= $trackLabel ?></label>
+            <select id="edit_college_<?= $column ?>" name="<?= $column ?>">
+                <option value="">No <?= strtolower($trackLabel) ?></option>
+                <?php foreach ($clusters as $cluster): ?>
+                    <?php if (($cluster['track'] ?? 'extension') !== $track) { continue; } ?>
+                    <option value="<?= (int) $cluster['id'] ?>"<?= (int) ($college[$column] ?? 0) === (int) $cluster['id'] ? ' selected' : '' ?>>
+                        <?= htmlspecialchars((string) $cluster['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        <?php endforeach; ?>
 
         <div class="actions">
             <button type="submit" class="btn btn-accent">Save College</button>
