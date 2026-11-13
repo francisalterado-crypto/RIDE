@@ -120,6 +120,8 @@ final class Database
         if (self::$driver === 'pgsql') {
             self::applyMigrationFile('phase32_pgsql');
         }
+        self::applyMigrationFile('phase33');
+        self::applyMigrationFile('phase34');
         self::applyMigrationFile('phase36');
     }
 
