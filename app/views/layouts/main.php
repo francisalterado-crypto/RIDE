@@ -326,6 +326,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <a href="<?= base_url('admin/accounts') ?>" class="nav-item<?= nav_active('admin/accounts') ? ' active' : '' ?>">
                         <i class="fas fa-users"></i> <span>Accounts</span>
                     </a>
+                    <a href="<?= base_url('admin/programs') ?>" class="nav-item<?= nav_active('admin/programs') ? ' active' : '' ?>">
+                        <i class="fas fa-sitemap"></i> <span>Programs</span>
+                    </a>
                     <a href="<?= base_url('admin/scholarly') ?>" class="nav-item<?= nav_active('admin/scholarly') ? ' active' : '' ?>">
                         <i class="fas fa-book-open"></i> <span>Faculty Papers</span>
                     </a>

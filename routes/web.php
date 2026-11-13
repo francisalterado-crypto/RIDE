@@ -20,6 +20,7 @@ use App\Controllers\MonitoringController;
 use App\Controllers\NotificationController;
 use App\Controllers\ProjectController;
 use App\Controllers\ProfileController;
+use App\Controllers\ProgramCatalogController;
 use App\Controllers\ProposalController;
 use App\Controllers\ScholarlyController;
 use App\Middleware\AuthMiddleware;
@@ -262,6 +263,23 @@ $router->post('/research-accomplishments/{id}/delete', [ExtensionActivityControl
 $router->get('/research-accomplishments/{id}/documents/{documentId}', [ExtensionActivityController::class, 'downloadDocument'], $auth);
 $router->post('/research-accomplishments/{id}/documents/{documentId}/delete', [ExtensionActivityController::class, 'destroyDocument'], $auth);
 $router->post('/research-accomplishments/{id}', [ExtensionActivityController::class, 'update'], $auth);
+
+$router->get('/admin/programs', [ProgramCatalogController::class, 'index'], $admin);
+$router->post('/admin/programs/academic', [ProgramCatalogController::class, 'storeAcademic'], $admin);
+$router->get('/admin/programs/academic/{id}/edit', [ProgramCatalogController::class, 'editAcademic'], $admin);
+$router->post('/admin/programs/academic/{id}/update', [ProgramCatalogController::class, 'updateAcademic'], $admin);
+$router->post('/admin/programs/academic/{id}/delete', [ProgramCatalogController::class, 'destroyAcademic'], $admin);
+$router->post('/admin/programs/extension', [ProgramCatalogController::class, 'storeExtension'], $admin);
+$router->get('/admin/programs/extension/{id}/edit', [ProgramCatalogController::class, 'editExtension'], $admin);
+$router->post('/admin/programs/extension/{id}/update', [ProgramCatalogController::class, 'updateExtension'], $admin);
+$router->post('/admin/programs/extension/{id}/delete', [ProgramCatalogController::class, 'destroyExtension'], $admin);
+$router->post('/admin/programs/projects', [ProgramCatalogController::class, 'storeProject'], $admin);
+$router->get('/admin/programs/projects/{id}', [ProgramCatalogController::class, 'showProject'], $admin);
+$router->post('/admin/programs/projects/{id}/update', [ProgramCatalogController::class, 'updateProject'], $admin);
+$router->post('/admin/programs/projects/{id}/delete', [ProgramCatalogController::class, 'destroyProject'], $admin);
+$router->post('/admin/programs/projects/{id}/activities', [ProgramCatalogController::class, 'storePlannedActivity'], $admin);
+$router->post('/admin/programs/projects/{id}/activities/{activityId}/delete', [ProgramCatalogController::class, 'destroyPlannedActivity'], $admin);
+
 $router->get('/admin/form-templates', [FormTemplateController::class, 'adminIndex'], $admin);
 $router->post('/admin/form-templates', [FormTemplateController::class, 'store'], $admin);
 $router->post('/admin/form-templates/{id}/update', [FormTemplateController::class, 'update'], $admin);
