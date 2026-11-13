@@ -14,7 +14,7 @@ use App\Support\QuarterlyReporting;
  */
 final class ExtensionActivity
 {
-    private const COLUMNS = 'a.id, a.user_id, a.college_id, a.activity_type, a.section, a.activity_date, a.title, a.data,
+    private const COLUMNS = 'a.id, a.user_id, a.college_id, a.extension_project_id, a.activity_type, a.section, a.activity_date, a.title, a.data,
                              a.created_at, a.updated_at, u.first_name, u.last_name';
 
     /** @return array<string, mixed>|null */
@@ -79,6 +79,12 @@ final class ExtensionActivity
         ]);
 
         return (int) Database::pdo()->lastInsertId();
+    }
+
+    /** Link the entry to an extension project from the catalog (null unlinks). */
+    public static function setProject(int $id, ?int $projectId): void
+    {
+        Database::pdo()->prepare('UPDATE extension_activities SET extension_project_id = ? WHERE id = ?')->execute([$projectId, $id]);
     }
 
     /** @param array<string, string> $data */

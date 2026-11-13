@@ -107,6 +107,18 @@ $renderField = static function (string $name, array $field, string $value, strin
     <?php endif; ?>
 
     <div class="webform-grid">
+    <?php if (!empty($extensionProjects)): ?>
+        <div class="webform-field webform-field--full">
+            <label for="activity-extension-project">Extension Project</label>
+            <select id="activity-extension-project" name="extension_project_id">
+                <option value="0">Not part of a planned project</option>
+                <?php foreach ($extensionProjects as $projectRow): ?>
+                    <option value="<?= (int) $projectRow['id'] ?>"<?= (int) $projectRow['id'] === (int) ($selectedProjectId ?? 0) ? ' selected' : '' ?>><?= htmlspecialchars(\App\Models\ExtensionProject::label($projectRow)) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <p class="webform-hint">Links this activity to its program and project for monitoring. When a project is picked, the Extension Program field is filled from it.</p>
+        </div>
+    <?php endif; ?>
     <?php foreach ($blocks as $block): ?>
         <?php if ($block['group'] !== ''): ?>
             <fieldset class="activity-field-group webform-field--full">

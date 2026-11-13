@@ -54,6 +54,7 @@ final class ExtensionActivityController
         }
 
         [$section, $data, $errors] = $this->validatedInput($type);
+        $data = $this->withProjectProgram($type, $data);
         if ($errors !== []) {
             $this->renderForm($type, null, $section, $data, $errors);
             return;
@@ -62,6 +63,7 @@ final class ExtensionActivityController
         $user = Auth::user() ?? [];
         $collegeId = (int) ($user['college_id'] ?? 0);
         $id = ExtensionActivity::create((int) $user['id'], $collegeId > 0 ? $collegeId : null, $type, $section, $data);
+        $this->saveProjectLink($id, $type);
         AuditLog::record('extension_activity', $id, 'created');
         $uploadErrors = $this->storeUploadedDocuments($id, $type);
 
@@ -101,12 +103,14 @@ final class ExtensionActivityController
         }
 
         [$section, $data, $errors] = $this->validatedInput($type);
+        $data = $this->withProjectProgram($type, $data);
         if ($errors !== []) {
             $this->renderForm($type, $entry, $section, $data, $errors);
             return;
         }
 
         ExtensionActivity::update($id, $section, $data);
+        $this->saveProjectLink($id, $type);
         AuditLog::record('extension_activity', $id, 'updated');
         $uploadErrors = $this->storeUploadedDocuments($id, $type);
         $terms = ExtensionActivityTypes::officeTerms(ExtensionActivityTypes::officeOf($type));
@@ -308,7 +312,14 @@ final class ExtensionActivityController
             $section = (string) array_key_first($definition['sections']);
         }
 
+        $isEso = ExtensionActivityTypes::officeOf($type) === 'eso';
+        $userCollegeId = (int) ((Auth::user() ?? [])['college_id'] ?? 0);
         view('activities.form', [
+            // ESO entries can be tied to a planned extension project; the user's college's projects are listed.
+            'extensionProjects' => $isEso ? \App\Models\ExtensionProject::options($userCollegeId > 0 ? $userCollegeId : null) : [],
+            'selectedProjectId' => isset($_POST['extension_project_id'])
+                ? (int) $_POST['extension_project_id']
+                : (int) ($entry['extension_project_id'] ?? 0),
             'documents' => $entry !== null ? ExtensionActivityDocument::forActivity((int) $entry['id']) : [],
             'checklist' => ExtensionActivityTypes::documentChecklist($type),
             'pageTitle' => ($entry === null ? 'New ' : 'Edit ') . $definition['label'] . ' Entry | RIDE Hub',
@@ -319,6 +330,37 @@ final class ExtensionActivityController
             'values' => $values,
             'errors' => $errors,
         ]);
+    }
+
+    /**
+     * When a planned project is picked, the "Extension Program" column of the quarterly report comes from the
+     * catalog instead of typed text.
+     *
+     * @param array<string, string> $data
+     * @return array<string, string>
+     */
+    private function withProjectProgram(string $type, array $data): array
+    {
+        $fields = (array) (ExtensionActivityTypes::get($type)['fields'] ?? []);
+        if (!array_key_exists('extension_program', $fields)) {
+            return $data;
+        }
+        $project = \App\Models\ExtensionProject::find((int) ($_POST['extension_project_id'] ?? 0));
+        if ($project !== null) {
+            $program = trim((string) ($project['program_acronym'] ?? '')) ?: (string) $project['program_name'];
+            $data['extension_program'] = $program . ': ' . $project['title'];
+        }
+
+        return $data;
+    }
+
+    private function saveProjectLink(int $activityId, string $type): void
+    {
+        if (ExtensionActivityTypes::officeOf($type) !== 'eso' || !array_key_exists('extension_project_id', $_POST)) {
+            return;
+        }
+        $project = \App\Models\ExtensionProject::find((int) $_POST['extension_project_id']);
+        ExtensionActivity::setProject($activityId, $project !== null ? (int) $project['id'] : null);
     }
 
     /** @return array{0: string, 1: array<string, string>, 2: list<string>} */

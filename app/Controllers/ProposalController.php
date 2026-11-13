@@ -129,7 +129,9 @@ final class ProposalController
                 'pageHeading' => 'Extension Services',
                 'pageSubtitle' => 'Complete the Office of Extension Services extension project proposal (WPU-QSF-RIDE-ESO-03).',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
-                'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
+                'extensionPrograms' => \App\Models\ExtensionProgram::all(null, true),
+                'extensionProjects' => \App\Models\ExtensionProject::options(),
+                'userCollegeId' => $user['college_id'] ? (int) $user['college_id'] : null,
                 'deanNamesByCollege' => $this->deanNamesByCollege(),
             ]);
             return;
@@ -3084,7 +3086,9 @@ final class ProposalController
                 'pageHeading' => 'Extension Services',
                 'pageSubtitle' => 'Update your Extension Project Proposal before saving or resubmitting.',
                 'facultyTeamOptions' => $this->facultyTeamOptions(),
-                'collegeExtensionProgramOptions' => $this->collegeExtensionProgramOptions(),
+                'extensionPrograms' => \App\Models\ExtensionProgram::all(null, true),
+                'extensionProjects' => \App\Models\ExtensionProject::options(),
+                'userCollegeId' => (int) $proposal['college_id'],
                 'deanNamesByCollege' => $this->deanNamesByCollege(),
             ]);
             return;
@@ -3350,10 +3354,19 @@ final class ProposalController
         $durationStartDate = trim($_POST['duration_start_date'] ?? '');
         $durationEndDate = trim($_POST['duration_end_date'] ?? '');
         $durationInclusiveDates = $this->formatDurationInclusiveDates($durationStartDate, $durationEndDate, $proposal);
+        // Program and project come from the catalog (Admin > Programs); the summary keeps the program's printed label.
+        $extensionProgram = \App\Models\ExtensionProgram::find((int) ($_POST['extension_program_id'] ?? 0));
+        $extensionProject = \App\Models\ExtensionProject::find((int) ($_POST['extension_project_id'] ?? 0));
+        if ($extensionProject !== null
+            && ($extensionProgram === null || (int) $extensionProject['extension_program_id'] !== (int) $extensionProgram['id'])) {
+            $extensionProject = null;
+        }
         $structuredSummary = [
             'form_type' => 'extension_program_proposal',
             'version' => 2,
-            'college_extension_program' => trim($_POST['college_extension_program'] ?? ''),
+            'college_extension_program' => $extensionProgram !== null
+                ? \App\Models\ExtensionProgram::label($extensionProgram)
+                : trim((string) (json_decode((string) ($proposal['summary'] ?? ''), true)['college_extension_program'] ?? '')),
             'project_team_leader' => trim($_POST['project_team_leader'] ?? ''),
             'members_trainers' => trim($_POST['members_trainers'] ?? ''),
             'implementing_college_department' => trim($_POST['implementing_college_department'] ?? ''),
@@ -3431,6 +3444,8 @@ final class ProposalController
             'funding_source' => $sourceOfFund,
             'risk_level' => 'low',
             'ethics_required' => false,
+            'extension_program_id' => $extensionProgram !== null ? (int) $extensionProgram['id'] : null,
+            'extension_project_id' => $extensionProject !== null ? (int) $extensionProject['id'] : null,
         ];
     }
 
@@ -5579,40 +5594,6 @@ final class ProposalController
     }
 
     /** @return list<string> */
-    private function collegeExtensionProgramOptions(): array
-    {
-        // Sample programs per college so the picker isn't empty on a fresh install;
-        // programs typed into past ESO proposals are merged in below.
-        $programs = [];
-        foreach ([
-            'Engineering Solutions For Rural Water And Energy Access (CET)',
-            'Digital Literacy And ICT Skills For Communities (CCAS)',
-            'Community Arts And Cultural Heritage Program (CCAS)',
-            'Micro-Enterprise And Tourism Livelihood Development (CBEHM)',
-            'Sustainable Agriculture And Agroforestry Extension (CAFES)',
-            'Local Governance And Community Development Capacity Building (CPACD)',
-            'Literacy And Teacher Enhancement Program (CED)',
-            'Community Safety And Crime Prevention Awareness (CCJE)',
-            'Coastal Resource Management And Sustainable Fisheries (CFINS)',
-        ] as $sample) {
-            $programs[$sample] = $sample;
-        }
-        foreach (Proposal::all(null, 'extension') as $proposal) {
-            if (!proposal_is_wpu_funded_extension($proposal)) {
-                continue;
-            }
-            $summary = json_decode((string) ($proposal['summary'] ?? ''), true);
-            $program = is_array($summary) ? trim((string) ($summary['college_extension_program'] ?? '')) : '';
-            if ($program !== '') {
-                $programs[$program] = $program;
-            }
-        }
-        $programs = array_values($programs);
-        sort($programs, SORT_NATURAL | SORT_FLAG_CASE);
-
-        return $programs;
-    }
-
     private function facultyTeamOptions(): array
     {
         $options = [];

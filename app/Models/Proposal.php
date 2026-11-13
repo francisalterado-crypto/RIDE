@@ -155,7 +155,30 @@ final class Proposal
             !empty($data['ethics_required']) ? 1 : 0,
             'draft',
         ]);
-        return (int) Database::pdo()->lastInsertId();
+        $id = (int) Database::pdo()->lastInsertId();
+        // The proposal carries the leader's academic program unless the form chose one.
+        Database::pdo()->prepare(
+            'UPDATE proposals SET academic_program_id = (SELECT u.academic_program_id FROM users u WHERE u.id = proposals.user_id) WHERE id = ?'
+        )->execute([$id]);
+        self::saveCatalogLinks($id, $data);
+
+        return $id;
+    }
+
+    /**
+     * Store the catalog references a form sent (extension program, extension project, academic program).
+     * Keys missing from $data are left unchanged, so forms without these fields do not clear them.
+     *
+     * @param array<string, mixed> $data
+     */
+    public static function saveCatalogLinks(int $id, array $data): void
+    {
+        foreach (['extension_program_id', 'extension_project_id', 'academic_program_id'] as $column) {
+            if (array_key_exists($column, $data)) {
+                Database::pdo()->prepare("UPDATE proposals SET {$column} = ? WHERE id = ?")
+                    ->execute([$data[$column] !== null ? (int) $data[$column] : null, $id]);
+            }
+        }
     }
 
     public static function update(int $id, array $data): void
@@ -173,6 +196,10 @@ final class Proposal
             $data['project_type'],
             $id,
         ]);
+        $current = self::find($id);
+        if ($current !== null && in_array((string) $current['status'], ['draft', 'returned'], true)) {
+            self::saveCatalogLinks($id, $data);
+        }
     }
 
     public static function updateConsolidatedDraft(int $id, string $title, string $summaryJson): void

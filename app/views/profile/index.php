@@ -92,7 +92,9 @@ $selectedCollegeId = old('profile_college_id', (string) ($user['college_id'] ?? 
                     </div>
                     <div class="settings-field">
                         <label for="profile_program">Program</label>
-                        <input id="profile_program" name="program" value="<?= old('profile_program', (string) ($user['program'] ?? '')) ?>" maxlength="150" placeholder="e.g. BS Computer Engineering">
+                        <select id="profile_program" name="program">
+                            <?= academic_program_select_options((string) ($_SESSION['_old']['profile_program'] ?? ($user['program'] ?? '')), isset($user['college_id']) ? (int) $user['college_id'] : null) ?>
+                        </select>
                     </div>
                     <div class="settings-field">
                         <label for="profile_campus_id">Campus</label>

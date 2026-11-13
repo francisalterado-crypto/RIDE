@@ -97,12 +97,7 @@ $isCurrentUser = $currentUserId === (int) $account['id'];
                 <label for="edit_account_program">Program</label>
                 <?php $selectedProgram = (string) ($_SESSION['_old']['edit_program'] ?? ($account['program'] ?? '')); ?>
                 <select id="edit_account_program" name="program">
-                    <option value="">Select program (optional)</option>
-                    <?php foreach (account_program_options($selectedProgram) as $program): ?>
-                        <option value="<?= htmlspecialchars($program) ?>" <?= $selectedProgram === $program ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($program) ?>
-                        </option>
-                    <?php endforeach; ?>
+                    <?= academic_program_select_options($selectedProgram, isset($account['college_id']) ? (int) $account['college_id'] : null) ?>
                 </select>
             </div>
 

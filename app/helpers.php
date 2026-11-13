@@ -1338,10 +1338,11 @@ function proposal_submit_blocked_coauthor_message(?array $proposal): ?string
 /** @return list<string> */
 function account_program_options(?string $currentValue = null): array
 {
-    static $options = null;
-    if ($options === null) {
-        $options = require APP_PATH . '/config/programs.php';
-    }
+    // Academic programs come from the catalog (Admin > Programs); a legacy value not in it stays selectable.
+    $options = array_map(
+        static fn (array $row): string => (string) $row['name'],
+        \App\Models\AcademicProgram::all(null, true)
+    );
 
     $currentValue = trim((string) $currentValue);
     if ($currentValue !== '' && !in_array($currentValue, $options, true)) {
@@ -1349,6 +1350,33 @@ function account_program_options(?string $currentValue = null): array
     }
 
     return $options;
+}
+
+/**
+ * <option>/<optgroup> markup for an academic program <select> posting the program name. Programs are grouped by
+ * college, the given college first; a saved value missing from the catalog is kept as the first option.
+ */
+function academic_program_select_options(?string $selected, ?int $collegeId = null, string $emptyLabel = 'Select program (optional)'): string
+{
+    $selected = trim((string) $selected);
+    $html = '<option value="">' . htmlspecialchars($emptyLabel) . '</option>';
+    $found = false;
+    $groups = '';
+    foreach (\App\Models\AcademicProgram::groupedOptions($collegeId) as $label => $programs) {
+        $groups .= '<optgroup label="' . htmlspecialchars($label) . '">';
+        foreach ($programs as $program) {
+            $isSelected = $program['name'] === $selected;
+            $found = $found || $isSelected;
+            $groups .= '<option value="' . htmlspecialchars($program['name']) . '"' . ($isSelected ? ' selected' : '') . '>'
+                . htmlspecialchars($program['name']) . '</option>';
+        }
+        $groups .= '</optgroup>';
+    }
+    if ($selected !== '' && !$found) {
+        $html .= '<option value="' . htmlspecialchars($selected) . '" selected>' . htmlspecialchars($selected) . ' (not in catalog)</option>';
+    }
+
+    return $html . $groups;
 }
 
 /**

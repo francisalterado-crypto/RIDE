@@ -204,19 +204,9 @@ $collegeCount = count($colleges);
 
                                 <label for="pending_program_<?= $pendingId ?>">Program</label>
 
-                                <input
-
-                                    id="pending_program_<?= $pendingId ?>"
-
-                                    name="program"
-
-                                    maxlength="150"
-
-                                    placeholder="Optional"
-
-                                    value="<?= htmlspecialchars((string) ($pending['program'] ?? '')) ?>"
-
-                                >
+                                <select id="pending_program_<?= $pendingId ?>" name="program">
+                                    <?= academic_program_select_options((string) ($pending['program'] ?? ''), isset($pending['college_id']) ? (int) $pending['college_id'] : null) ?>
+                                </select>
 
                             </div>
 
@@ -376,7 +366,10 @@ $collegeCount = count($colleges);
 
                     <label for="account_program">Program</label>
 
-                    <input id="account_program" name="program" value="<?= old('program') ?>" maxlength="150" placeholder="e.g. BS Computer Engineering">
+                    <select id="account_program" name="program">
+                        <?= academic_program_select_options((string) ($_SESSION['_old']['program'] ?? '')) ?>
+                    </select>
+                    <p class="muted">Programs are managed in Admin &gt; Programs.</p>
 
                 </div>
 

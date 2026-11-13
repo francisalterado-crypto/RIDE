@@ -277,7 +277,18 @@ final class User
             $data['campus_id'] ?: null,
             $active ? 1 : 0,
         ]);
-        return (int) Database::pdo()->lastInsertId();
+        $id = (int) Database::pdo()->lastInsertId();
+        self::syncAcademicProgram($id);
+
+        return $id;
+    }
+
+    /** Point users.academic_program_id at the catalog row named in users.program (null when it is not in the catalog). */
+    public static function syncAcademicProgram(int $id): void
+    {
+        Database::pdo()->prepare(
+            'UPDATE users SET academic_program_id = (SELECT ap.id FROM academic_programs ap WHERE ap.name = users.program) WHERE id = ?'
+        )->execute([$id]);
     }
 
     public static function findPendingById(int $id): ?array
@@ -317,6 +328,7 @@ final class User
                 ($program ?? '') !== '' ? $program : null,
                 $id,
             ]);
+            self::syncAcademicProgram($id);
 
             if ($update->rowCount() === 0) {
                 $pdo->rollBack();
@@ -440,8 +452,10 @@ final class User
             $optional('contact_number'),
             $id,
         ]);
+        $changed = $stmt->rowCount() > 0;
+        self::syncAcademicProgram($id);
 
-        return $stmt->rowCount() > 0;
+        return $changed;
     }
 
     /** @param array{orcid_id: ?string, google_scholar_url: ?string, researchgate_url: ?string, github_url: ?string} $profiles */

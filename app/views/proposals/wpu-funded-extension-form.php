@@ -14,7 +14,22 @@ $pageSubtitle = $isEdit
 $user = \App\Core\Auth::user() ?? [];
 $colleges = $colleges ?? [];
 $facultyTeamOptions = $facultyTeamOptions ?? [];
-$collegeExtensionProgramOptions = $collegeExtensionProgramOptions ?? [];
+$extensionPrograms = $extensionPrograms ?? [];
+$extensionProjects = $extensionProjects ?? [];
+$userCollegeId = $userCollegeId ?? null;
+$selectedProgramId = (int) ($proposal['extension_program_id'] ?? 0);
+$selectedProjectId = (int) ($proposal['extension_project_id'] ?? 0);
+// Programs grouped by college, the proponent's college first.
+$programGroups = [];
+foreach ($extensionPrograms as $programRow) {
+    $programGroups[(string) ($programRow['college_name'] ?? 'Other')][] = $programRow;
+}
+uksort($programGroups, static function (string $a, string $b) use ($programGroups, $userCollegeId): int {
+    $aMine = (int) ($programGroups[$a][0]['college_id'] ?? 0) === (int) $userCollegeId;
+    $bMine = (int) ($programGroups[$b][0]['college_id'] ?? 0) === (int) $userCollegeId;
+
+    return $aMine === $bMine ? strcmp($a, $b) : ($aMine ? -1 : 1);
+});
 $deanNamesByCollege = $deanNamesByCollege ?? [];
 
 $summaryData = [];
@@ -304,14 +319,32 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <input id="eso-title" name="title" value="<?= htmlspecialchars($titleValue) ?>" placeholder="Title of the extension program/project" required>
             </div>
             <div class="webform-field webform-field--full">
-                <label for="eso-college-program">College Extension Program</label>
-                <input id="eso-college-program" name="college_extension_program" list="eso-college-program-options" value="<?= htmlspecialchars($collegeProgramValue) ?>" placeholder="Choose from the list or type a new program" autocomplete="off">
-                <datalist id="eso-college-program-options">
-                    <?php foreach ($collegeExtensionProgramOptions as $programOption): ?>
-                        <option value="<?= htmlspecialchars($programOption) ?>">
+                <label for="eso-college-program">College Extension Program <span class="webform-req">*</span></label>
+                <select id="eso-college-program" name="extension_program_id">
+                    <option value="">Select the extension program</option>
+                    <?php foreach ($programGroups as $groupLabel => $groupPrograms): ?>
+                        <optgroup label="<?= htmlspecialchars($groupLabel) ?>">
+                            <?php foreach ($groupPrograms as $programRow): ?>
+                                <option value="<?= (int) $programRow['id'] ?>"<?= (int) $programRow['id'] === $selectedProgramId ? ' selected' : '' ?>><?= htmlspecialchars(\App\Models\ExtensionProgram::label($programRow)) ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
                     <?php endforeach; ?>
-                </datalist>
-                <p class="webform-hint">Start typing to see suggested programs.</p>
+                </select>
+                <?php if ($selectedProgramId === 0 && $collegeProgramValue !== ''): ?>
+                    <p class="webform-hint">Previously entered: <?= htmlspecialchars($collegeProgramValue) ?>. Pick the matching program from the list.</p>
+                <?php else: ?>
+                    <p class="webform-hint">Programs from the approved RIDE agenda. Ask the RIDE admin if yours is missing.</p>
+                <?php endif; ?>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label for="eso-extension-project">Planned Project</label>
+                <select id="eso-extension-project" name="extension_project_id">
+                    <option value="">Not in the plan / new project</option>
+                    <?php foreach ($extensionProjects as $projectRow): ?>
+                        <option value="<?= (int) $projectRow['id'] ?>" data-program="<?= (int) $projectRow['extension_program_id'] ?>"<?= (int) $projectRow['id'] === $selectedProjectId ? ' selected' : '' ?>><?= htmlspecialchars(\App\Models\ExtensionProject::label($projectRow)) ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="webform-hint">If this proposal is for a project already in the ESO plan, pick it so its activities stay linked.</p>
             </div>
             <div class="webform-field">
                 <label for="eso-team-leader">Project Team Leader <span class="webform-req">*</span></label>
@@ -1675,9 +1708,30 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 
     /* ---------- Section completeness checklist ---------- */
     const fieldValue = (name) => (form.elements.namedItem(name)?.value || '').trim();
+    const programSelect = document.getElementById('eso-college-program');
+    const projectSelect = document.getElementById('eso-extension-project');
+    const filterProjects = () => {
+        if (!programSelect || !projectSelect) {
+            return;
+        }
+        const programId = programSelect.value;
+        Array.from(projectSelect.options).forEach((option) => {
+            if (!option.dataset.program) {
+                return;
+            }
+            const show = programId !== '' && option.dataset.program === programId;
+            option.hidden = !show;
+            option.disabled = !show;
+            if (!show && option.selected) {
+                projectSelect.value = '';
+            }
+        });
+    };
+    programSelect?.addEventListener('change', filterProjects);
+    filterProjects();
     const anyFilled = (selector) => Array.from(form.querySelectorAll(selector)).some((el) => el.value.trim() !== '');
     const sectionChecks = [
-        ['eso-sec-identifying', 'Identifying Information', () => ['title', 'college_extension_program', 'project_team_leader', 'implementing_college_department', 'beneficiaries', 'duration_start_date', 'duration_end_date', 'location', 'budget', 'source_of_fund'].every((name) => fieldValue(name) !== '')],
+        ['eso-sec-identifying', 'Identifying Information', () => ['title', 'extension_program_id', 'project_team_leader', 'implementing_college_department', 'beneficiaries', 'duration_start_date', 'duration_end_date', 'location', 'budget', 'source_of_fund'].every((name) => fieldValue(name) !== '')],
         ['eso-sec-rationale', 'Rationale', () => fieldValue('rationale') !== ''],
         ['eso-sec-objectives', 'Objectives', () => fieldValue('general_objective') !== '' && fieldValue('specific_objectives') !== ''],
         ['eso-sec-components', 'Project Components', () => ['community_analysis', 'problem_analysis', 'target_group_description'].every((name) => fieldValue(name) !== '')
