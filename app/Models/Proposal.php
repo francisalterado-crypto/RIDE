@@ -258,6 +258,13 @@ final class Proposal
                 'UPDATE proposals SET status = \'returned\', current_step = NULL WHERE id = ?'
             )->execute([$id]);
             self::addComment($id, $userId, $comment, 'return', $step);
+            Notification::notifyProjectLeader(
+                (int) $proposal['user_id'],
+                'Returned for revision',
+                '"' . $proposal['title'] . '" was returned for revision at '
+                    . MonitoringRoles::stepLabel((string) $step) . '. Comments: ' . $comment,
+                'proposals/' . $id
+            );
             return true;
         }
 
