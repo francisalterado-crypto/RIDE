@@ -332,6 +332,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                         <i class="fas fa-chart-pie"></i> <span>Reports</span>
                     </a>
                 <?php endif; ?>
+                    <a href="<?= base_url('admin/public-site') ?>" class="nav-item<?= nav_active('admin/public-site') ? ' active' : '' ?>">
+                        <i class="fas fa-globe"></i> <span>Public Site</span>
+                    </a>
                 <?php endif; ?>
                 <?php if (\App\Core\Auth::hasRole('ride_admin')): ?>
                     <a href="<?= base_url('admin/accounts') ?>" class="nav-item<?= nav_active('admin/accounts') ? ' active' : '' ?>">

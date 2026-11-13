@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Auth;
-use App\Models\AppSetting;
 use App\Models\AuditLog;
 use App\Models\College;
-use App\Models\HighlightSlide;
 use App\Models\User;
 
 final class AuthController
@@ -18,14 +16,7 @@ final class AuthController
         if (Auth::check()) {
             redirect('dashboard');
         }
-        $defaultVision = 'A leading university research and extension ecosystem that drives innovation, community development, and evidence-based solutions for Western Philippines and beyond.';
-        $defaultMission = 'To monitor, support, and streamline research and extension workflows across Western Philippines University—empowering faculty and partners through transparent approval processes and accountable reporting.';
-
-        view('auth.login', [
-            'highlights' => HighlightSlide::activeList(),
-            'rideVision' => AppSetting::get('portal_vision', $defaultVision),
-            'rideMission' => AppSetting::get('portal_mission', $defaultMission),
-        ]);
+        view('auth.login');
     }
 
     public function login(): void

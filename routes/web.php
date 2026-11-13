@@ -7,6 +7,8 @@ use App\Controllers\CoAuthorInvitationController;
 use App\Controllers\AccountController;
 use App\Controllers\AdminScholarlyController;
 use App\Controllers\HighlightController;
+use App\Controllers\SiteAdminController;
+use App\Controllers\SiteController;
 use App\Controllers\DashboardController;
 use App\Controllers\FacultyDirectoryController;
 use App\Controllers\FacultyDeadlineSettingsController;
@@ -24,7 +26,13 @@ use App\Middleware\RoleMiddleware;
 $auth = [[AuthMiddleware::class, 'handle']];
 $admin = [...$auth, RoleMiddleware::require('ride_admin')];
 
-$router->get('/', [DashboardController::class, 'index'], $auth);
+// Public site (no sign-in needed).
+$router->get('/', [SiteController::class, 'home']);
+$router->get('/news', [SiteController::class, 'news']);
+$router->get('/journal', [SiteController::class, 'journal']);
+$router->get('/conferences', [SiteController::class, 'conferences']);
+$router->get('/articles/{id}', [SiteController::class, 'show']);
+
 $router->get('/dashboard', [DashboardController::class, 'index'], $auth);
 $router->get('/messages', [DashboardController::class, 'messages'], $auth);
 $router->get('/messages/conversation/{partnerId}', [DirectMessageController::class, 'conversation'], $auth);
@@ -236,6 +244,14 @@ $router->post('/admin/form-templates', [FormTemplateController::class, 'store'],
 $router->post('/admin/form-templates/{id}/update', [FormTemplateController::class, 'update'], $admin);
 $router->post('/admin/form-templates/{id}/move', [FormTemplateController::class, 'move'], $admin);
 $router->post('/admin/form-templates/{id}/delete', [FormTemplateController::class, 'destroy'], $admin);
+
+$router->get('/admin/public-site', [SiteAdminController::class, 'index'], $admin);
+$router->post('/admin/public-site/content', [SiteAdminController::class, 'updateContent'], $admin);
+$router->get('/admin/public-site/posts/new', [SiteAdminController::class, 'create'], $admin);
+$router->post('/admin/public-site/posts', [SiteAdminController::class, 'store'], $admin);
+$router->get('/admin/public-site/posts/{id}/edit', [SiteAdminController::class, 'edit'], $admin);
+$router->post('/admin/public-site/posts/{id}', [SiteAdminController::class, 'update'], $admin);
+$router->post('/admin/public-site/posts/{id}/delete', [SiteAdminController::class, 'destroy'], $admin);
 
 $router->get('/admin/highlights', [HighlightController::class, 'index'], $admin);
 $router->post('/admin/highlights/settings', [HighlightController::class, 'updateSettings'], $admin);

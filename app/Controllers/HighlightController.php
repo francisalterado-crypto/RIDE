@@ -11,8 +11,8 @@ use App\Models\HighlightSlide;
 
 final class HighlightController
 {
-    private const DEFAULT_VISION = 'A leading university research and extension ecosystem that drives innovation, community development, and evidence-based solutions for Western Philippines and beyond.';
-    private const DEFAULT_MISSION = 'To monitor, support, and streamline research and extension workflows across Western Philippines University—empowering faculty and partners through transparent approval processes and accountable reporting.';
+    public const DEFAULT_VISION = 'A leading university research and extension ecosystem that drives innovation, community development, and evidence-based solutions for Western Philippines and beyond.';
+    public const DEFAULT_MISSION = 'To monitor, support, and streamline research and extension workflows across Western Philippines University, empowering faculty and partners through transparent approval processes and accountable reporting.';
 
     public function index(): void
     {
