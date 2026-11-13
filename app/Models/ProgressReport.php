@@ -23,9 +23,38 @@ final class ProgressReport
 
     public static function find(int $id): ?array
     {
-        $stmt = Database::pdo()->prepare('SELECT * FROM progress_reports WHERE id = ?');
+        $stmt = Database::pdo()->prepare(
+            'SELECT pr.*, rv.first_name AS reviewer_first_name, rv.last_name AS reviewer_last_name
+             FROM progress_reports pr
+             LEFT JOIN users rv ON rv.id = pr.reviewed_by
+             WHERE pr.id = ?'
+        );
         $stmt->execute([$id]);
         return $stmt->fetch() ?: null;
+    }
+
+    /** Approver accepts a submitted report. */
+    public static function markReviewed(int $id, int $reviewerId, string $comment): bool
+    {
+        $stmt = Database::pdo()->prepare(
+            "UPDATE progress_reports SET status = 'reviewed', review_comment = ?, reviewed_by = ?, reviewed_at = NOW()
+             WHERE id = ? AND status = 'submitted'"
+        );
+        $stmt->execute([$comment !== '' ? $comment : null, $reviewerId, $id]);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    /** Approver sends a submitted report back to draft so the project team can revise and resubmit it. */
+    public static function returnForRevision(int $id, int $reviewerId, string $comment): bool
+    {
+        $stmt = Database::pdo()->prepare(
+            "UPDATE progress_reports SET status = 'draft', submitted_at = NULL, review_comment = ?, reviewed_by = ?, reviewed_at = NOW()
+             WHERE id = ? AND status = 'submitted'"
+        );
+        $stmt->execute([$comment, $reviewerId, $id]);
+
+        return $stmt->rowCount() > 0;
     }
 
     public static function create(int $proposalId, int $userId, array $data): int
@@ -72,7 +101,7 @@ final class ProgressReport
     public static function submit(int $id): void
     {
         Database::pdo()->prepare(
-            "UPDATE progress_reports SET status = 'submitted', submitted_at = NOW() WHERE id = ?"
+            "UPDATE progress_reports SET status = 'submitted', submitted_at = NOW() WHERE id = ? AND status = 'draft'"
         )->execute([$id]);
     }
 

@@ -26,6 +26,24 @@ $action = $isEdit
 
     <?php endif; ?>
 
+    <?php if ($isEdit && !empty($report['reviewed_at'])): ?>
+        <?php
+        $reviewerName = trim(($report['reviewer_first_name'] ?? '') . ' ' . ($report['reviewer_last_name'] ?? ''));
+        $wasReturned = ($report['status'] ?? '') === 'draft';
+        ?>
+        <div class="alert <?= $wasReturned ? 'alert-error' : 'alert-success' ?>">
+            <strong><?= $wasReturned ? 'Returned for revision' : 'Reviewed' ?></strong>
+            <?php if ($reviewerName !== ''): ?> by <?= htmlspecialchars($reviewerName) ?><?php endif; ?>
+            | <?= htmlspecialchars((string) $report['reviewed_at']) ?>
+            <?php if (!empty($report['review_comment'])): ?>
+                <div><?= nl2br(htmlspecialchars((string) $report['review_comment'])) ?></div>
+            <?php endif; ?>
+            <?php if ($wasReturned && $canManage): ?>
+                <div>Revise the report, then submit it again.</div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
 
 
     <form method="post" action="<?= $action ?>">
@@ -142,6 +160,21 @@ $action = $isEdit
 
     </form>
 
+    <?php endif; ?>
+
+    <?php if (!empty($canReview)): ?>
+    <div class="actions proposal-form-actions" style="margin-top:1rem;">
+        <form method="post" action="<?= base_url('projects/' . $project['id'] . '/reports/' . $report['id'] . '/review') ?>" class="inline-action">
+            <?= csrf_field() ?>
+            <input name="comment" placeholder="Comments (optional)">
+            <button type="submit" class="btn btn-accent">Mark as Reviewed</button>
+        </form>
+        <form method="post" action="<?= base_url('projects/' . $project['id'] . '/reports/' . $report['id'] . '/return') ?>" class="proposal-review-form">
+            <?= csrf_field() ?>
+            <input name="comment" placeholder="Revision comments (required)" required>
+            <button type="submit" class="btn btn-outline">Return for Revision</button>
+        </form>
+    </div>
     <?php endif; ?>
 
 </div>

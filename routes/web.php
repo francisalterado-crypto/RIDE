@@ -182,6 +182,8 @@ $router->post('/projects/{id}/reports', [ProjectController::class, 'storeReport'
 $router->get('/projects/{id}/reports/{reportId}', [ProjectController::class, 'showReport'], $auth);
 $router->post('/projects/{id}/reports/{reportId}', [ProjectController::class, 'updateReport'], $auth);
 $router->post('/projects/{id}/reports/{reportId}/submit', [ProjectController::class, 'submitReport'], $auth);
+$router->post('/projects/{id}/reports/{reportId}/review', [ProjectController::class, 'reviewReport'], $auth);
+$router->post('/projects/{id}/reports/{reportId}/return', [ProjectController::class, 'returnReport'], $auth);
 $router->post('/projects/{id}/documents', [ProjectController::class, 'uploadDocument'], $auth);
 $router->get('/projects/{id}/documents/{docId}', [ProjectController::class, 'downloadDocument'], $auth);
 $router->post('/projects/{id}/documents/{docId}/delete', [ProjectController::class, 'deleteDocument'], $auth);

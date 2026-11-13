@@ -63,6 +63,29 @@ final class ProjectAccess
         return (int) $proposal['user_id'] === (int) $user['id'];
     }
 
+    /**
+     * Who reviews submitted progress reports: the approvers over the project (college coordinator and dean,
+     * the director for its track, VPRIDE). Never the project leader.
+     */
+    public static function canReviewReports(array $proposal): bool
+    {
+        $user = Auth::user();
+        if ($user === null || !self::isMonitoring($proposal) || (int) $proposal['user_id'] === (int) $user['id']) {
+            return false;
+        }
+        if (MonitoringRoles::isVpride()) {
+            return true;
+        }
+        if (MonitoringRoles::isDean() && (int) ($user['college_id'] ?? 0) === (int) $proposal['college_id']) {
+            return true;
+        }
+
+        return (MonitoringRoles::isCoordinator()
+                || MonitoringRoles::isDirectorResearch()
+                || MonitoringRoles::isDirectorExtension())
+            && MonitoringRoles::canViewProposal($proposal);
+    }
+
     /** Beneficiary / MOU / impact records: project owner plus in-scope Extension Services staff. */
     public static function canManageExtensionRecords(array $proposal): bool
     {

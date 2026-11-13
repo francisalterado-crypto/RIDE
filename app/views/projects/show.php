@@ -89,7 +89,7 @@ if ($extension) $tabs['extension'] = 'Extension';
             <tr>
                 <td><?= htmlspecialchars($r['period_label']) ?></td>
                 <td><?= htmlspecialchars($r['report_type']) ?></td>
-                <td><?= htmlspecialchars($r['status']) ?></td>
+                <td><?= htmlspecialchars(($r['status'] === 'draft' && !empty($r['reviewed_at'])) ? 'returned' : $r['status']) ?></td>
                 <td><?= htmlspecialchars($r['due_date'] ?? '-') ?></td>
                 <td><a class="btn btn-sm" href="<?= base_url('projects/' . $project['id'] . '/reports/' . $r['id']) ?>">Open</a></td>
             </tr>

@@ -183,7 +183,78 @@ final class ProjectController
             'report' => $report,
             'lines' => ProgressReport::financialLines($reportId),
             'canManage' => $canManage,
+            'canReview' => ProjectAccess::canReviewReports($proposal) && $report['status'] === 'submitted',
         ]);
+    }
+
+    public function reviewReport(int $id, int $reportId): void
+    {
+        $this->reportReviewAction($id, $reportId, 'reviewed');
+    }
+
+    public function returnReport(int $id, int $reportId): void
+    {
+        $this->reportReviewAction($id, $reportId, 'return');
+    }
+
+    private function reportReviewAction(int $id, int $reportId, string $action): void
+    {
+        if (!verify_csrf()) {
+            set_flash('error', 'Invalid session.');
+            redirect('projects/' . $id . '/reports/' . $reportId);
+        }
+        $proposal = ProjectAccess::denyUnlessView($id);
+        if (!$proposal) {
+            return;
+        }
+        $report = $this->reportOfProject($id, $reportId);
+        if ($report === null) {
+            return;
+        }
+        if (!ProjectAccess::canReviewReports($proposal) || $report['status'] !== 'submitted') {
+            http_response_code(403);
+            view('errors.403');
+            return;
+        }
+        $comment = trim((string) ($_POST['comment'] ?? ''));
+        if ($action === 'return' && $comment === '') {
+            set_flash('error', 'Please provide comments when returning a report for revision.');
+            redirect('projects/' . $id . '/reports/' . $reportId);
+        }
+        $reviewerId = (int) Auth::user()['id'];
+        $done = $action === 'return'
+            ? ProgressReport::returnForRevision($reportId, $reviewerId, $comment)
+            : ProgressReport::markReviewed($reportId, $reviewerId, $comment);
+        if (!$done) {
+            set_flash('error', 'This report is no longer waiting for review.');
+            redirect('projects/' . $id . '/reports/' . $reportId);
+        }
+
+        AuditLog::record('progress_report', $reportId, $action === 'return' ? 'returned' : 'reviewed');
+        $title = $action === 'return' ? 'Progress report returned for revision' : 'Progress report reviewed';
+        $message = 'Your ' . $report['report_type'] . ' report "' . $report['period_label'] . '" on project "'
+            . $proposal['title'] . '" was ' . ($action === 'return' ? 'returned for revision' : 'reviewed')
+            . ($comment !== '' ? ': ' . $comment : '.');
+        $link = 'projects/' . $id . '/reports/' . $reportId;
+        foreach (array_unique([(int) $proposal['user_id'], (int) $report['user_id']]) as $recipientId) {
+            Notification::notifyProjectLeader($recipientId, $title, $message, $link);
+        }
+
+        set_flash('success', $action === 'return' ? 'Report returned for revision.' : 'Report marked as reviewed.');
+        redirect('projects/' . $id . '?tab=reports');
+    }
+
+    /** The report, or null after rendering a 404 when it does not belong to the project. */
+    private function reportOfProject(int $id, int $reportId): ?array
+    {
+        $report = ProgressReport::find($reportId);
+        if (!$report || (int) $report['proposal_id'] !== $id) {
+            http_response_code(404);
+            view('errors.404');
+            return null;
+        }
+
+        return $report;
     }
 
     public function updateReport(int $id, int $reportId): void
@@ -195,6 +266,9 @@ final class ProjectController
         if (!$proposal || !ProjectAccess::canManage($proposal)) {
             http_response_code(403);
             view('errors.403');
+            return;
+        }
+        if ($this->reportOfProject($id, $reportId) === null) {
             return;
         }
         ProgressReport::update($reportId, $this->reportInput());
@@ -211,6 +285,9 @@ final class ProjectController
         if (!$proposal || !ProjectAccess::canManage($proposal)) {
             http_response_code(403);
             view('errors.403');
+            return;
+        }
+        if ($this->reportOfProject($id, $reportId) === null) {
             return;
         }
         ProgressReport::submit($reportId);
