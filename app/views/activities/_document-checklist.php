@@ -1,22 +1,27 @@
 <?php
 /**
- * Upload table for an activity's required documents (a training's ETR, a linkage's MOA, ...).
- * Rendered inside the activity form; remove buttons post through a separate form (see activities/form.php).
+ * Supporting documents of an activity (a training's ETR, a linkage's MOA, ...), as a list of checklist items.
+ * In the form ($docEditable) each item has an Attach button; remove buttons post through a separate form
+ * (see activities/form.php). On the view page the same list is read-only.
  */
 /** @var array<string, array<string, string>> $checklist */
 /** @var array<string, list<array<string, mixed>>> $documents */
 /** @var array<string, mixed>|null $entry */
 /** @var string $type */
+/** @var bool|null $docEditable */
 
 use App\Models\ExtensionActivityDocument;
+use App\Support\ExtensionActivityTypes;
 
+$docEditable = $docEditable ?? true;
 $entryId = $entry !== null ? (int) $entry['id'] : 0;
-$basePath = \App\Support\ExtensionActivityTypes::basePath(\App\Support\ExtensionActivityTypes::officeOf($type));
-$entryWord = \App\Support\ExtensionActivityTypes::officeTerms(\App\Support\ExtensionActivityTypes::officeOf($type))['entry'];
+$office = ExtensionActivityTypes::officeOf($type);
+$basePath = ExtensionActivityTypes::basePath($office);
+$entryWord = ExtensionActivityTypes::officeTerms($office)['entry'];
 $total = 0;
 $filled = 0;
 foreach ($checklist as $group => $items) {
-    if ($group === \App\Support\ExtensionActivityTypes::OPTIONAL_GROUP) {
+    if ($group === ExtensionActivityTypes::OPTIONAL_GROUP) {
         continue;
     }
     foreach (array_keys($items) as $category) {
@@ -27,71 +32,103 @@ foreach ($checklist as $group => $items) {
     }
 }
 $accept = ExtensionActivityDocument::acceptAttribute();
-[, $documentsLong] = \App\Support\ExtensionActivityTypes::documentsName($type);
-$multiItem = $total > 1;
+$showGroupHeadings = count($checklist) > 1;
+// Blank office forms are uploaded in the portal (Admin > Form Templates) and found by their code.
+$templateAudience = $office === 'rdo' ? \App\Models\FormTemplate::AUDIENCE_RESEARCH : \App\Models\FormTemplate::AUDIENCE_EXTENSION;
 ?>
 <section class="activity-documents">
     <div class="activity-documents-head">
-        <h3><?= htmlspecialchars($documentsLong) ?><?= $multiItem && $entryWord === 'activity' ? ' documents' : '' ?></h3>
-        <span class="badge<?= $filled === $total ? ' badge-approved' : ' badge-draft' ?>"><?= $multiItem ? $filled . ' of ' . $total . ' items' : ($filled > 0 ? 'Attached' : 'Missing') ?></span>
+        <span class="doc-progress<?= $filled === $total ? ' is-complete' : '' ?>"><?= $total > 1 ? $filled . ' of ' . $total . ' required items attached' : ($filled > 0 ? 'Attached' : 'Not attached yet') ?></span>
     </div>
-    <p class="muted">
-        <?php if ($multiItem): ?>
-            Attach the documents in the <?= htmlspecialchars($documentsLong) ?> checklist. You can add several files per item
-            (e.g. the <?= $entryWord ?> pictures) and come back later to add the rest.
-        <?php else: ?>
-            Attach the <?= htmlspecialchars($documentsLong) ?> for this <?= $entryWord ?>. You can add it later.
-        <?php endif; ?>
-        PDF, Word, Excel, PowerPoint, JPG, PNG or ZIP, up to 10 MB each.
-        <?php if (in_array($type, ['trainings_conducted', 'outreach_activities', 'technical_advisory'], true)): ?>
-            The Accomplishment Report<?= $type === 'outreach_activities' ? ' and Attendance Sheet templates are' : ' template is' ?> under Downloadable Forms.
-        <?php endif; ?>
-        <?php if (isset($checklist[\App\Support\ExtensionActivityTypes::OPTIONAL_GROUP])): ?>
-            Optional items are attached only when they apply.
-        <?php endif; ?>
-    </p>
+    <?php if ($docEditable): ?>
+        <p class="muted activity-documents-intro">
+            Attach the files for each item. Several files can be added to one item (for example, activity photos), and the rest can be added later.
+            PDF, Word, Excel, PowerPoint, JPG, PNG or ZIP, up to 10 MB each.
+        </p>
+        <p class="activity-documents-links">
+            <i class="fas fa-file-download" aria-hidden="true"></i>
+            <span>Items that use an office form have a <strong>Download template</strong> link. All blank forms are under <a href="<?= base_url('forms') ?>">Downloadable Forms</a>.</span>
+        </p>
+    <?php endif; ?>
 
     <?php foreach ($checklist as $group => $items): ?>
-        <?php $optionalGroup = $group === \App\Support\ExtensionActivityTypes::OPTIONAL_GROUP; ?>
-        <div class="data-table-wrap">
-            <table class="data-table activity-documents-table">
-                <thead>
-                    <tr>
-                        <th><?= htmlspecialchars($group) ?></th>
-                        <th>Uploaded</th>
-                        <th>Add file(s)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($items as $category => $label): ?>
-                    <?php $files = $documents[$category] ?? []; ?>
-                    <tr>
-                        <td>
-                            <i class="<?= $files !== [] ? 'fas fa-check-circle activity-doc-done' : ($optionalGroup ? 'far fa-circle activity-doc-missing' : 'fas fa-circle activity-doc-missing') ?>" aria-hidden="true"></i>
-                            <?= htmlspecialchars($label) ?>
-                        </td>
-                        <td>
-                            <?php if ($files === []): ?>
-                                <span class="muted">None yet</span>
-                            <?php endif; ?>
-                            <?php foreach ($files as $file): ?>
-                                <div class="activity-doc-file">
-                                    <a href="<?= base_url($basePath . '/' . $entryId . '/documents/' . (int) $file['id']) ?>" target="_blank" rel="noopener">
-                                        <?= htmlspecialchars((string) $file['original_name']) ?>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-outline activity-doc-remove"
-                                        data-remove-url="<?= base_url($basePath . '/' . $entryId . '/documents/' . (int) $file['id'] . '/delete') ?>">Remove</button>
-                                </div>
-                            <?php endforeach; ?>
-                        </td>
-                        <td>
-                            <input type="file" name="documents[<?= htmlspecialchars($category) ?>][]" multiple accept="<?= htmlspecialchars($accept) ?>"
-                                aria-label="Add file for <?= htmlspecialchars($label) ?>">
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
+        <?php $optionalGroup = $group === ExtensionActivityTypes::OPTIONAL_GROUP; ?>
+        <?php if ($showGroupHeadings): ?>
+            <h4 class="doc-group-title"><?= htmlspecialchars($optionalGroup ? 'Optional (attach when applicable)' : $group) ?></h4>
+        <?php endif; ?>
+        <ul class="doc-list">
+            <?php foreach ($items as $category => $label): ?>
+                <?php
+                $files = $documents[$category] ?? [];
+                $guide = ExtensionActivityTypes::documentGuide($category);
+                $template = $guide['code'] !== '' ? \App\Models\FormTemplate::forCode($guide['code'], $templateAudience) : null;
+                $inputId = 'doc-' . preg_replace('/[^a-z0-9_]/', '', $category);
+                $state = $files !== [] ? 'done' : ($optionalGroup ? 'optional' : 'missing');
+                ?>
+                <li class="doc-item doc-item--<?= $state ?>">
+                    <span class="doc-status" title="<?= $state === 'done' ? 'Attached' : ($state === 'optional' ? 'Optional' : 'Missing') ?>">
+                        <i class="<?= $state === 'done' ? 'fas fa-check' : ($state === 'optional' ? 'far fa-circle' : 'fas fa-minus') ?>" aria-hidden="true"></i>
+                    </span>
+                    <div class="doc-body">
+                        <div class="doc-title"><?= htmlspecialchars($label) ?></div>
+                        <?php if ($guide['note'] !== '' || $guide['code'] !== ''): ?>
+                            <div class="doc-meta">
+                                <?php if ($guide['note'] !== ''): ?><span><?= htmlspecialchars($guide['note']) ?></span><?php endif; ?>
+                                <?php if ($guide['code'] !== ''): ?>
+                                    <span class="doc-code"><?= htmlspecialchars($guide['code']) ?></span>
+                                <?php endif; ?>
+                                <?php if ($template !== null): ?>
+                                    <a class="doc-template" href="<?= base_url('forms/' . (int) $template['id'] . '/download') ?>"><i class="fas fa-download" aria-hidden="true"></i> Download template</a>
+                                <?php elseif ($guide['code'] !== '' && $docEditable): ?>
+                                    <span class="doc-template-missing">Template not uploaded yet</span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($files !== []): ?>
+                            <div class="doc-files">
+                                <?php foreach ($files as $file): ?>
+                                    <span class="doc-file">
+                                        <i class="far fa-file" aria-hidden="true"></i>
+                                        <a href="<?= base_url($basePath . '/' . $entryId . '/documents/' . (int) $file['id']) ?>" target="_blank" rel="noopener"><?= htmlspecialchars((string) $file['original_name']) ?></a>
+                                        <?php if ($docEditable): ?>
+                                            <button type="button" class="doc-file-remove activity-doc-remove" aria-label="Remove <?= htmlspecialchars((string) $file['original_name']) ?>"
+                                                data-remove-url="<?= base_url($basePath . '/' . $entryId . '/documents/' . (int) $file['id'] . '/delete') ?>"><i class="fas fa-times" aria-hidden="true"></i></button>
+                                        <?php endif; ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($docEditable): ?>
+                            <div class="doc-picked" data-picked-for="<?= $inputId ?>" hidden></div>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($docEditable): ?>
+                        <label class="btn btn-sm btn-outline doc-attach" for="<?= $inputId ?>">
+                            <i class="fas fa-paperclip" aria-hidden="true"></i> <?= $files !== [] ? 'Add more' : 'Attach' ?>
+                        </label>
+                        <input class="doc-input" id="<?= $inputId ?>" type="file" name="documents[<?= htmlspecialchars($category) ?>][]" multiple accept="<?= htmlspecialchars($accept) ?>"
+                            aria-label="Attach files for <?= htmlspecialchars($label) ?>">
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ul>
     <?php endforeach; ?>
 </section>
+<?php if ($docEditable): ?>
+<script>
+(() => {
+    // Show the names of the files picked for each item until the form is saved.
+    document.querySelectorAll('.doc-input').forEach((input) => {
+        input.addEventListener('change', () => {
+            const box = document.querySelector(`[data-picked-for="${input.id}"]`);
+            if (!box) {
+                return;
+            }
+            const names = Array.from(input.files || []).map((file) => file.name);
+            box.textContent = names.length ? 'To be uploaded on save: ' + names.join(', ') : '';
+            box.hidden = names.length === 0;
+        });
+    });
+})();
+</script>
+<?php endif; ?>

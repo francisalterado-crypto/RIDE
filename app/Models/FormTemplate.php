@@ -59,6 +59,33 @@ final class FormTemplate
         return $stmt->fetchAll() ?: [];
     }
 
+    /**
+     * The active template of an office form, found by its code in the title or file name. Titles may carry the
+     * full code ("WPU-QSF-RIDE-ESO-13 Accomplishment Report") or just its tail ("ESO-13 ...").
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function forCode(string $code, string $audience = self::AUDIENCE_EXTENSION): ?array
+    {
+        static $active = [];
+        $code = trim($code);
+        if ($code === '') {
+            return null;
+        }
+        // Only templates the office can download (its own audience and those for all users).
+        $active[$audience] ??= self::activeFor([$audience, self::AUDIENCE_ALL]);
+        $parts = explode('-', $code);
+        $tail = count($parts) >= 2 ? implode('-', array_slice($parts, -2)) : $code;
+        $pattern = '/(?<![A-Z0-9])' . preg_quote($tail, '/') . '(?![0-9])/i';
+        foreach ($active[$audience] as $template) {
+            if (preg_match($pattern, (string) $template['title']) === 1 || preg_match($pattern, (string) $template['original_name']) === 1) {
+                return $template;
+            }
+        }
+
+        return null;
+    }
+
     /** @return array<string, mixed>|null */
     public static function find(int $id): ?array
     {

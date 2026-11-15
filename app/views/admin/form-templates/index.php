@@ -31,7 +31,8 @@ foreach ($templates as $template) {
         <?= csrf_field() ?>
 
         <label for="title">Title <span class="required">*</span></label>
-        <input type="text" id="title" name="title" maxlength="200" required placeholder="e.g. WPU-QSF-RIDE-ESO-13 Accomplishment Report">
+        <input type="text" id="title" name="title" maxlength="200" required placeholder="WPU-QSF-RIDE-ESO-13 Accomplishment Report">
+        <p class="muted">Start the title with the form code. Activity checklists link to the template whose title carries the code of the required document (for example, ESO-13 for the Accomplishment Report).</p>
 
         <label for="description">Instructions</label>
         <textarea id="description" name="description" rows="2" placeholder="Optional note shown under the form name"></textarea>

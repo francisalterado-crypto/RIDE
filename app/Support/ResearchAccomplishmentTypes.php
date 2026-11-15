@@ -262,19 +262,19 @@ final class ResearchAccomplishmentTypes
         $optional = ExtensionActivityTypes::OPTIONAL_GROUP;
 
         return match ($type) {
-            'completed_researches' => ['Documentary Evidence' => [
+            'completed_researches' => [ExtensionActivityTypes::SUPPORTING_GROUP => [
                 'rdo_terminal_report' => 'Terminal Report',
                 'rdo_completed_photos' => 'Supporting photographs',
             ]],
-            'ongoing_researches' => ['Documentary Evidence' => [
+            'ongoing_researches' => [ExtensionActivityTypes::SUPPORTING_GROUP => [
                 'rdo_progress_report' => 'Progress Report',
                 'rdo_ongoing_photos' => 'Supporting photographs',
             ]],
-            'research_output_published' => ['Documentary Evidence' => [
+            'research_output_published' => [ExtensionActivityTypes::SUPPORTING_GROUP => [
                 'rdo_published_article' => 'E-copy of published article',
             ]],
             'research_output_presented' => [
-                'Documentary Evidence' => [
+                ExtensionActivityTypes::SUPPORTING_GROUP => [
                     'rdo_presentation_certificate' => 'Certificate of presentation/participation',
                     'rdo_presentation_program' => 'Program',
                 ],
@@ -284,28 +284,28 @@ final class ResearchAccomplishmentTypes
                 ],
             ],
             'commercialized' => [
-                'Documentary Evidence' => ['rdo_commercialized_photos' => 'Supporting photographs'],
+                ExtensionActivityTypes::SUPPORTING_GROUP => ['rdo_commercialized_photos' => 'Supporting photographs'],
                 $optional => [
                     'rdo_commercialized_moa' => 'MOA/MOU',
                     'rdo_commercialized_other' => 'Other documents required for validation',
                 ],
             ],
             'resulted_in_extension' => [
-                'Documentary Evidence' => ['rdo_extension_etr' => 'End of Training Report (ETR)'],
+                ExtensionActivityTypes::SUPPORTING_GROUP => ['rdo_extension_etr' => 'End of Training Report (ETR)'],
                 $optional => ['rdo_extension_other' => 'Other supporting documents'],
             ],
-            'journal_citation' => ['Documentary Evidence' => [
+            'journal_citation' => [ExtensionActivityTypes::SUPPORTING_GROUP => [
                 'rdo_journal_citation_confirmation' => 'E-copy of citation confirmation (thru email or other means)',
             ]],
-            'book_citation' => ['Documentary Evidence' => [
+            'book_citation' => [ExtensionActivityTypes::SUPPORTING_GROUP => [
                 'rdo_book_citation_confirmation' => 'E-copy of citation confirmation (thru email or other means)',
             ]],
             'inventions_um_copyrights' => [
-                'Documentary Evidence' => ['rdo_ip_application' => 'Copy of Application Form or Certificate of Registration'],
+                ExtensionActivityTypes::SUPPORTING_GROUP => ['rdo_ip_application' => 'Copy of Application Form or Certificate of Registration'],
                 $optional => ['rdo_ip_other' => 'Other supporting documents'],
             ],
             'linkages' => [
-                'Documentary Evidence' => ['rdo_linkage_moa_mou' => 'MOA or MOU'],
+                ExtensionActivityTypes::SUPPORTING_GROUP => ['rdo_linkage_moa_mou' => 'MOA or MOU'],
                 $optional => ['rdo_linkage_other' => 'Other supporting documents'],
             ],
             default => null,

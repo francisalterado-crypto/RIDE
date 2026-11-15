@@ -15,6 +15,9 @@ final class ExtensionActivityTypes
     /** Checklist group whose items are attached only when they apply; they don't count as missing. */
     public const OPTIONAL_GROUP = 'Optional';
 
+    /** Heading of a checklist whose items need no grouping (the items already name the document). */
+    public const SUPPORTING_GROUP = 'Supporting Documents';
+
     private const RATING_LEVELS = ['poor' => 'Poor (1)', 'fair' => 'Fair (2)', 'good' => 'Good (3)', 'better' => 'Better (4)', 'best' => 'Best (5)'];
 
     /**
@@ -193,21 +196,21 @@ final class ExtensionActivityTypes
 
         return match ($type) {
             'trainings_conducted' => self::etrChecklist(),
-            'extension_linkages' => ['MOA/MOU' => ['linkage_moa_mou' => 'Notarized MOA/MOU']],
+            'extension_linkages' => [self::SUPPORTING_GROUP => ['linkage_moa_mou' => 'Notarized MOA/MOU']],
             'outreach_activities' => [
-                'Accomplishment Report' => [
-                    'outreach_accomplishment_report' => 'Outreach Activities Report (WPU-QSF-RIDE-ESO-15 template) with narrative report, documentation photos and signature of resource person',
-                    'outreach_attendance_sheet' => 'Attendance sheet',
+                self::SUPPORTING_GROUP => [
+                    'outreach_accomplishment_report' => 'Outreach Activities Accomplishment Report',
+                    'outreach_attendance_sheet' => 'Attendance Sheet',
                 ],
-                self::OPTIONAL_GROUP => ['outreach_moa' => 'MOA (for active linkages)'],
+                self::OPTIONAL_GROUP => ['outreach_moa' => 'MOA'],
             ],
             'technical_advisory' => [
-                'Accomplishment Report' => [
-                    'advisory_accomplishment_report' => 'Technical Advisory Report (WPU-QSF-RIDE-ESO-14 template) with report, documentation photos and signature of resource person',
+                self::SUPPORTING_GROUP => [
+                    'advisory_accomplishment_report' => 'Technical Advisory Accomplishment Report',
                 ],
-                self::OPTIONAL_GROUP => ['advisory_moa' => 'MOA (for active linkages)'],
+                self::OPTIONAL_GROUP => ['advisory_moa' => 'MOA'],
             ],
-            'technology_adoption' => ['MOA/MOU' => ['adoption_moa_mou' => 'Notarized MOA/MOU or its equivalent as proof of adoption']],
+            'technology_adoption' => [self::SUPPORTING_GROUP => ['adoption_moa_mou' => 'Notarized MOA/MOU']],
             default => [],
         };
     }
@@ -227,30 +230,65 @@ final class ExtensionActivityTypes
         };
     }
 
-    /** @return array<string, array<string, string>> */
+    /** ETR Completion Checklist (ESO): the Extension Terminal Report and its appendices, in the checklist order. */
     private static function etrChecklist(): array
     {
         return [
             'ETR' => [
-                'etr_title_page' => 'Title Page with group pictures',
-                'etr_transmittal_letter' => 'Transmittal Letter (duly signed by the training/project coordinator and Dean)',
-                'etr_accomplishment_report' => 'Accomplishment/Narrative Report (WPU-QSF-RIDE-ESO-13 Accomplishment Report template)',
+                'etr_title_page' => 'Title Page',
+                'etr_transmittal_letter' => 'Transmittal',
+                'etr_accomplishment_report' => 'Accomplishment Report',
             ],
             'Appendices' => [
-                'etr_group_picture' => 'Group picture (with participants)',
-                'etr_team_picture' => 'Training team picture',
-                'etr_activity_pictures' => 'Pictures during activities (6-10 pictures)',
-                'etr_request_letter' => 'Approved request letter',
-                'etr_travel_order' => 'Travel order (TARF & NTARF)',
-                'etr_cert_participation' => 'Certificate of participation (1 sample only)',
-                'etr_cert_appreciation' => 'Certificates of appreciation from client/partner',
-                'etr_cert_recognition' => 'Certificates of recognition (resource person, facilitator, coordinator, secretariat, etc.)',
-                'etr_attendance_sheet' => 'Attendance sheet (clear & readable)',
+                'etr_group_picture' => 'Group Picture',
+                'etr_team_picture' => 'Training Team Picture',
+                'etr_activity_pictures' => 'Photos during the Activity',
+                'etr_request_letter' => 'Approved Letter',
+                'etr_travel_order' => 'Travel Order',
+                'etr_cert_participation' => 'Certificates: Participants',
+                'etr_cert_recognition' => 'Certificates: Resource Speakers',
+                'etr_cert_appreciation' => 'Certificates: Client/Partner',
+                'etr_attendance_sheet' => 'Attendance',
                 'etr_program' => 'Program',
-                'etr_iec_materials' => 'IEC materials / brochure',
-                'etr_ebalwasyon' => 'Ebalwasyon ng Gawain (1 sample only)',
+                'etr_iec_materials' => 'IEC Materials',
+                'etr_ebalwasyon' => 'Ebalwasyon ng Gawain',
+                'etr_references' => 'References',
             ],
         ];
+    }
+
+    /**
+     * What a checklist item must contain or be signed by, and the code of the office form to use where there is
+     * one, as listed on the ESO's ETR Completion Checklist. The blank form itself is uploaded in the portal
+     * (Admin > Form Templates) with the code in its title; see FormTemplate::forCode().
+     *
+     * @return array{note: string, code: string}
+     */
+    public static function documentGuide(string $category): array
+    {
+        $guides = [
+            'etr_transmittal_letter' => ['', 'WPU-QSF-OUOP-OUP-10'],
+            'etr_accomplishment_report' => ['With title, authors, introduction, methodology and results.', 'WPU-QSF-RIDE-ESO-13'],
+            'etr_request_letter' => ['Approved TARF.', ''],
+            'etr_cert_participation' => ['Signed by the Dean and the ESO Director.', ''],
+            'etr_cert_recognition' => ['Signed by the University President.', ''],
+            'etr_cert_appreciation' => ['Signed by the Dean and the ESO Director.', ''],
+            'etr_attendance_sheet' => ['', 'WPU-QSF-RIDE-ESO-17'],
+            'etr_iec_materials' => ['PowerPoint, brochures and similar materials.', ''],
+            'etr_ebalwasyon' => ['', 'WPU-QSF-RIDE-ESO-16'],
+            'outreach_accomplishment_report' => ['Narrative report with documentation photos and the signature of the resource person.', 'WPU-QSF-RIDE-ESO-15'],
+            'outreach_attendance_sheet' => ['', 'WPU-QSF-RIDE-ESO-17'],
+            'advisory_accomplishment_report' => ['Report with documentation photos and the signature of the resource person.', 'WPU-QSF-RIDE-ESO-14'],
+            'outreach_moa' => ['For active linkages.', ''],
+            'advisory_moa' => ['For active linkages.', ''],
+            'adoption_moa_mou' => ['Or an equivalent document as proof of adoption.', ''],
+            'rdo_terminal_report' => ['', 'WPU-QSF-RDE-VPRDE-21'],
+            'rdo_progress_report' => ['', 'WPU-QSF-RDE-VPRDE-18'],
+            'rdo_extension_etr' => ['The accomplishment report of the training.', 'WPU-QSF-RIDE-ESO-13'],
+        ];
+        [$note, $code] = $guides[$category] ?? ['', ''];
+
+        return ['note' => $note, 'code' => $code];
     }
 
     /** @return array<string, string> category key => label, across all groups */

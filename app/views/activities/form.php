@@ -120,6 +120,50 @@ $renderField = static function (string $name, array $field, string $value, strin
     </div>
     <?php
 };
+
+// Trainee ratings (Trainings Conducted, Technical Advisory): one block with the number surveyed and a 1-5 scale
+// per aspect, instead of two separate groups of five number boxes.
+$ratingLevels = ['poor' => 'Poor', 'fair' => 'Fair', 'good' => 'Good', 'better' => 'Better', 'best' => 'Best'];
+$ratingScales = [];
+foreach (['quality' => 'Quality', 'timeliness' => 'Timeliness'] as $prefix => $scaleLabel) {
+    if (isset($definition['fields'][$prefix . '_poor'])) {
+        $ratingScales[$prefix] = $scaleLabel;
+    }
+}
+$hasRatings = $ratingScales !== [] && isset($definition['fields']['trainees_surveyed']);
+$isRatingField = static fn (string $name): bool => $hasRatings
+    && ($name === 'trainees_surveyed' || preg_match('/^(quality|timeliness)_(poor|fair|good|better|best)$/', $name) === 1);
+$renderRatings = static function () use ($ratingScales, $ratingLevels, $values, $definition): void {
+    $surveyed = (string) ($values['trainees_surveyed'] ?? '');
+    $isTraining = isset($definition['fields']['training_title']);
+    ?>
+    <fieldset class="rating-block webform-field--full" data-rating-block>
+        <legend>Trainee Ratings</legend>
+        <p class="webform-hint">Enter how many of the surveyed trainees gave each rating. Each row should add up to the number surveyed.</p>
+        <div class="rating-surveyed">
+            <label for="activity-field-trainees_surveyed">No. of Trainees Surveyed</label>
+            <input type="number" min="0" step="1" id="activity-field-trainees_surveyed" name="fields[trainees_surveyed]" value="<?= htmlspecialchars($surveyed) ?>" data-rating-surveyed>
+        </div>
+        <?php foreach ($ratingScales as $prefix => $scaleLabel): ?>
+            <div class="rating-scale" data-rating-scale>
+                <div class="rating-scale-head">
+                    <span class="rating-scale-label"><?= htmlspecialchars($scaleLabel) ?> of <?= $isTraining ? 'training' : 'service' ?></span>
+                    <span class="rating-scale-sum" data-rating-sum aria-live="polite"></span>
+                </div>
+                <div class="rating-options">
+                    <?php $n = 0; foreach ($ratingLevels as $level => $levelLabel): $n++; ?>
+                        <?php $name = $prefix . '_' . $level; ?>
+                        <label class="rating-option" for="activity-field-<?= $name ?>">
+                            <span class="rating-option-head"><span class="rating-num"><?= $n ?></span> <?= $levelLabel ?></span>
+                            <input type="number" min="0" step="1" inputmode="numeric" id="activity-field-<?= $name ?>" name="fields[<?= $name ?>]" value="<?= htmlspecialchars((string) ($values[$name] ?? '')) ?>" placeholder="0" data-rating-count>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </fieldset>
+    <?php
+};
 ?>
 
 <div class="page-actions-bar">
@@ -173,8 +217,12 @@ $renderField = static function (string $name, array $field, string $value, strin
             <?php endforeach; ?>
         </datalist>
     <?php endif; ?>
+    <?php $ratingsRendered = false; ?>
     <?php foreach ($blocks as $block): ?>
-        <?php if ($block['group'] !== ''): ?>
+        <?php $blockIsRatings = $hasRatings && array_filter(array_keys($block['fields']), static fn (string $name): bool => !$isRatingField($name)) === []; ?>
+        <?php if ($blockIsRatings): ?>
+            <?php if (!$ratingsRendered) { $renderRatings(); $ratingsRendered = true; } ?>
+        <?php elseif ($block['group'] !== ''): ?>
             <fieldset class="activity-field-group webform-field--full">
                 <legend><?= htmlspecialchars($block['group']) ?></legend>
                 <div class="activity-field-row">
@@ -195,6 +243,42 @@ $renderField = static function (string $name, array $field, string $value, strin
     <?php endforeach; ?>
     </div>
     </section>
+
+    <?php if ($hasRatings): ?>
+    <script>
+    (() => {
+        // Each rating row should add up to the number of trainees surveyed.
+        const block = document.querySelector('[data-rating-block]');
+        const surveyed = block?.querySelector('[data-rating-surveyed]');
+        if (!block || !surveyed) {
+            return;
+        }
+        const update = () => {
+            const target = surveyed.value === '' ? null : Number(surveyed.value);
+            block.querySelectorAll('[data-rating-scale]').forEach((scale) => {
+                const counts = Array.from(scale.querySelectorAll('[data-rating-count]'));
+                const any = counts.some((input) => input.value !== '');
+                const sum = counts.reduce((total, input) => total + (Number(input.value) || 0), 0);
+                const out = scale.querySelector('[data-rating-sum]');
+                scale.classList.remove('is-match', 'is-mismatch');
+                if (!any) {
+                    out.textContent = '';
+                    return;
+                }
+                if (target === null) {
+                    out.textContent = sum + ' rated';
+                    return;
+                }
+                const ok = sum === target;
+                scale.classList.add(ok ? 'is-match' : 'is-mismatch');
+                out.textContent = sum + ' of ' + target + ' rated' + (ok ? '' : (sum > target ? ' (more than surveyed)' : ' (' + (target - sum) + ' missing)'));
+            });
+        };
+        block.addEventListener('input', update);
+        update();
+    })();
+    </script>
+    <?php endif; ?>
 
     <?php if ($hasProgramField && $extensionProjects !== []): ?>
     <script>
