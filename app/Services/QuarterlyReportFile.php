@@ -15,11 +15,56 @@ final class QuarterlyReportFile
 {
     private const DIR = BASE_PATH . '/resources/form-templates/';
 
+    /** ESO-06 columns, shared by both training categories. 'weighted_persons' is computed (see value()). */
+    private const TRAINING_COLUMNS = [
+        'A' => 'extension_program', 'B' => 'training_title', 'C' => 'venue', 'D' => 'training_date',
+        'E' => 'participant_type', 'F' => 'persons_trained', 'G' => 'weighted_persons', 'H' => 'personnel_name',
+        'I' => 'personnel_role', 'J' => 'budget_source', 'K' => 'budget_amount', 'L' => 'trainees_surveyed',
+        'M' => 'quality_poor', 'N' => 'quality_fair', 'O' => 'quality_good', 'P' => 'quality_better', 'Q' => 'quality_best',
+        'R' => 'timeliness_poor', 'S' => 'timeliness_fair', 'T' => 'timeliness_good', 'U' => 'timeliness_better', 'V' => 'timeliness_best',
+    ];
+
+    /** Weight of a training by its length (ESO-06 note 3). */
+    private const TRAINING_WEIGHTS = ['lt_8h' => 0.5, '8h_1d' => 1.0, '2d' => 1.25, '3_4d' => 1.5, '5d_plus' => 2.0];
+
     /**
      * ESO Excel forms. 'tables': data rows per section (first data row, number of blank rows in the template,
      * column => field); filled bottom-up so inserting rows never moves a section that is still to be filled.
      */
     private const XLSX = [
+        'trainings_conducted' => [
+            'file' => 'eso/eso-06-trainings-conducted.xlsx',
+            'as_of' => 'A3',
+            'tables' => [
+                'other' => ['first' => 12, 'rows' => 3, 'columns' => self::TRAINING_COLUMNS],
+                'need_based' => ['first' => 7, 'rows' => 3, 'columns' => self::TRAINING_COLUMNS],
+            ],
+            'counts' => [],
+            // Totals rows: persons trained and persons trained weighted by length, per category and overall.
+            'sums' => [
+                'F10' => ['need_based', 'persons_trained'], 'G10' => ['need_based', 'weighted_persons'],
+                'F15' => ['other', 'persons_trained'], 'G15' => ['other', 'weighted_persons'],
+                'F16' => ['', 'persons_trained'], 'G16' => ['', 'weighted_persons'],
+            ],
+            'narrative' => ['A21' => 'challenges', 'A24' => 'best_practices', 'A27' => 'lessons_learned'],
+            'prepared_by' => 'D53',
+            'dean' => 'Q53',
+        ],
+        'outreach_activities' => [
+            'file' => 'eso/eso-09-outreach-activities.xlsx',
+            'as_of' => 'A3',
+            'tables' => [
+                '' => ['first' => 6, 'rows' => 10, 'columns' => [
+                    'A' => 'title', 'B' => 'venue', 'C' => 'start_date', 'D' => 'end_date', 'E' => 'beneficiaries',
+                ]],
+            ],
+            // D16 holds the number of outreach activities, E16 the total beneficiaries.
+            'counts' => ['D16' => ''],
+            'sums' => ['E16' => ['', 'beneficiaries']],
+            'narrative' => ['A19' => 'challenges', 'A21' => 'best_practices', 'A23' => 'lessons_learned'],
+            'prepared_by' => 'A36',
+            'dean' => 'E36',
+        ],
         'technical_advisory' => [
             'file' => 'eso/eso-07-technical-advisory.xlsx',
             'as_of' => 'A3',
@@ -193,6 +238,22 @@ final class QuarterlyReportFile
             $count = $sectionKey === '' ? count($allRows) : count($rowsBySection[$sectionKey] ?? []);
             $book->setCell($moved($ref), $count);
         }
+        foreach ($config['sums'] ?? [] as $ref => [$sectionKey, $field]) {
+            $rows = $sectionKey === '' ? $allRows : ($rowsBySection[$sectionKey] ?? []);
+            $sectionOf = static function (array $row) use ($rowsBySection): string {
+                foreach ($rowsBySection as $key => $list) {
+                    if (in_array($row, $list, true)) {
+                        return (string) $key;
+                    }
+                }
+                return '';
+            };
+            $total = 0.0;
+            foreach ($rows as $row) {
+                $total += (float) str_replace(',', '', self::value($type, $sectionKey !== '' ? $sectionKey : $sectionOf($row), $field, $row));
+            }
+            $book->setCell($moved($ref), $rows === [] ? '' : $total + 0);
+        }
         foreach ($config['narrative'] as $ref => $field) {
             $book->setCell($moved($ref), trim((string) ($summary[$field] ?? '')));
         }
@@ -304,6 +365,11 @@ final class QuarterlyReportFile
 
     private static function value(string $type, string $section, string $field, array $row): string
     {
+        if ($field === 'weighted_persons') {
+            $persons = trim((string) ($row['persons_trained'] ?? ''));
+            $weight = self::TRAINING_WEIGHTS[(string) ($row['training_length'] ?? '')] ?? null;
+            return $persons !== '' && is_numeric($persons) && $weight !== null ? (string) ((float) $persons * $weight + 0) : '';
+        }
         $value = trim((string) ($row[$field] ?? ''));
         if ($value === '') {
             return '';
