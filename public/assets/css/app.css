@@ -4809,6 +4809,37 @@ th { background: #f9fafb; font-size: 0.85rem; }
     gap: 1rem 1.1rem;
 }
 .webform-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.webform-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.webform-grid > .webform-grid { gap: 1rem 1.1rem; }
+.webform-field--half { grid-column: span 2; }
+.webform-field--right { grid-column: 3 / span 2; }
+.webform-empty {
+    margin: 0 0 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+.webform-item-tag {
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius-pill);
+    background: #f1f5f9;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+#eso-team-duties-body .eso-remove-row { display: none; }
+
+/* Members / Trainers chip box */
+.eso-members-row { align-items: flex-start; }
+.eso-members-row .chip-input { flex: 1; min-width: 0; }
+.eso-members-row .btn { min-height: 2.9rem; }
+.eso-members-chips { display: contents; }
+.chip-item.is-guest { background: #f1f5f9; color: #334155; border: 1px dashed #b6c8d4; }
+.chip-item.is-guest .chip-remove { color: #64748b; }
+.chip-item.is-guest .chip-remove:hover { background: #e2e8f0; }
+.chip-tag { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
 .webform-field { min-width: 0; }
 .webform-card > .webform-field + .webform-field,
 .webform-card > .webform-field + .webform-subsection { margin-top: 1.1rem; }
@@ -4957,6 +4988,11 @@ th { background: #f9fafb; font-size: 0.85rem; }
     .webform-card { padding: 1.1rem 1rem 1.2rem; }
     .webform-grid,
     .webform-grid--3 { grid-template-columns: 1fr; }
+    .webform-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .webform-field--half,
+    .webform-field--right { grid-column: 1 / -1; }
+    .eso-members-row { flex-wrap: wrap; }
+    .eso-members-row .chip-input { flex-basis: 100%; }
     .webform-actionbar .btn { flex: 1; text-align: center; }
 }
 

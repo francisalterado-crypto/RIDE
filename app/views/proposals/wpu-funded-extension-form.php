@@ -167,28 +167,13 @@ $teamDuties = is_array($summaryData['team_duties'] ?? null) && $summaryData['tea
     ? $padRows($summaryData['team_duties'], $blankTeamDuty, 1)
     : $defaultTeamDuties;
 
-$facultyGroups = [];
-$facultyCollegeFilters = [];
-$facultyDepartmentFilters = [];
-foreach ($facultyTeamOptions as $facultyOption) {
-    $collegeKey = trim((string) ($facultyOption['college_name'] ?? ''));
-    if ($collegeKey === '') {
-        $collegeKey = 'Unassigned college';
-    }
-    $departmentKey = trim((string) ($facultyOption['department_label'] ?? $facultyOption['department'] ?? ''));
-    if ($departmentKey === '') {
-        $departmentKey = 'No department/program assigned';
-    }
-    $groupKey = $collegeKey . ' / ' . $departmentKey;
-    $facultyGroups[$groupKey][] = $facultyOption;
-    $facultyCollegeFilters[$collegeKey] = true;
-    $facultyDepartmentFilters[$departmentKey] = true;
-}
-ksort($facultyGroups);
-$facultyCollegeFilters = array_keys($facultyCollegeFilters);
-$facultyDepartmentFilters = array_keys($facultyDepartmentFilters);
-sort($facultyCollegeFilters);
-sort($facultyDepartmentFilters);
+// Registered faculty, so names picked in Members / Trainers link to their RIDE Hub account in IV-E.
+$facultyDirectory = array_map(static fn(array $facultyOption): array => [
+    'id' => (int) $facultyOption['id'],
+    'name' => (string) $facultyOption['name'],
+    'college' => (string) ($facultyOption['college_name'] ?? ''),
+    'department' => (string) ($facultyOption['department'] ?? ''),
+], $facultyTeamOptions);
 
 $logicalFramework = $padRows($summaryData['logical_framework'] ?? [], [
     'inputs' => '',
@@ -368,8 +353,11 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             </div>
             <div class="webform-field webform-field--full">
                 <label for="eso-members-trainers-search">Members / Trainers</label>
-                <div class="webform-inline">
-                    <input type="text" id="eso-members-trainers-search" list="eso-registered-user-options" placeholder="Type a name to search registered users" autocomplete="off">
+                <div class="webform-inline eso-members-row">
+                    <div class="chip-input" id="eso-members-box" data-faculty="<?= htmlspecialchars(json_encode($facultyDirectory, JSON_UNESCAPED_UNICODE) ?: '[]') ?>">
+                        <span class="eso-members-chips" id="eso-members-chips"></span>
+                        <input type="text" class="chip-entry" id="eso-members-trainers-search" list="eso-registered-user-options" placeholder="Search a registered user, or type any full name" autocomplete="off">
+                    </div>
                     <datalist id="eso-registered-user-options">
                         <?php foreach ($facultyTeamOptions as $facultyOption): ?>
                             <option value="<?= htmlspecialchars((string) $facultyOption['name']) ?>" data-meta="<?= htmlspecialchars((string) $facultyOption['college_name']) ?>">
@@ -377,8 +365,8 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                     </datalist>
                     <button type="button" class="btn btn-outline btn-sm" id="eso-members-trainers-add">Add</button>
                 </div>
-                <textarea name="members_trainers" id="eso-members-trainers" rows="3" data-autoresize placeholder="One name per line" aria-label="Members and trainers"><?= htmlspecialchars($membersTrainersValue) ?></textarea>
-                <p class="webform-hint">Choose a name from the suggestions to add it, or type names directly, one per line, for people who don't have an account.</p>
+                <textarea name="members_trainers" id="eso-members-trainers" hidden aria-hidden="true"><?= htmlspecialchars($membersTrainersValue) ?></textarea>
+                <p class="webform-hint">Select a registered user from the suggestions, or enter the full name of a person without a RIDE Hub account (e.g. an LGU trainer) and press Enter. Several names may be pasted at once, one per line or separated by semicolons. Each person listed is added to IV-E. Duties and Responsibilities.</p>
             </div>
             <div class="webform-field webform-field--full">
                 <label for="eso-collaborating">Collaborating Organizations</label>
@@ -386,26 +374,28 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             </div>
             <div class="webform-field webform-field--full">
                 <label for="eso-beneficiaries">Beneficiaries</label>
-                <input id="eso-beneficiaries" name="beneficiaries" value="<?= htmlspecialchars($beneficiariesValue) ?>" placeholder="e.g. Smallholder farmers of Barangay San Juan">
+                <input id="eso-beneficiaries" name="beneficiaries" value="<?= htmlspecialchars($beneficiariesValue) ?>" placeholder="Smallholder farmers of Barangay San Juan">
             </div>
-            <div class="webform-field">
-                <label for="eso-male">Male beneficiaries</label>
-                <input id="eso-male" type="number" min="0" step="1" name="male_beneficiaries" value="<?= htmlspecialchars($maleBeneficiariesValue) ?>" placeholder="0">
+            <div class="webform-grid webform-grid--4 webform-field--full">
+                <div class="webform-field">
+                    <label for="eso-male">Male beneficiaries</label>
+                    <input id="eso-male" type="number" min="0" step="1" name="male_beneficiaries" value="<?= htmlspecialchars($maleBeneficiariesValue) ?>" placeholder="0">
+                </div>
+                <div class="webform-field">
+                    <label for="eso-female">Female beneficiaries</label>
+                    <input id="eso-female" type="number" min="0" step="1" name="female_beneficiaries" value="<?= htmlspecialchars($femaleBeneficiariesValue) ?>" placeholder="0">
+                </div>
+                <div class="webform-field">
+                    <label for="eso-start">Start date <span class="webform-req">*</span></label>
+                    <input id="eso-start" type="date" name="duration_start_date" value="<?= htmlspecialchars($durationStartValue) ?>">
+                </div>
+                <div class="webform-field">
+                    <label for="eso-end">End date <span class="webform-req">*</span></label>
+                    <input id="eso-end" type="date" name="duration_end_date" value="<?= htmlspecialchars($durationEndValue) ?>">
+                </div>
+                <p class="webform-calc webform-field--half" id="eso-beneficiary-total" hidden></p>
+                <p class="webform-calc webform-field--half webform-field--right" id="eso-duration-calc" hidden></p>
             </div>
-            <div class="webform-field">
-                <label for="eso-female">Female beneficiaries</label>
-                <input id="eso-female" type="number" min="0" step="1" name="female_beneficiaries" value="<?= htmlspecialchars($femaleBeneficiariesValue) ?>" placeholder="0">
-            </div>
-            <p class="webform-calc webform-field--full" id="eso-beneficiary-total" hidden></p>
-            <div class="webform-field">
-                <label for="eso-start">Start date <span class="webform-req">*</span></label>
-                <input id="eso-start" type="date" name="duration_start_date" value="<?= htmlspecialchars($durationStartValue) ?>">
-            </div>
-            <div class="webform-field">
-                <label for="eso-end">End date <span class="webform-req">*</span></label>
-                <input id="eso-end" type="date" name="duration_end_date" value="<?= htmlspecialchars($durationEndValue) ?>">
-            </div>
-            <p class="webform-calc webform-field--full" id="eso-duration-calc" hidden></p>
             <?php if ($durationValue !== '' && $durationStartValue === '' && $durationEndValue === ''): ?>
                 <p class="webform-hint webform-field--full">Previously entered as: <?= htmlspecialchars($durationValue) ?>. Pick dates above to replace it.</p>
             <?php endif; ?>
@@ -420,9 +410,9 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             </div>
             <div class="webform-field">
                 <label for="eso-source">Source of Fund</label>
-                <input id="eso-source" name="source_of_fund" list="eso-fund-source-options" value="<?= htmlspecialchars($sourceOfFundValue) ?>" placeholder="e.g. WPU Fund" autocomplete="off">
+                <input id="eso-source" name="source_of_fund" list="eso-fund-source-options" value="<?= htmlspecialchars($sourceOfFundValue) ?>" placeholder="Fund 164" autocomplete="off">
                 <datalist id="eso-fund-source-options">
-                    <option value="WPU Fund">
+                    <option value="Fund 164">
                     <option value="LGU Counterpart">
                     <option value="External Partner">
                 </datalist>
@@ -509,52 +499,8 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 
         <div class="webform-subsection">
             <h3>E. Duties and Responsibilities of the Project Team</h3>
-            <p class="webform-hint">Add faculty from the list below, or add someone manually if they don't have an account.</p>
-            <?php if ($facultyTeamOptions !== []): ?>
-                <div class="webform-panel eso-faculty-picker">
-                    <div class="webform-grid webform-grid--3">
-                        <div class="webform-field">
-                            <label for="eso-faculty-search">Search faculty</label>
-                            <input type="search" id="eso-faculty-search" placeholder="Search by name, college, department, or specialization" autocomplete="off">
-                        </div>
-                        <div class="webform-field">
-                            <label for="eso-faculty-college-filter">College</label>
-                            <select id="eso-faculty-college-filter">
-                                <option value="">All colleges</option>
-                                <?php foreach ($facultyCollegeFilters as $collegeFilter): ?>
-                                    <option value="<?= htmlspecialchars($collegeFilter) ?>"><?= htmlspecialchars($collegeFilter) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="webform-field">
-                            <label for="eso-faculty-department-filter">Department / Program</label>
-                            <select id="eso-faculty-department-filter">
-                                <option value="">All departments/programs</option>
-                                <?php foreach ($facultyDepartmentFilters as $departmentFilter): ?>
-                                    <option value="<?= htmlspecialchars($departmentFilter) ?>"><?= htmlspecialchars($departmentFilter) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
-                    <select id="eso-faculty-select" class="webform-listbox" size="6" aria-label="Faculty across colleges and departments">
-                        <?php foreach ($facultyGroups as $groupLabel => $facultyRows): ?>
-                            <optgroup label="<?= htmlspecialchars($groupLabel) ?>">
-                                <?php foreach ($facultyRows as $facultyOption): ?>
-                                    <option
-                                        value="<?= (int) $facultyOption['id'] ?>"
-                                        data-name="<?= htmlspecialchars((string) $facultyOption['name']) ?>"
-                                        data-college="<?= htmlspecialchars((string) $facultyOption['college_name']) ?>"
-                                        data-department="<?= htmlspecialchars((string) $facultyOption['department']) ?>"
-                                        data-department-label="<?= htmlspecialchars((string) ($facultyOption['department_label'] ?? $facultyOption['department'])) ?>"
-                                        data-specializations="<?= htmlspecialchars(implode(', ', $facultyOption['specializations'] ?? [])) ?>"
-                                    ><?= htmlspecialchars((string) $facultyOption['label']) ?><?= !empty($facultyOption['specializations']) ? ' (' . htmlspecialchars(implode(', ', $facultyOption['specializations'])) . ')' : '' ?></option>
-                                <?php endforeach; ?>
-                            </optgroup>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="button" id="eso-add-faculty-member" class="btn btn-sm">Add selected faculty to team</button>
-                </div>
-            <?php endif; ?>
+            <p class="webform-hint">The team comes from <a href="#eso-members-trainers-search">Project Team Leader and Members / Trainers</a> in I. Identifying Information. Add or remove team members there. In this section, specify each member's role, task description, and responsibility. College and department are filled in for RIDE Hub accounts; enter them for members without an account.</p>
+            <p class="webform-empty" id="eso-team-empty" hidden>No members or trainers have been added. Add them in <a href="#eso-members-trainers-search">Members / Trainers</a> above so they show up here.</p>
 
             <div class="webform-repeater" id="eso-team-duties-body">
                 <?php foreach ($teamDuties as $index => $row): ?>
@@ -571,13 +517,13 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                                 <?php if ($linkedUserId > 0): ?>
                                     <input type="hidden" data-field="user_id" name="team_duties[<?= (int) $index ?>][user_id]" value="<?= $linkedUserId ?>">
                                 <?php endif; ?>
-                                <input data-field="member" name="team_duties[<?= (int) $index ?>][member]" value="<?= htmlspecialchars((string) ($row['member'] ?? '')) ?>" placeholder="Full name" <?= $linkedUserId > 0 ? 'readonly' : '' ?>>
+                                <input data-field="member" name="team_duties[<?= (int) $index ?>][member]" value="<?= htmlspecialchars((string) ($row['member'] ?? '')) ?>" placeholder="Added from Members / Trainers" readonly>
                             </div>
                             <div class="webform-field"><label>Role</label><input data-field="role" list="eso-role-options" name="team_duties[<?= (int) $index ?>][role]" value="<?= htmlspecialchars((string) ($row['role'] ?? '')) ?>" placeholder="e.g. Project Leader"></div>
                             <div class="webform-field"><label>College</label><input data-field="college" name="team_duties[<?= (int) $index ?>][college]" value="<?= htmlspecialchars((string) ($row['college'] ?? '')) ?>" placeholder="College" <?= $linkedUserId > 0 ? 'readonly' : '' ?>></div>
                             <div class="webform-field"><label>Department / Program</label><input data-field="department" name="team_duties[<?= (int) $index ?>][department]" value="<?= htmlspecialchars((string) ($row['department'] ?? '')) ?>" placeholder="Department / program" <?= $linkedUserId > 0 ? 'readonly' : '' ?>></div>
-                            <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description" name="team_duties[<?= (int) $index ?>][task_description]" placeholder="What this member will do"><?= htmlspecialchars((string) ($row['task_description'] ?? '')) ?></textarea></div>
-                            <div class="webform-field"><label>Responsibility</label><textarea rows="2" data-autoresize data-field="responsibility" name="team_duties[<?= (int) $index ?>][responsibility]" placeholder="What this member is accountable for"><?= htmlspecialchars((string) ($row['responsibility'] ?? '')) ?></textarea></div>
+                            <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description" name="team_duties[<?= (int) $index ?>][task_description]" placeholder="Tasks assigned to this member"><?= htmlspecialchars((string) ($row['task_description'] ?? '')) ?></textarea></div>
+                            <div class="webform-field"><label>Responsibility</label><textarea rows="2" data-autoresize data-field="responsibility" name="team_duties[<?= (int) $index ?>][responsibility]" placeholder="Outputs this member is accountable for"><?= htmlspecialchars((string) ($row['responsibility'] ?? '')) ?></textarea></div>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -590,7 +536,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <option value="Facilitator">
                 <option value="Documenter">
             </datalist>
-            <button type="button" class="webform-add-btn" id="eso-add-team-duty">Add member manually</button>
+            <button type="button" id="eso-add-team-duty" hidden aria-hidden="true" tabindex="-1"></button>
         </div>
     </section>
 
@@ -861,12 +807,12 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     <div class="webform-item eso-repeater-row">
         <div class="webform-item-head"><span class="webform-item-label">Team member</span><?= $removeItemButton ?></div>
         <div class="webform-grid">
-            <div class="webform-field"><label>Name</label><input data-field="member" placeholder="Full name"></div>
-            <div class="webform-field"><label>Role</label><input data-field="role" list="eso-role-options" placeholder="e.g. Member"></div>
+            <div class="webform-field"><label>Name</label><input data-field="member" placeholder="Added from Members / Trainers" readonly></div>
+            <div class="webform-field"><label>Role</label><input data-field="role" list="eso-role-options" placeholder="Member"></div>
             <div class="webform-field"><label>College</label><input data-field="college" placeholder="College"></div>
             <div class="webform-field"><label>Department / Program</label><input data-field="department" placeholder="Department / program"></div>
-            <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description" placeholder="What this member will do"></textarea></div>
-            <div class="webform-field"><label>Responsibility</label><textarea rows="2" data-autoresize data-field="responsibility" placeholder="What this member is accountable for"></textarea></div>
+            <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description" placeholder="Tasks assigned to this member"></textarea></div>
+            <div class="webform-field"><label>Responsibility</label><textarea rows="2" data-autoresize data-field="responsibility" placeholder="Outputs this member is accountable for"></textarea></div>
         </div>
     </div>
 </template>
@@ -1136,12 +1082,6 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     bindRepeater({ bodyId: 'eso-workplan-body', addId: 'eso-add-workplan', templateId: 'eso-workplan-row-template', namePrefix: 'work_plan' });
     bindRepeater({ bodyId: 'eso-budget-general-body', addId: 'eso-add-budget-general', templateId: 'eso-budget-general-row-template', namePrefix: 'budget_general', minRows: 1 });
 
-    const facultySelect = document.getElementById('eso-faculty-select');
-    const facultySearch = document.getElementById('eso-faculty-search');
-    const facultyCollegeFilter = document.getElementById('eso-faculty-college-filter');
-    const facultyDepartmentFilter = document.getElementById('eso-faculty-department-filter');
-    const addFacultyButton = document.getElementById('eso-add-faculty-member');
-
     const applyFacultyToRow = (row, option) => {
         const memberField = row.querySelector('[data-field="member"]')?.closest('.webform-field');
         if (memberField && !row.querySelector('[data-field="user_id"]')) {
@@ -1177,132 +1117,6 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         bindAutoResize(row);
     };
 
-    const linkedFacultyIds = () => {
-        const ids = new Set();
-        teamDutiesRepeater?.tbody.querySelectorAll('[data-field="user_id"]').forEach((input) => {
-            if (input.value) {
-                ids.add(input.value);
-            }
-        });
-        return ids;
-    };
-
-    const emptyTeamDutyRow = () => {
-        const rows = Array.from(teamDutiesRepeater?.tbody.querySelectorAll('.eso-repeater-row') ?? []);
-        return rows.find((row) => {
-            if (row.querySelector('[data-field="user_id"]')) {
-                return false;
-            }
-            const member = row.querySelector('[data-field="member"]');
-            const college = row.querySelector('[data-field="college"]');
-            const department = row.querySelector('[data-field="department"]');
-            return (member?.value.trim() ?? '') === ''
-                && (college?.value.trim() ?? '') === ''
-                && (department?.value.trim() ?? '') === '';
-        }) ?? null;
-    };
-
-    const optionDepartmentLabel = (option) => (option.dataset.departmentLabel || option.dataset.department || '').trim()
-        || 'No department/program assigned';
-
-    const filterFacultyOptions = () => {
-        if (!facultySelect) {
-            return;
-        }
-        const query = (facultySearch?.value || '').trim().toLowerCase();
-        const college = (facultyCollegeFilter?.value || '').trim().toLowerCase();
-        const department = (facultyDepartmentFilter?.value || '').trim().toLowerCase();
-        let firstVisible = null;
-
-        facultySelect.querySelectorAll('optgroup').forEach((group) => {
-            let visibleInGroup = 0;
-            group.querySelectorAll('option').forEach((option) => {
-                const departmentLabel = optionDepartmentLabel(option);
-                const haystack = [
-                    option.textContent,
-                    option.dataset.name,
-                    option.dataset.college,
-                    option.dataset.department,
-                    option.dataset.specializations,
-                    departmentLabel,
-                    group.label,
-                ].join(' ').toLowerCase();
-                const matchesQuery = query === '' || haystack.includes(query);
-                const matchesCollege = college === '' || (option.dataset.college || '').toLowerCase() === college
-                    || group.label.toLowerCase().startsWith(college);
-                const matchesDepartment = department === '' || departmentLabel.toLowerCase() === department;
-                const visible = matchesQuery && matchesCollege && matchesDepartment;
-                option.hidden = !visible;
-                if (visible) {
-                    visibleInGroup += 1;
-                    if (firstVisible === null) {
-                        firstVisible = option;
-                    }
-                }
-            });
-            group.hidden = visibleInGroup === 0;
-        });
-
-        if (firstVisible) {
-            firstVisible.selected = true;
-        }
-    };
-
-    const refreshDepartmentFilter = () => {
-        if (!facultyDepartmentFilter || !facultySelect) {
-            return;
-        }
-        const college = (facultyCollegeFilter?.value || '').trim().toLowerCase();
-        const current = facultyDepartmentFilter.value;
-        const departments = new Set();
-        facultySelect.querySelectorAll('option[value]').forEach((option) => {
-            const optionCollege = (option.dataset.college || '').trim().toLowerCase();
-            if (college !== '' && optionCollege !== college) {
-                return;
-            }
-            departments.add(optionDepartmentLabel(option));
-        });
-
-        const sorted = Array.from(departments).sort((a, b) => a.localeCompare(b));
-        facultyDepartmentFilter.innerHTML = '';
-        const allOption = document.createElement('option');
-        allOption.value = '';
-        allOption.textContent = 'All departments/programs';
-        facultyDepartmentFilter.appendChild(allOption);
-        sorted.forEach((label) => {
-            const option = document.createElement('option');
-            option.value = label;
-            option.textContent = label;
-            facultyDepartmentFilter.appendChild(option);
-        });
-        facultyDepartmentFilter.value = sorted.includes(current) ? current : '';
-        filterFacultyOptions();
-    };
-
-    facultySearch?.addEventListener('input', filterFacultyOptions);
-    facultyCollegeFilter?.addEventListener('change', refreshDepartmentFilter);
-    facultyDepartmentFilter?.addEventListener('change', filterFacultyOptions);
-    filterFacultyOptions();
-
-    addFacultyButton?.addEventListener('click', () => {
-        if (!facultySelect || !teamDutiesRepeater) {
-            return;
-        }
-        const option = facultySelect.options[facultySelect.selectedIndex];
-        if (!option || !option.value || option.hidden) {
-            facultySelect.focus();
-            return;
-        }
-        if (linkedFacultyIds().has(option.value)) {
-            window.alert('This faculty member is already included in the project team.');
-            return;
-        }
-
-        const row = emptyTeamDutyRow() ?? teamDutiesRepeater.addRow();
-        applyFacultyToRow(row, option);
-        teamDutiesRepeater.reindex();
-    });
-
     document.querySelectorAll('#eso-budget-groups .eso-budget-group').forEach(bindBudgetGroup);
     reindexBudgetGroups();
 
@@ -1327,22 +1141,297 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         reindexBudgetGroups();
     });
 
+    /* ---------- Members / Trainers feed IV-E (Duties and Responsibilities) ---------- */
+    const membersBox = document.getElementById('eso-members-box');
+    const membersChips = document.getElementById('eso-members-chips');
     const membersTrainersSearch = document.getElementById('eso-members-trainers-search');
     const membersTrainersTextarea = document.getElementById('eso-members-trainers');
-    document.getElementById('eso-members-trainers-add')?.addEventListener('click', () => {
-        const name = membersTrainersSearch?.value.trim();
-        if (!name || !membersTrainersTextarea) {
+    const membersTrainersAdd = document.getElementById('eso-members-trainers-add');
+    const teamLeaderInput = document.getElementById('eso-team-leader');
+    const teamEmptyNote = document.getElementById('eso-team-empty');
+    const normalizeName = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+    let facultyDirectory = [];
+    try {
+        facultyDirectory = JSON.parse(membersBox?.dataset.faculty || '[]');
+    } catch (error) {
+        facultyDirectory = [];
+    }
+    // Shaped like a picker option so applyFacultyToRow can use it.
+    const facultyByName = (name) => {
+        const key = normalizeName(name);
+        const person = key === '' ? null : facultyDirectory.find((entry) => normalizeName(entry.name) === key);
+        return person
+            ? { value: String(person.id), dataset: { name: person.name, college: person.college, department: person.department } }
+            : null;
+    };
+
+    const membersTrainersNames = () => {
+        const seen = new Set();
+        return (membersTrainersTextarea?.value || '').split(/\r?\n/).map((line) => line.trim().replace(/\s+/g, ' ')).filter((name) => {
+            const key = normalizeName(name);
+            if (key === '' || seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+    };
+    const setMembersTrainersNames = (names, notify = true) => {
+        if (!membersTrainersTextarea) {
             return;
         }
-        const existing = membersTrainersTextarea.value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-        if (!existing.includes(name)) {
-            existing.push(name);
+        membersTrainersTextarea.value = names.join('\n');
+        if (notify) {
+            membersTrainersTextarea.dispatchEvent(new Event('input', { bubbles: true }));
         }
-        membersTrainersTextarea.value = existing.join('\n');
-        membersTrainersTextarea.dispatchEvent(new Event('input'));
-        membersTrainersSearch.value = '';
-        membersTrainersSearch.focus();
+    };
+
+    const teamRows = () => Array.from(teamDutiesRepeater?.tbody.querySelectorAll(':scope > .eso-repeater-row') ?? []);
+    const rowField = (row, field) => row.querySelector(`[data-field="${field}"]`);
+    const rowMemberName = (row) => normalizeName(rowField(row, 'member')?.value);
+    const rowRole = (row) => normalizeName(rowField(row, 'role')?.value);
+    const stashFields = ['role', 'college', 'department', 'task_description', 'responsibility'];
+    // Duties typed for someone taken off the list come back if they are added again.
+    const dutyStash = new Map();
+
+    const unlinkRow = (row) => {
+        rowField(row, 'user_id')?.remove();
+        row.querySelector('.webform-item-head .badge')?.remove();
+        row.removeAttribute('data-linked-faculty');
+        ['college', 'department'].forEach((field) => {
+            const input = rowField(row, field);
+            if (input) {
+                input.readOnly = false;
+            }
+        });
+    };
+
+    const setRowPerson = (row, name, label) => {
+        const option = facultyByName(name);
+        const linked = rowField(row, 'user_id');
+        if (linked && (!option || linked.value !== option.value)) {
+            unlinkRow(row);
+            // The account's college and department belonged to the previous person.
+            ['college', 'department'].forEach((field) => {
+                const input = rowField(row, field);
+                if (input) {
+                    input.value = '';
+                }
+            });
+        }
+        if (option) {
+            applyFacultyToRow(row, option);
+        }
+        const member = rowField(row, 'member');
+        if (member) {
+            member.value = option ? option.dataset.name : name;
+            member.readOnly = true;
+        }
+        row.querySelector('.webform-item-tag')?.remove();
+        if (!option && name !== '') {
+            const tag = document.createElement('span');
+            tag.className = 'webform-item-tag';
+            tag.textContent = 'No RIDE Hub account';
+            row.querySelector('.webform-item-head')?.insertBefore(tag, row.querySelector('.eso-remove-row'));
+        }
+        const labelEl = row.querySelector('.webform-item-label');
+        if (labelEl) {
+            labelEl.textContent = label;
+        }
+        ['college', 'department'].forEach((field) => {
+            const input = rowField(row, field);
+            if (input && !option) {
+                input.placeholder = field === 'college' ? 'College or office / agency' : 'Department / program / unit';
+            }
+        });
+    };
+
+    // Rows are rebuilt from the leader field and the Members / Trainers list, in that order.
+    const syncTeamFromMembers = () => {
+        if (!teamDutiesRepeater) {
+            return;
+        }
+        const tbody = teamDutiesRepeater.tbody;
+        const leaderName = (teamLeaderInput?.value || '').trim().replace(/\s+/g, ' ');
+        const leaderKey = normalizeName(leaderName);
+        const names = membersTrainersNames().filter((name) => normalizeName(name) !== leaderKey);
+        const wanted = new Set(names.map(normalizeName));
+
+        let rows = teamRows();
+        let leaderRow = rows.find((row) => row.dataset.teamLeader === '1')
+            ?? rows.find((row) => rowRole(row) === 'project leader')
+            ?? (leaderKey !== '' ? rows.find((row) => rowMemberName(row) === leaderKey) : null)
+            ?? null;
+        if (!leaderRow) {
+            leaderRow = teamDutiesRepeater.addRow();
+            const role = rowField(leaderRow, 'role');
+            if (role) {
+                role.value = 'Project Leader';
+            }
+        }
+        leaderRow.dataset.teamLeader = '1';
+        setRowPerson(leaderRow, leaderName, 'Project Team Leader');
+        tbody.prepend(leaderRow);
+
+        const kept = new Map();
+        teamRows().forEach((row) => {
+            if (row === leaderRow) {
+                return;
+            }
+            const key = rowMemberName(row);
+            if (key !== '' && wanted.has(key) && !kept.has(key)) {
+                kept.set(key, row);
+                return;
+            }
+            if (key !== '') {
+                dutyStash.set(key, Object.fromEntries(stashFields.map((field) => [field, rowField(row, field)?.value ?? ''])));
+            }
+            row.remove();
+        });
+
+        names.forEach((name) => {
+            const key = normalizeName(name);
+            let row = kept.get(key);
+            if (!row) {
+                row = teamDutiesRepeater.addRow();
+                const saved = dutyStash.get(key);
+                stashFields.forEach((field) => {
+                    const input = rowField(row, field);
+                    if (input) {
+                        input.value = saved ? saved[field] : (field === 'role' ? 'Member' : '');
+                    }
+                });
+                dutyStash.delete(key);
+            }
+            setRowPerson(row, name, 'Member / Trainer');
+            tbody.appendChild(row);
+            bindAutoResize(row);
+        });
+
+        teamDutiesRepeater.reindex();
+        if (teamEmptyNote) {
+            teamEmptyNote.hidden = names.length > 0;
+        }
+    };
+
+    const renderMemberChips = () => {
+        if (!membersChips) {
+            return;
+        }
+        membersChips.replaceChildren(...membersTrainersNames().map((name) => {
+            const hasAccount = facultyByName(name) !== null;
+            const chip = document.createElement('span');
+            chip.className = hasAccount ? 'chip-item' : 'chip-item is-guest';
+            chip.title = hasAccount ? 'RIDE Hub account' : 'No RIDE Hub account';
+            const label = document.createElement('span');
+            label.textContent = name;
+            chip.appendChild(label);
+            if (!hasAccount) {
+                const tag = document.createElement('small');
+                tag.className = 'chip-tag';
+                tag.textContent = 'no account';
+                chip.appendChild(tag);
+            }
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'chip-remove';
+            remove.setAttribute('aria-label', `Remove ${name}`);
+            remove.innerHTML = '<i class="fas fa-xmark" aria-hidden="true"></i>';
+            remove.addEventListener('click', () => {
+                setMembersTrainersNames(membersTrainersNames().filter((other) => normalizeName(other) !== normalizeName(name)));
+                refreshMembers();
+                membersTrainersSearch?.focus();
+            });
+            chip.appendChild(remove);
+            return chip;
+        }));
+    };
+
+    const refreshMembers = () => {
+        renderMemberChips();
+        syncTeamFromMembers();
+    };
+
+    const updateAddLabel = () => {
+        if (!membersTrainersAdd) {
+            return;
+        }
+        const typed = (membersTrainersSearch?.value || '').trim();
+        membersTrainersAdd.textContent = typed !== '' && !/[\n;]/.test(typed) && facultyByName(typed) === null
+            ? 'Add without account'
+            : 'Add';
+    };
+
+    const addMembers = (raw) => {
+        const incoming = String(raw || '').split(/[\r\n;]+/).map((part) => part.trim().replace(/\s+/g, ' ')).filter(Boolean);
+        if (incoming.length === 0) {
+            return false;
+        }
+        const names = membersTrainersNames();
+        incoming.forEach((name) => {
+            const key = normalizeName(name);
+            if (!names.some((other) => normalizeName(other) === key)) {
+                names.push(facultyByName(name)?.dataset.name || name);
+            }
+        });
+        setMembersTrainersNames(names);
+        refreshMembers();
+        return true;
+    };
+
+    membersTrainersAdd?.addEventListener('click', () => {
+        if (addMembers(membersTrainersSearch?.value) && membersTrainersSearch) {
+            membersTrainersSearch.value = '';
+        }
+        updateAddLabel();
+        membersTrainersSearch?.focus();
     });
+    membersTrainersSearch?.addEventListener('input', updateAddLabel);
+    membersTrainersSearch?.addEventListener('paste', (event) => {
+        const text = event.clipboardData?.getData('text') || '';
+        if (/[\r\n;]/.test(text)) {
+            event.preventDefault();
+            addMembers(text);
+        }
+    });
+    membersTrainersSearch?.addEventListener('keydown', (event) => {
+        if (event.key === 'Backspace' && membersTrainersSearch.value === '') {
+            const names = membersTrainersNames();
+            if (names.length > 0) {
+                names.pop();
+                setMembersTrainersNames(names);
+                refreshMembers();
+            }
+        }
+    });
+    membersBox?.addEventListener('click', (event) => {
+        if (event.target === membersBox || event.target === membersChips) {
+            membersTrainersSearch?.focus();
+        }
+    });
+    teamLeaderInput?.addEventListener('change', syncTeamFromMembers);
+    teamLeaderInput?.addEventListener('combobox:pick', syncTeamFromMembers);
+
+    // Proposals saved before the team came from this list: keep anyone named only in IV-E.
+    (() => {
+        const leaderKey = normalizeName(teamLeaderInput?.value);
+        const names = membersTrainersNames();
+        const keys = new Set(names.map(normalizeName));
+        teamRows().forEach((row) => {
+            const name = (rowField(row, 'member')?.value || '').trim().replace(/\s+/g, ' ');
+            const key = normalizeName(name);
+            if (key === '' || key === leaderKey || keys.has(key) || rowRole(row) === 'project leader') {
+                return;
+            }
+            names.push(name);
+            keys.add(key);
+        });
+        if (names.length !== membersTrainersNames().length) {
+            setMembersTrainersNames(names, false);
+        }
+    })();
+    refreshMembers();
 
     const form = document.getElementById('eso-proposal-form');
     const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -1922,6 +2011,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             }
         }
         reindexBudgetGroups();
+        refreshMembers();
         form.querySelectorAll('textarea[data-autoresize]').forEach((textarea) => textarea.dispatchEvent(new Event('input')));
         refreshAll();
         saveDraft();
