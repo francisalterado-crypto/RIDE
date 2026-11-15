@@ -334,6 +334,8 @@ final class DashboardController
             'overdueCount' => count($overdueMilestones) + count($overdueReports),
             'pipeline' => $pipeline,
             'breakdown' => $breakdown,
+            // VPRIDE: who is submitting, university-wide (formerly on the Monitoring page).
+            'submitters' => $context['role'] === 'vpride' ? \App\Models\User::researchSubmitters($singleType) : [],
             'followUps' => array_values($followUps),
             'myDrafts' => $myDrafts,
             'monthlyActivity' => Proposal::monthlyWorkflowActivity(null, $collegeId, $types),

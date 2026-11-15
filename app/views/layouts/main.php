@@ -59,13 +59,6 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <a href="<?= base_url('dashboard') ?>" class="nav-item<?= nav_active('dashboard') ? ' active' : '' ?>">
                     <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                 </a>
-                <a href="<?= base_url('messages') ?>" class="nav-item<?= nav_active('messages') ? ' active' : '' ?>">
-                    <i class="fas fa-envelope-open-text"></i>
-                    <span>Messages</span>
-                    <?php if ($unreadMessageNavCount > 0): ?>
-                        <span class="nav-mark-count"><?= $unreadMessageNavCount > 99 ? '99+' : $unreadMessageNavCount ?></span>
-                    <?php endif; ?>
-                </a>
                 <?php if ($isVprideAccount): ?>
                 <div class="nav-section">
                     <div class="nav-section-label">Research &amp; Extension</div>
@@ -86,13 +79,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </a>
                 </div>
                 <div class="nav-section">
-                    <div class="nav-section-label">Monitoring</div>
-                    <a href="<?= base_url('monitoring?scope=research') ?>" class="nav-item<?= monitoring_nav_active('research') ? ' active' : '' ?>">
-                        <i class="fas fa-flask"></i> <span>Research and Development</span>
-                    </a>
-                    <a href="<?= base_url('monitoring?scope=extension') ?>" class="nav-item<?= monitoring_nav_active('extension') ? ' active' : '' ?>">
-                        <i class="fas fa-hands-helping"></i> <span>Extension Services</span>
-                    </a>
+                    <div class="nav-section-label">Settings</div>
                     <?php if (\App\Support\FacultyFormDeadlines::canManage()): ?>
                     <a href="<?= base_url('settings/faculty-deadlines') ?>" class="nav-item<?= nav_active('settings/faculty-deadlines') ? ' active' : '' ?>">
                         <i class="fas fa-calendar-check"></i> <span>Form Deadlines</span>
@@ -100,11 +87,6 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <?php endif; ?>
                 </div>
                 <?php else: ?>
-                <?php if (\App\Support\MonitoringRoles::isStaff()): ?>
-                    <a href="<?= base_url('monitoring') ?>" class="nav-item<?= nav_active('monitoring') ? ' active' : '' ?>">
-                        <i class="fas fa-chart-line"></i> <span>Monitoring</span>
-                    </a>
-                <?php endif; ?>
                 <?php if (\App\Support\FacultyFormDeadlines::canManage()): ?>
                 <a href="<?= base_url('settings/faculty-deadlines') ?>" class="nav-item<?= nav_active('settings/faculty-deadlines') ? ' active' : '' ?>">
                     <i class="fas fa-calendar-check"></i> <span>Form Deadlines</span>
@@ -419,6 +401,12 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <?php endif; ?>
                 </div>
                 <div class="header-actions">
+                    <a href="<?= base_url('messages') ?>" class="notification-bell header-messages<?= nav_active('messages') ? ' is-active' : '' ?>" title="Messages" aria-label="Messages<?= $unreadMessageNavCount > 0 ? ', ' . $unreadMessageNavCount . ' unread' : '' ?>">
+                        <i class="fas fa-envelope" aria-hidden="true"></i>
+                        <?php if ($unreadMessageNavCount > 0): ?>
+                            <span class="badge-new"><?= $unreadMessageNavCount > 99 ? '99+' : $unreadMessageNavCount ?></span>
+                        <?php endif; ?>
+                    </a>
                     <?php if ($headerUnread > 0): ?>
                         <a href="<?= base_url('dashboard') ?>" class="notification-bell" title="Notifications">
                             <i class="fas fa-bell"></i>

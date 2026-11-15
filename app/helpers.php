@@ -225,31 +225,6 @@ function proposal_nav_submenu_label(string $label): string
     };
 }
 
-/** @return 'research'|'extension'|null Scope for VPRIDE monitoring nav; null when not scoped. */
-function monitoring_nav_scope(): ?string
-{
-    if (!\App\Support\MonitoringRoles::isVpride()) {
-        return null;
-    }
-
-    $scope = trim((string) ($_GET['scope'] ?? ''));
-
-    return in_array($scope, ['research', 'extension'], true) ? $scope : null;
-}
-
-function monitoring_nav_active(string $scope): bool
-{
-    if (!nav_active('monitoring')) {
-        return false;
-    }
-
-    if (!\App\Support\MonitoringRoles::isVpride()) {
-        return true;
-    }
-
-    return monitoring_nav_scope() === $scope;
-}
-
 function user_initials(array $user): string
 {
     $first = trim((string) ($user['first_name'] ?? ''));

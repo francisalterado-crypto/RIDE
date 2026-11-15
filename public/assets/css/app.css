@@ -6485,3 +6485,10 @@ html.lp-open { overflow: hidden; }
 .activity-documents-links > i { margin-top: 0.2rem; }
 .doc-template { display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 600; }
 .doc-template-missing { font-size: 0.78rem; font-style: italic; color: #94a3b8; }
+
+/* Messages link in the header, beside the notification bell. */
+.header-actions .header-messages { display: inline-flex; align-items: center; justify-content: center; }
+.header-actions .header-messages:hover,
+.header-actions .header-messages.is-active { background: var(--success-bg, #ecfdf5); color: var(--primary); }
+.header-actions .notification-bell + .notification-bell { margin-left: -8px; }
+.fd-panel-note { margin: -0.25rem 0 0.75rem; font-size: 0.85rem; color: var(--muted); }

@@ -34,7 +34,6 @@ $formatDate = static function (?string $date): string {
 
     return $time ? date('M j, Y', $time) : '';
 };
-$monitoringUrl = base_url('monitoring' . ($singleType !== null ? '?scope=' . $singleType : ''));
 $activity = is_array($monthlyActivity ?? null) ? $monthlyActivity : ['labels' => [], 'submitted' => [], 'approved' => []];
 $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Research and extension in your college';
 ?>
@@ -53,8 +52,8 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
         <a class="fd-action" href="<?= base_url('proposals') ?>">
             <strong>All proposals</strong><span><?= $e($scopeLabel) ?></span>
         </a>
-        <a class="fd-action" href="<?= $monitoringUrl ?>">
-            <strong>Monitoring</strong><span>Projects, milestones and reports</span>
+        <a class="fd-action" href="<?= base_url('projects') ?>">
+            <strong>Projects</strong><span>Milestones and reports</span>
         </a>
         <?php if ($role === 'coordinator' && $singleType === 'extension'): ?>
             <a class="fd-action" href="<?= base_url('proposals/create') ?>">
@@ -119,7 +118,7 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
         <section class="fd-panel" id="rd-pipeline">
             <div class="fd-panel-head">
                 <h2>Where proposals are waiting</h2>
-                <a href="<?= $monitoringUrl ?>">Monitoring</a>
+                <a href="<?= base_url('proposals?tab=review') ?>">In review</a>
             </div>
             <div class="fd-chart fd-chart--short"><canvas id="rd-pipeline-chart" aria-label="Proposals waiting at each review step"></canvas></div>
             <p class="fd-footnote">Your step is highlighted. <?= (int) $returnedCount ?> returned to the proponent for revision.</p>
@@ -184,7 +183,7 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
                     <?php endforeach; ?>
                 </ul>
                 <?php if (count($followUps) > 8): ?>
-                    <p class="fd-footnote"><?= count($followUps) - 8 ?> more in <a href="<?= $monitoringUrl ?>">Monitoring</a>.</p>
+                    <p class="fd-footnote"><?= count($followUps) - 8 ?> more in <a href="<?= base_url('projects') ?>">Projects</a>.</p>
                 <?php endif; ?>
             <?php endif; ?>
         </section>
@@ -232,6 +231,32 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
         <div class="fd-panel-head"><h2>Proposals submitted and approved, last <?= count($activity['labels'] ?? []) ?> months</h2></div>
         <div class="fd-chart"><canvas id="rd-activity-chart" aria-label="Proposals submitted and approved per month"></canvas></div>
     </section>
+
+    <?php if (!empty($submitters)): ?>
+        <section class="fd-panel">
+            <div class="fd-panel-head"><h2>Submitters</h2></div>
+            <p class="fd-panel-note">Faculty and extension workers with submissions, university-wide.</p>
+            <div class="data-table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Name</th><th>College</th><th>Total</th><th>Active</th><th>Approved</th><th>Last activity</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($submitters as $s): ?>
+                            <tr>
+                                <td><?= $e(trim($s['first_name'] . ' ' . $s['last_name'])) ?><div class="data-table-muted"><?= $e($s['email']) ?></div></td>
+                                <td><?= $e($s['college_name'] ?? '') ?></td>
+                                <td><?= (int) $s['total_submissions'] ?></td>
+                                <td><?= (int) $s['active_submissions'] ?></td>
+                                <td><?= (int) $s['approved_submissions'] ?></td>
+                                <td><?= $e($formatDate($s['last_activity'] ?? null)) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    <?php endif; ?>
 </div>
 
 <script>
