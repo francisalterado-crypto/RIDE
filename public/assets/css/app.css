@@ -6357,6 +6357,19 @@ html.lp-open { overflow: hidden; }
     .lp-map { height: 260px; }
 }
 
+/* Quarterly report deadline notice (Conducted Activities, Research Accomplishments, report form). */
+.deadline-notice { display: flex; align-items: flex-start; gap: 0.75rem; margin: 0 0 1rem; padding: 0.75rem 1rem; border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--radius); background: #f8fafc; }
+.deadline-notice > i { margin-top: 0.15rem; color: var(--muted); }
+.deadline-notice strong { display: block; }
+.deadline-notice small { display: block; margin-top: 0.15rem; color: var(--muted); font-size: 0.82rem; }
+.deadline-notice-detail { display: inline-block; margin-top: 0.2rem; font-size: 0.82rem; font-weight: 600; }
+.deadline-notice--open { border-left-color: #16a34a; }
+.deadline-notice--open .deadline-notice-detail, .deadline-notice--open > i { color: #15803d; }
+.deadline-notice--soon { border-left-color: #d97706; background: #fffbeb; }
+.deadline-notice--soon .deadline-notice-detail, .deadline-notice--soon > i { color: #b45309; }
+.deadline-notice--overdue { border-left-color: #dc2626; background: #fef2f2; }
+.deadline-notice--overdue .deadline-notice-detail, .deadline-notice--overdue > i { color: #b91c1c; }
+
 /* Read-only proposal view in the web form layout (the office paper layout is print-only). */
 .wf-view .webform-grid { row-gap: 1rem; }
 .wf-view-field { min-width: 0; }

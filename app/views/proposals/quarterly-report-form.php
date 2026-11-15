@@ -40,6 +40,12 @@ $cardNo = 0;
 <form class="webform quarterly-report-form" method="post" action="<?= $action ?>" data-capitalize="off">
     <?= csrf_field() ?>
 
+    <?php
+    $deadlineFormType = $reportType;
+    $deadlinePeriod = (string) ($summaryData['reporting_period'] ?? ($conductedActivitiesPeriod ?? ''));
+    require APP_PATH . '/views/partials/quarterly-deadline-notice.php';
+    ?>
+
     <section class="webform-card">
         <header class="webform-card-head">
             <span class="webform-card-num"><?= ++$cardNo ?></span>
