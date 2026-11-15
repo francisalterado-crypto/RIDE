@@ -45,6 +45,8 @@ $cardNo = 0;
     $deadlineFormType = $reportType;
     $deadlinePeriod = (string) ($summaryData['reporting_period'] ?? ($conductedActivitiesPeriod ?? ''));
     require APP_PATH . '/views/partials/quarterly-deadline-notice.php';
+    $blankFormType = $reportType;
+    require APP_PATH . '/views/partials/blank-form-link.php';
     ?>
 
     <section class="webform-card">

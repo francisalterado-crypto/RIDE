@@ -6492,3 +6492,10 @@ html.lp-open { overflow: hidden; }
 .header-actions .header-messages.is-active { background: var(--success-bg, #ecfdf5); color: var(--primary); }
 .header-actions .notification-bell + .notification-bell { margin-left: -8px; }
 .fd-panel-note { margin: -0.25rem 0 0.75rem; font-size: 0.85rem; color: var(--muted); }
+
+/* "Office form" line on form pages: the form code and its blank form in Downloadable Forms. */
+.blank-form-link { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.75rem; margin: 0.6rem 0 0; padding: 0.55rem 0.8rem; border-radius: var(--radius); background: #f1f5f9; font-size: 0.86rem; color: #334155; }
+.blank-form-link > i { color: #2B5A8C; }
+.blank-form-link a { display: inline-flex; align-items: center; gap: 0.3rem; font-weight: 600; }
+.proposal-paper + .blank-form-link, .blank-form-link + .proposal-paper { margin-top: 0.75rem; }
+.webform-hero .blank-form-link { background: rgba(255, 255, 255, 0.85); }

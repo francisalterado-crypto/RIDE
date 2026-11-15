@@ -256,6 +256,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <h2 class="webform-hero-title">Extension Project Proposal</h2>
             <p class="webform-hero-text">Fill out each section below. When every required part is filled, <strong>Print Preview</strong> downloads the filled office form (.docx) on the letterhead, ready to print or save as PDF.</p>
             <p class="webform-hint webform-req-legend"><span class="webform-req">*</span> Required before Print Preview.</p>
+            <?php $blankFormType = 'extension_program_proposal'; require APP_PATH . '/views/partials/blank-form-link.php'; ?>
             <p class="webform-hint js-preview-hint" aria-live="polite"></p>
         </div>
         <button type="submit" class="btn btn-outline webform-preview-btn js-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formnovalidate disabled>

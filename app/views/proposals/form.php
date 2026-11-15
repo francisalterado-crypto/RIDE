@@ -162,6 +162,7 @@ $ethicsRequired = $proposal !== null
             <h2 class="webform-hero-title">Research Proposal Application</h2>
             <p class="webform-hero-text">Fill out each section below. When every required part is filled, <strong>Print Preview</strong> downloads the filled office form (.docx) on the letterhead, ready to print.</p>
             <p class="webform-hint webform-req-legend"><span class="webform-req">*</span> Required before Print Preview.</p>
+            <?php $blankFormType = 'research'; require APP_PATH . '/views/partials/blank-form-link.php'; ?>
             <p class="webform-hint js-preview-hint" aria-live="polite"></p>
         </div>
         <button type="submit" class="btn btn-outline webform-preview-btn js-preview-btn" formaction="<?= base_url('proposals/preview/research-application') ?>" formnovalidate disabled>Print Preview</button>

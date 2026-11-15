@@ -36,6 +36,7 @@ if ($coauthors === []) {
 }
 ?>
 
+<?php $blankFormType = 'terminal_report'; require APP_PATH . '/views/partials/blank-form-link.php'; ?>
 <form class="proposal-paper completed-researches-paper trainings-conducted-paper terminal-report-paper" method="post" action="<?= $isEdit ? base_url('proposals/' . $proposal['id'] . '/terminal-report') : base_url('proposals/terminal-report') ?>">
     <?= csrf_field() ?>
 

@@ -40,6 +40,7 @@ $parameters = [
 $scoreValues = is_array($summaryData['scores'] ?? null) ? $summaryData['scores'] : [];
 ?>
 
+<?php $blankFormType = 'terminal_report_assessment_form'; require APP_PATH . '/views/partials/blank-form-link.php'; ?>
 <form class="proposal-paper completed-researches-paper trainings-conducted-paper terminal-report-assessment-paper" method="post" action="<?= $isEdit ? base_url('proposals/' . $proposal['id'] . '/terminal-report-assessment-form') : base_url('proposals/terminal-report-assessment-form') ?>">
     <?= csrf_field() ?>
 
