@@ -30,7 +30,6 @@ uksort($programGroups, static function (string $a, string $b) use ($programGroup
 
     return $aMine === $bMine ? strcmp($a, $b) : ($aMine ? -1 : 1);
 });
-$deanNamesByCollege = $deanNamesByCollege ?? [];
 
 $summaryData = [];
 if (!empty($proposal['summary'])) {
@@ -129,12 +128,6 @@ $targetGroupValue = $field('target_group_description');
 $methodologyValue = $field('methodology');
 $activitiesNarrativeValue = $field('activities_narrative', $field('expected_outputs', $field('expected_outcomes')));
 $referencesValue = $field('references');
-$proponentNameValue = $field('proponent_name', $isEdit ? '' : $userName);
-$proponentDateValue = $field('proponent_date', $isEdit ? '' : date('Y-m-d'));
-$deanNameValue = $field('dean_name');
-$deanDateValue = $field('dean_date');
-$adminNameValue = $field('extension_admin_name');
-$adminDateValue = $field('extension_admin_date');
 
 $collegeOptions = array_values(array_filter(
     array_map(static fn (array $college): string => trim((string) ($college['name'] ?? '')), $colleges),
@@ -230,7 +223,6 @@ $formSections = [
     'eso-sec-workplan' => 'Work & Financial Plan',
     'eso-sec-budget' => 'Budget',
     'eso-sec-references' => 'References',
-    'eso-sec-signoff' => 'Sign-off',
 ];
 $sdgSelect = static function (string $selected = '', string $name = '') use ($sdgOptions): string {
     $html = '<select data-field="sdg"' . ($name !== '' ? ' name="' . htmlspecialchars($name) . '"' : '') . '>';
@@ -250,7 +242,6 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
       data-preview-ready-text="Form complete. Print Preview opens the printable form, ready to print or save as PDF."
       data-draft-key="ride:eso-draft:<?= (int) ($user['id'] ?? 0) ?>:<?= $isEdit ? (int) $proposal['id'] : 'new' ?>"
       data-server-version="<?= htmlspecialchars((string) ($proposal['updated_at'] ?? '')) ?>"
-      data-dean-names="<?= htmlspecialchars(json_encode($deanNamesByCollege, JSON_UNESCAPED_UNICODE) ?: '{}') ?>"
       method="post" action="<?= $isEdit ? base_url('proposals/' . $proposal['id'] . '/update') : base_url('proposals') ?>">
     <?= csrf_field() ?>
     <input type="hidden" name="nav_scope" value="extension">
@@ -727,41 +718,6 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         </header>
         <div class="webform-field">
             <textarea name="references" rows="5" data-autoresize class="no-capitalize" aria-label="References" placeholder="One reference per line."><?= htmlspecialchars($referencesValue) ?></textarea>
-        </div>
-    </section>
-
-    <!-- Sign-off -->
-    <section class="webform-card" id="eso-sec-signoff">
-        <header class="webform-card-head">
-            <span class="webform-card-num">10</span>
-            <div>
-                <h2>Sign-off</h2>
-                <p>These names appear on the printed form. Official approvals are still recorded through the approval process after you submit.</p>
-            </div>
-        </header>
-        <div class="webform-grid webform-grid--3">
-            <div class="webform-panel">
-                <p class="webform-panel-title">Submitted by (Proponent)</p>
-                <div class="webform-field"><label for="eso-proponent">Name</label><input id="eso-proponent" name="proponent_name" value="<?= htmlspecialchars($proponentNameValue) ?>" placeholder="Proponent"></div>
-                <div class="webform-field"><label for="eso-proponent-date">Date</label><input id="eso-proponent-date" type="date" name="proponent_date" value="<?= htmlspecialchars($proponentDateValue) ?>"></div>
-            </div>
-            <div class="webform-panel">
-                <p class="webform-panel-title">Endorsed by (Dean)</p>
-                <div class="webform-field"><label for="eso-dean">Name</label><input id="eso-dean" name="dean_name" list="eso-dean-options" value="<?= htmlspecialchars($deanNameValue) ?>" placeholder="Dean" autocomplete="off">
-                    <datalist id="eso-dean-options">
-                        <?php foreach ($deanNamesByCollege as $deanCollege => $deanName): ?>
-                            <option value="<?= htmlspecialchars($deanName) ?>" data-meta="<?= htmlspecialchars($deanCollege) ?>">
-                        <?php endforeach; ?>
-                    </datalist>
-                    <p class="webform-hint" id="eso-dean-hint" hidden>Taken from the implementing college's dean account. You can change it if needed.</p>
-                </div>
-                <div class="webform-field"><label for="eso-dean-date">Date</label><input id="eso-dean-date" type="date" name="dean_date" value="<?= htmlspecialchars($deanDateValue) ?>"></div>
-            </div>
-            <div class="webform-panel">
-                <p class="webform-panel-title">Received by (Extension Admin Staff)</p>
-                <div class="webform-field"><label for="eso-admin">Name</label><input id="eso-admin" name="extension_admin_name" value="<?= htmlspecialchars($adminNameValue) ?>" placeholder="Extension admin staff"></div>
-                <div class="webform-field"><label for="eso-admin-date">Date</label><input id="eso-admin-date" type="date" name="extension_admin_date" value="<?= htmlspecialchars($adminDateValue) ?>"></div>
-            </div>
         </div>
     </section>
 
@@ -1630,38 +1586,6 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     });
     membersTrainersSearch?.addEventListener('combobox:pick', () => document.getElementById('eso-members-trainers-add')?.click());
 
-    /* ---------- Dean auto-fill from the implementing college ---------- */
-    let deanNames = {};
-    try {
-        deanNames = JSON.parse(form.dataset.deanNames || '{}');
-    } catch (error) {
-        deanNames = {};
-    }
-    const deanInput = document.getElementById('eso-dean');
-    const deanHint = document.getElementById('eso-dean-hint');
-    const implementingCollege = document.getElementById('eso-implementing-college');
-    const syncDean = () => {
-        if (!deanInput) {
-            return;
-        }
-        const suggested = deanNames[implementingCollege?.value || ''] || '';
-        const current = deanInput.value.trim();
-        if (suggested && (current === '' || current === deanInput.dataset.autofilled)) {
-            deanInput.value = suggested;
-            deanInput.dataset.autofilled = suggested;
-        }
-        if (deanHint) {
-            deanHint.hidden = !deanInput.dataset.autofilled || deanInput.value !== deanInput.dataset.autofilled;
-        }
-    };
-    implementingCollege?.addEventListener('change', syncDean);
-    deanInput?.addEventListener('input', () => {
-        if (deanHint) {
-            deanHint.hidden = deanInput.value !== deanInput.dataset.autofilled;
-        }
-    });
-    syncDean();
-
     /* ---------- Computed values: totals, duration, budget cross-check ---------- */
     const maleInput = document.getElementById('eso-male');
     const femaleInput = document.getElementById('eso-female');
@@ -1836,7 +1760,6 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         ['eso-sec-workplan', 'Work & Financial Plan', () => anyFilled('#eso-workplan-body [data-field="activities"]')],
         ['eso-sec-budget', 'Budget', () => Array.from(form.querySelectorAll('#eso-budget-groups [data-field="total_cost"]')).some((input) => parseAmount(input.value) > 0)],
         ['eso-sec-references', 'References', () => fieldValue('references') !== ''],
-        ['eso-sec-signoff', 'Sign-off', () => fieldValue('proponent_name') !== '' && fieldValue('proponent_date') !== ''],
     ];
     const checklist = document.getElementById('eso-checklist');
     const renderChecklist = () => {
@@ -2010,12 +1933,6 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 el.value = value;
             }
         });
-        if (deanInput) {
-            delete deanInput.dataset.autofilled;
-            if (deanHint) {
-                deanHint.hidden = true;
-            }
-        }
         reindexBudgetGroups();
         refreshMembers();
         form.querySelectorAll('textarea[data-autoresize]').forEach((textarea) => textarea.dispatchEvent(new Event('input')));

@@ -132,7 +132,6 @@ final class ProposalController
                 'extensionPrograms' => \App\Models\ExtensionProgram::all(null, true),
                 'extensionProjects' => \App\Models\ExtensionProject::options(),
                 'userCollegeId' => $user['college_id'] ? (int) $user['college_id'] : null,
-                'deanNamesByCollege' => $this->deanNamesByCollege(),
             ]);
             return;
         }
@@ -2340,6 +2339,9 @@ final class ProposalController
             'project_code' => '',
             'current_step' => '',
             'college_name' => (string) ($user['college_name'] ?? ''),
+            'college_id' => (int) ($user['college_id'] ?? 0),
+            'first_name' => (string) ($user['first_name'] ?? ''),
+            'last_name' => (string) ($user['last_name'] ?? ''),
         ], [
             'title' => $data['title'],
             'summary' => $data['summary'],
@@ -3089,7 +3091,6 @@ final class ProposalController
                 'extensionPrograms' => \App\Models\ExtensionProgram::all(null, true),
                 'extensionProjects' => \App\Models\ExtensionProject::options(),
                 'userCollegeId' => (int) $proposal['college_id'],
-                'deanNamesByCollege' => $this->deanNamesByCollege(),
             ]);
             return;
         }
@@ -3429,12 +3430,7 @@ final class ProposalController
             ]),
             'budget_line_groups' => $this->validatedBudgetLineGroups($_POST['budget_line_groups'] ?? []),
             'references' => trim($_POST['references'] ?? ''),
-            'proponent_name' => trim($_POST['proponent_name'] ?? ''),
-            'proponent_date' => trim($_POST['proponent_date'] ?? ''),
-            'dean_name' => trim($_POST['dean_name'] ?? ''),
-            'dean_date' => trim($_POST['dean_date'] ?? ''),
-            'extension_admin_name' => trim($_POST['extension_admin_name'] ?? ''),
-            'extension_admin_date' => trim($_POST['extension_admin_date'] ?? ''),
+            // Sign-off names and dates are derived from the record (eso_extension_signoff), not typed in.
         ];
 
         return [
@@ -5590,20 +5586,6 @@ final class ProposalController
     }
 
     /** @return array<string, string> college name => active dean's full name */
-    private function deanNamesByCollege(): array
-    {
-        $deans = [];
-        foreach (College::all() as $college) {
-            $name = trim((string) ($college['name'] ?? ''));
-            $dean = $name !== '' ? User::findActiveByRoleAndCollege('dean', (int) $college['id']) : null;
-            if ($dean) {
-                $deans[$name] = trim($dean['first_name'] . ' ' . $dean['last_name']);
-            }
-        }
-
-        return $deans;
-    }
-
     /** @return list<string> */
     private function facultyTeamOptions(): array
     {

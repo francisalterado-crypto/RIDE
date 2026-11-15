@@ -1497,3 +1497,55 @@ function send_form_docx(array $proposal, bool $isUnsavedPreview = false): void
     header('Cache-Control: private, no-store');
     echo $bytes;
 }
+
+/**
+ * Sign-off block of the ESO-03 Extension Project Proposal, derived from the record instead of typed in:
+ * - Submitted by: the proposal owner, dated when the proposal was submitted.
+ * - Endorsed by: the dean who approved it; before that, the active dean of the implementing college (undated).
+ * - Received by: the ESO staff who acted on it at the ESO Director step, dated at that action.
+ * Names typed into older versions of the form are ignored, so no step is shown as signed before it happened.
+ *
+ * @param array<string, mixed> $summary
+ * @return array{proponent: array{name: string, date: string}, dean: array{name: string, date: string}, received: array{name: string, date: string}}
+ */
+function eso_extension_signoff(array $proposal, array $summary): array
+{
+    $fullName = static fn (?array $row): string => is_array($row)
+        ? trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? ''))
+        : '';
+    $proposalId = (int) ($proposal['id'] ?? 0);
+    $status = (string) ($proposal['status'] ?? 'draft');
+    $submitted = !in_array($status, ['draft', ''], true);
+
+    $proponentName = $fullName($proposal);
+    $proponentDate = $submitted ? proposal_format_workflow_date(isset($proposal['submitted_at']) ? (string) $proposal['submitted_at'] : null) : '';
+
+    $deanApproval = $proposalId > 0 ? \App\Models\Proposal::approvalAtStep($proposalId, \App\Support\MonitoringRoles::DEAN) : null;
+    $deanName = $fullName($deanApproval);
+    $deanDate = proposal_format_workflow_date(is_array($deanApproval) ? (string) ($deanApproval['created_at'] ?? '') : null);
+    if ($deanName === '') {
+        // Not yet endorsed: name the dean of the implementing college, falling back to the proposal's college.
+        $collegeId = 0;
+        $implementing = strtolower(trim((string) ($summary['implementing_college_department'] ?? '')));
+        if ($implementing !== '') {
+            foreach (\App\Models\College::all() as $college) {
+                if (strtolower(trim((string) ($college['name'] ?? ''))) === $implementing) {
+                    $collegeId = (int) $college['id'];
+                    break;
+                }
+            }
+        }
+        $collegeId = $collegeId > 0 ? $collegeId : (int) ($proposal['college_id'] ?? 0);
+        $deanName = $collegeId > 0 ? $fullName(\App\Models\User::findActiveByRoleAndCollege('dean', $collegeId)) : '';
+    }
+
+    $esoApproval = $proposalId > 0 ? \App\Models\Proposal::approvalAtStep($proposalId, \App\Support\MonitoringRoles::DIRECTOR_EXTENSION) : null;
+    $receivedName = $fullName($esoApproval);
+    $receivedDate = proposal_format_workflow_date(is_array($esoApproval) ? (string) ($esoApproval['created_at'] ?? '') : null);
+
+    return [
+        'proponent' => ['name' => $proponentName, 'date' => $proponentDate],
+        'dean' => ['name' => $deanName, 'date' => $deanDate],
+        'received' => ['name' => $receivedName, 'date' => $receivedDate],
+    ];
+}
