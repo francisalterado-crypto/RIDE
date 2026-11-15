@@ -14,8 +14,7 @@ use App\Support\MonitoringRoles;
 $firstName = trim((string) ($user['first_name'] ?? ''));
 $pageTitle = 'Dashboard | RIDE Hub';
 $pageHeading = 'Dashboard';
-$pageSubtitle = 'Welcome back, ' . trim($firstName . ' ' . (string) ($user['last_name'] ?? ''))
-    . (!empty($user['college_name']) ? ', ' . $user['college_name'] : '');
+$pageSubtitle = 'Welcome back, ' . trim($firstName . ' ' . (string) ($user['last_name'] ?? ''));
 
 $e = static fn (mixed $value): string => htmlspecialchars((string) ($value ?? ''));
 $formatDate = static function (?string $date): string {

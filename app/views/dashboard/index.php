@@ -6,9 +6,7 @@ $globalMessage = (string) ($globalMessage ?? 'Please check this page regularly f
 
 $pageTitle = 'Dashboard | RIDE Hub';
 $pageHeading = 'Dashboard';
-$pageSubtitle = 'Welcome back, ' . trim($user['first_name'] . ' ' . $user['last_name'])
-    . ($user['college_name'] ? ' | ' . $user['college_name'] : '')
-    . ' | Research & Extension insights';
+$pageSubtitle = 'Welcome back, ' . trim($user['first_name'] . ' ' . $user['last_name']);
 
 $statusLabels = [
     'draft' => 'Draft',

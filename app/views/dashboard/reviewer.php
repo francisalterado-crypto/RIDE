@@ -17,8 +17,7 @@ $actionWord = $role === 'coordinator' ? 'endorsement' : 'approval';
 
 $pageTitle = 'Dashboard | RIDE Hub';
 $pageHeading = 'Dashboard';
-$pageSubtitle = 'Welcome back, ' . trim((string) ($user['first_name'] ?? '') . ' ' . (string) ($user['last_name'] ?? ''))
-    . '. ' . $context['title'] . ', ' . $scopeLabel . '.';
+$pageSubtitle = 'Welcome back, ' . trim((string) ($user['first_name'] ?? '') . ' ' . (string) ($user['last_name'] ?? ''));
 
 $e = static fn (mixed $value): string => htmlspecialchars((string) ($value ?? ''));
 $daysWaiting = static function (?string $since): string {
