@@ -8,7 +8,7 @@ $pageTitle = ($isEdit ? 'Edit' : 'New') . ' Progress Report | RIDE Hub';
 $pageHeading = 'Progress Report';
 $pageSubtitle = $isEdit
     ? 'Update your progress report before saving or resubmitting.'
-    : 'Quarterly project progress report (WPU-QSF-RIDE-RDO-17).';
+    : 'Quarterly project progress report (WPU-QSF-RDE-VPRDE-18).';
 $user = \App\Core\Auth::user() ?? [];
 
 $summaryData = [];
@@ -45,7 +45,7 @@ if ($coauthors === []) {
         <p class="completed-researches-header-line completed-researches-header-line--strong">WESTERN PHILIPPINES UNIVERSITY</p>
         <p class="completed-researches-header-line">Office of Research and Development</p>
         <h2 class="completed-researches-title">PROGRESS REPORT</h2>
-        <p class="completed-researches-form-id">WPU-QSF-RIDE-RDO-17 Rev.00 (09.15.25)</p>
+        <p class="completed-researches-form-id">WPU-QSF-RDE-VPRDE-18 Rev.00 (09.20.24)</p>
     </header>
 
     <section class="proposal-section">
