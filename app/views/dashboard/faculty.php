@@ -229,8 +229,11 @@ $activity = is_array($monthlyActivity ?? null) ? $monthlyActivity : ['labels' =>
         data: {
             labels: <?= json_encode(array_values($activity['labels'] ?? [])) ?>,
             datasets: [
-                { label: 'Submitted', data: <?= json_encode(array_values($activity['submitted'] ?? [])) ?>, backgroundColor: '#2B5A8C', borderRadius: 4 },
-                { label: 'Approved', data: <?= json_encode(array_values($activity['approved'] ?? [])) ?>, backgroundColor: '#2dd4bf', borderRadius: 4 },
+                { label: 'Proposals submitted', data: <?= json_encode(array_values($activity['submitted'] ?? [])) ?>, backgroundColor: '#2B5A8C', borderRadius: 4 },
+                { label: 'Proposals approved', data: <?= json_encode(array_values($activity['approved'] ?? [])) ?>, backgroundColor: '#2dd4bf', borderRadius: 4 },
+                <?php if (array_sum($activity['reports_submitted'] ?? []) > 0): ?>
+                { type: 'line', label: 'Reports and requests submitted', data: <?= json_encode(array_values($activity['reports_submitted'] ?? [])) ?>, borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.3, pointRadius: 3 },
+                <?php endif; ?>
             ],
         },
         options: {

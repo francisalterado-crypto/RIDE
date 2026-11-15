@@ -620,90 +620,52 @@ final class Proposal
     }
 
     /**
+     * Submissions and approvals per month over the last six months. Proposals (RDO-20 research proposals and
+     * ESO-03 extension proposals) are counted apart from reports and request forms, which share the table.
+     *
      * @param list<string> $projectTypes
-     * @return array{labels: list<string>, submitted: list<int>, approved: list<int>}
+     * @return array{labels: list<string>, submitted: list<int>, approved: list<int>, reports_submitted: list<int>, reports_approved: list<int>}
      */
     public static function monthlyWorkflowActivity(?int $userId = null, ?int $collegeId = null, array $projectTypes = []): array
     {
-        $pdo = Database::pdo();
         $labels = [];
-        $submitted = [];
-        $approved = [];
-        $monthKeys = [];
         $monthLookup = [];
-
         for ($i = 5; $i >= 0; $i--) {
             $date = new \DateTimeImmutable('first day of -' . $i . ' month');
-            $key = $date->format('Y-m');
-            $monthKeys[] = $key;
-            $monthLookup[$key] = count($monthKeys) - 1;
+            $monthLookup[$date->format('Y-m')] = count($labels);
             $labels[] = $date->format('M');
-            $submitted[] = 0;
-            $approved[] = 0;
         }
+        $zeros = array_fill(0, count($labels), 0);
+        $series = ['submitted' => $zeros, 'approved' => $zeros, 'reports_submitted' => $zeros, 'reports_approved' => $zeros];
 
-        $typeFilterSql = '';
-        $typeParams = [];
+        $sql = 'SELECT p.submitted_at, p.approved_at, p.summary, p.project_type FROM proposals p
+                WHERE (p.submitted_at >= ' . Sql::monthStartAgo(5) . ' OR p.approved_at >= ' . Sql::monthStartAgo(5) . ')';
+        $params = [];
+        if ($userId !== null) {
+            $sql .= ' AND ' . ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
+            $params = [...$params, ...ProposalCoAuthorInvitation::coauthorAccessParams($userId)];
+        } elseif ($collegeId !== null) {
+            $sql .= ' AND p.college_id = ?';
+            $params[] = $collegeId;
+        }
         if ($projectTypes !== []) {
-            $typeFilterSql = ' AND p.project_type IN (' . implode(',', array_fill(0, count($projectTypes), '?')) . ')';
-            $typeParams = $projectTypes;
+            $sql .= ' AND p.project_type IN (' . implode(',', array_fill(0, count($projectTypes), '?')) . ')';
+            $params = [...$params, ...$projectTypes];
         }
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute($params);
 
-        $submittedSql = 'SELECT ' . Sql::yearMonth('p.submitted_at') . ' AS month_key, COUNT(*) AS cnt
-                         FROM proposals p
-                         WHERE p.submitted_at IS NOT NULL';
-        $submittedParams = [];
-        if ($userId !== null) {
-            $submittedSql .= ' AND ' . ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
-            $submittedParams = [...$submittedParams, ...ProposalCoAuthorInvitation::coauthorAccessParams($userId)];
-        } elseif ($collegeId !== null) {
-            $submittedSql .= ' AND p.college_id = ?';
-            $submittedParams[] = $collegeId;
-        }
-        $submittedSql .= $typeFilterSql;
-        $submittedSql .= ' AND p.submitted_at >= ' . Sql::monthStartAgo(5) . '
-                           GROUP BY month_key';
-
-        $submittedStmt = $pdo->prepare($submittedSql);
-        $submittedStmt->execute([...$submittedParams, ...$typeParams]);
-        $submittedRows = $submittedStmt->fetchAll() ?: [];
-        foreach ($submittedRows as $row) {
-            $key = (string) ($row['month_key'] ?? '');
-            if ($key !== '' && array_key_exists($key, $monthLookup)) {
-                $submitted[$monthLookup[$key]] = (int) ($row['cnt'] ?? 0);
+        foreach ($stmt->fetchAll() ?: [] as $row) {
+            $prefix = proposal_is_proposal_form($row) ? '' : 'reports_';
+            foreach (['submitted' => 'submitted_at', 'approved' => 'approved_at'] as $key => $column) {
+                $month = substr((string) ($row[$column] ?? ''), 0, 7);
+                if (isset($monthLookup[$month])) {
+                    $series[$prefix . $key][$monthLookup[$month]]++;
+                }
             }
         }
 
-        $approvedSql = 'SELECT ' . Sql::yearMonth('p.approved_at') . ' AS month_key, COUNT(*) AS cnt
-                        FROM proposals p
-                        WHERE p.approved_at IS NOT NULL';
-        $approvedParams = [];
-        if ($userId !== null) {
-            $approvedSql .= ' AND ' . ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
-            $approvedParams = [...$approvedParams, ...ProposalCoAuthorInvitation::coauthorAccessParams($userId)];
-        } elseif ($collegeId !== null) {
-            $approvedSql .= ' AND p.college_id = ?';
-            $approvedParams[] = $collegeId;
-        }
-        $approvedSql .= $typeFilterSql;
-        $approvedSql .= ' AND p.approved_at >= ' . Sql::monthStartAgo(5) . '
-                          GROUP BY month_key';
-
-        $approvedStmt = $pdo->prepare($approvedSql);
-        $approvedStmt->execute([...$approvedParams, ...$typeParams]);
-        $approvedRows = $approvedStmt->fetchAll() ?: [];
-        foreach ($approvedRows as $row) {
-            $key = (string) ($row['month_key'] ?? '');
-            if ($key !== '' && array_key_exists($key, $monthLookup)) {
-                $approved[$monthLookup[$key]] = (int) ($row['cnt'] ?? 0);
-            }
-        }
-
-        return [
-            'labels' => $labels,
-            'submitted' => $submitted,
-            'approved' => $approved,
-        ];
+        return ['labels' => $labels] + $series;
     }
 
     public static function markCompleted(int $id): void

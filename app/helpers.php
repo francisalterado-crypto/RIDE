@@ -983,6 +983,19 @@ function proposal_form_type(?array $proposal): string
 }
 
 /** Human-readable name of the form a proposal record was filed with, e.g. "Extension Project Proposal". */
+/**
+ * Whether a record is a proposal (RDO-20 research proposal or ESO-03 extension proposal) rather than one of
+ * the reports and request forms kept in the same table.
+ */
+function proposal_is_proposal_form(?array $proposal): bool
+{
+    if (\App\Support\ResearchRequestForms::typeOf($proposal) !== null) {
+        return false;
+    }
+
+    return proposal_form_type($proposal) === '' || proposal_is_wpu_funded_extension($proposal);
+}
+
 function proposal_form_label(?array $proposal): string
 {
     // One name per form everywhere (Proposals, Monitoring, Reports, dashboards). Forms printed from an office

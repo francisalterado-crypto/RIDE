@@ -230,7 +230,7 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
     </div>
 
     <section class="fd-panel">
-        <div class="fd-panel-head"><h2>Submitted and approved, last <?= count($activity['labels'] ?? []) ?> months</h2></div>
+        <div class="fd-panel-head"><h2>Proposals submitted and approved, last <?= count($activity['labels'] ?? []) ?> months</h2></div>
         <div class="fd-chart"><canvas id="rd-activity-chart" aria-label="Proposals submitted and approved per month"></canvas></div>
     </section>
 </div>
@@ -294,8 +294,11 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
         data: {
             labels: <?= json_encode(array_values($activity['labels'] ?? [])) ?>,
             datasets: [
-                { label: 'Submitted', data: <?= json_encode(array_values($activity['submitted'] ?? [])) ?>, backgroundColor: '#2B5A8C', borderRadius: 4 },
-                { label: 'Approved', data: <?= json_encode(array_values($activity['approved'] ?? [])) ?>, backgroundColor: '#2dd4bf', borderRadius: 4 },
+                { label: 'Proposals submitted', data: <?= json_encode(array_values($activity['submitted'] ?? [])) ?>, backgroundColor: '#2B5A8C', borderRadius: 4 },
+                { label: 'Proposals approved', data: <?= json_encode(array_values($activity['approved'] ?? [])) ?>, backgroundColor: '#2dd4bf', borderRadius: 4 },
+                <?php if (array_sum($activity['reports_submitted'] ?? []) > 0): ?>
+                { type: 'line', label: 'Reports and requests submitted', data: <?= json_encode(array_values($activity['reports_submitted'] ?? [])) ?>, borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.3, pointRadius: 3 },
+                <?php endif; ?>
             ],
         },
         options: {

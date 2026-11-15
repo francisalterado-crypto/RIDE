@@ -267,7 +267,8 @@ final class DashboardController
                 $breakdown[$collegeNames[$id]] = ['in_review' => 0, 'ongoing' => 0, 'completed' => 0];
             }
             foreach (Proposal::forMonitoring(null, null, $singleType) as $p) {
-                if (!in_array((string) $p['project_type'], $types, true)) {
+                // Proposals only; reports and request forms are not projects.
+                if (!in_array((string) $p['project_type'], $types, true) || !proposal_is_proposal_form($p)) {
                     continue;
                 }
                 $key = $collegeNames[(int) $p['college_id']] ?? 'Other';
@@ -284,12 +285,21 @@ final class DashboardController
             ksort($breakdown);
         } elseif (count($types) > 1) {
             foreach ($types as $type) {
-                $typeStatus = Proposal::monitoringStats($collegeId, $type)['by_status'] ?? [];
-                $breakdown[ucfirst($type)] = [
-                    'in_review' => (int) ($typeStatus['submitted'] ?? 0) + (int) ($typeStatus['under_review'] ?? 0),
-                    'ongoing' => (int) ($typeStatus['ongoing'] ?? 0) + (int) ($typeStatus['approved'] ?? 0),
-                    'completed' => (int) ($typeStatus['completed'] ?? 0),
-                ];
+                $breakdown[ucfirst($type)] = ['in_review' => 0, 'ongoing' => 0, 'completed' => 0];
+            }
+            foreach (Proposal::forMonitoring($collegeId, null, null) as $p) {
+                $key = ucfirst((string) $p['project_type']);
+                if (!isset($breakdown[$key]) || !proposal_is_proposal_form($p)) {
+                    continue;
+                }
+                $status = (string) $p['status'];
+                if (in_array($status, ['submitted', 'under_review'], true)) {
+                    $breakdown[$key]['in_review']++;
+                } elseif (in_array($status, ['ongoing', 'approved'], true)) {
+                    $breakdown[$key]['ongoing']++;
+                } elseif ($status === 'completed') {
+                    $breakdown[$key]['completed']++;
+                }
             }
         }
 
