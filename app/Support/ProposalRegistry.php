@@ -47,9 +47,14 @@ final class ProposalRegistry
             $summary = is_array($summary) ? $summary : [];
             $requestType = ResearchRequestForms::typeOf($p);
             $progress = null;
+            // Share of the required fields filled in: the same check that unlocks Print Preview.
             if (ResearchFormDocument::formKey($p) !== null) {
                 $total = count(FormPreviewRequirements::forProposal($p));
                 $progress = ['filled' => $total - count(FormPreviewRequirements::missing($p)), 'total' => $total];
+            } elseif (proposal_is_wpu_funded_extension($p)) {
+                $required = FormPreviewRequirements::forExtensionProposal();
+                $total = count($required);
+                $progress = ['filled' => $total - count(FormPreviewRequirements::missing($p, $required)), 'total' => $total];
             }
             $created = (string) ($p['created_at'] ?? '');
 

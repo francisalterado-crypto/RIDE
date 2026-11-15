@@ -148,12 +148,13 @@ rsort($yearOptions);
                     <thead>
                         <tr>
                             <th class="col-code">Code</th>
+                            <th class="col-type">Type</th>
                             <th class="col-title">Title</th>
                             <th class="col-form">Form</th>
                             <?php if ($isVprideRegistry): ?>
                             <th class="col-college">College</th>
                             <?php endif; ?>
-                            <th class="col-researcher">Lead Researcher</th>
+                            <th class="col-researcher">Lead</th>
                             <?php if (!$isVprideRegistry): ?>
                             <th class="col-role">Your Role</th>
                             <?php endif; ?>
@@ -191,6 +192,8 @@ rsort($yearOptions);
                             <?= $r['needs_action'] ? 'class="is-needs-action"' : '' ?>
                         >
                             <td class="col-code"><?php if (!empty($p['project_code'])): ?><code class="proposal-registry-code"><?= htmlspecialchars((string) $p['project_code']) ?></code><?php else: ?><span class="data-table-muted">Not assigned</span><?php endif; ?></td>
+                            <?php $isExtensionRow = (string) ($p['project_type'] ?? '') === 'extension'; ?>
+                            <td class="col-type"><span class="proposal-kind proposal-kind--<?= $isExtensionRow ? 'extension' : 'research' ?>"><?= $isExtensionRow ? 'Extension' : 'Research' ?></span></td>
                             <td class="col-title">
                                 <a class="proposal-registry-title" href="<?= base_url('proposals/' . $p['id']) ?>" title="<?= htmlspecialchars((string) $p['title']) ?>">
                                     <?= htmlspecialchars((string) $p['title']) ?>
