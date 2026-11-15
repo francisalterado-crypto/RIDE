@@ -18,10 +18,14 @@ $pageSubtitle = 'Review the submitted Research Proposal Application (WPU-QSF-RID
     <?php endif; ?>
 </div>
 
+<?php require APP_PATH . '/views/proposals/_proposal-status-strip.php'; ?>
 <?php if (\App\Services\ResearchFormDocument::formKey($proposal) !== null): ?>
     <?php
     $editUrl = base_url('proposals/' . $proposal['id'] . '/edit');
     require APP_PATH . '/views/proposals/_form-docx-actions.php';
+    if (\App\Services\ResearchFormDocument::formKey($proposal) === 'research') {
+        require APP_PATH . '/views/proposals/_research-application-details.php';
+    }
     ?>
 <?php else: ?>
     <div class="proposal-paper completed-researches-paper trainings-conducted-paper eso-extension-paper rdo-research-paper">

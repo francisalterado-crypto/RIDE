@@ -6357,3 +6357,23 @@ html.lp-open { overflow: hidden; }
     .lp-map { height: 260px; }
 }
 
+/* Read-only proposal view in the web form layout (the office paper layout is print-only). */
+.wf-view .webform-grid { row-gap: 1rem; }
+.wf-view-field { min-width: 0; }
+.wf-view-label { display: block; margin-bottom: 0.3rem; font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+.wf-view-value { padding: 0.55rem 0.75rem; min-height: 2.6rem; border: 1px solid var(--border); border-radius: var(--radius); background: #f8fafc; color: var(--text, #0f172a); line-height: 1.5; overflow-wrap: anywhere; }
+.wf-view-empty { color: var(--muted); font-style: italic; }
+.wf-view-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.wf-view-subhead { margin: 1.25rem 0 0.6rem; font-size: 0.95rem; color: var(--primary); }
+.wf-view-table td { vertical-align: top; }
+.wf-view-total { margin: 0.5rem 0 0; text-align: right; font-size: 0.9rem; }
+.proposal-status-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; margin-bottom: 1rem; padding: 0.8rem 1.1rem; }
+.proposal-status-strip dl { display: contents; }
+.proposal-status-strip div { display: flex; flex-direction: column; gap: 0.15rem; }
+.proposal-status-strip dt { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+.proposal-status-strip dd { margin: 0; font-weight: 600; }
+.wf-view-after-table { margin-top: 1rem; }
+.wf-view-after-grid { margin-top: 1rem; }
+.wf-view-gantt th:not(:first-child), .wf-view-gantt-cell { width: 2.4rem; text-align: center; padding-left: 0.25rem; padding-right: 0.25rem; }
+.wf-view-gantt-cell.is-on { background: var(--accent, #14b8a6); }
+

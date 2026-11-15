@@ -27,11 +27,8 @@ $printMissing = \App\Support\FormPreviewRequirements::missing($proposal, \App\Su
     <?php endif; ?>
 </div>
 
-<div class="proposal-paper completed-researches-paper eso-extension-paper wpu-funded-extension-paper">
-    <?php require APP_PATH . '/views/proposals/_wpu-funded-extension-paper.php'; ?>
-
-
-</div>
+<?php require APP_PATH . '/views/proposals/_proposal-status-strip.php'; ?>
+<?php require APP_PATH . '/views/proposals/_wpu-funded-extension-details.php'; ?>
 
 <div class="app-panel proposal-workflow-panel">
     <?php
