@@ -328,11 +328,11 @@ $ethicsRequired = $proposal !== null
             </div>
             <div class="webform-field">
                 <label for="rpa-period">Period Covered <span class="webform-req">*</span></label>
-                <input id="rpa-period" name="period_covered" value="<?= htmlspecialchars($field('period_covered')) ?>" placeholder="e.g. June 2026 to May 2027">
+                <input id="rpa-period" name="period_covered" value="<?= htmlspecialchars($field('period_covered')) ?>" placeholder="June 2026 to May 2027">
             </div>
             <div class="webform-field">
                 <label for="rpa-duration">Duration in Months <span class="webform-req">*</span></label>
-                <input id="rpa-duration" name="duration_months" type="number" min="0" value="<?= htmlspecialchars($field('duration_months')) ?>" placeholder="e.g. 12">
+                <input id="rpa-duration" name="duration_months" type="number" min="0" value="<?= htmlspecialchars($field('duration_months')) ?>" placeholder="12">
             </div>
             <div class="webform-field webform-field--full">
                 <span class="webform-label">Funding/Support <span class="webform-req">*</span></span>
@@ -347,7 +347,7 @@ $ethicsRequired = $proposal !== null
             </div>
             <div class="webform-field webform-field--full">
                 <label for="rpa-funding-source">Funding source</label>
-                <input id="rpa-funding-source" name="funding_source" value="<?= htmlspecialchars($fundingSourceValue) ?>" placeholder="e.g. DOST-PCAARRD">
+                <input id="rpa-funding-source" name="funding_source" value="<?= htmlspecialchars($fundingSourceValue) ?>" placeholder="DOST-PCAARRD">
                 <p class="webform-hint">For external funding/support, indicate the funding source.</p>
             </div>
             <div class="webform-field">
@@ -393,7 +393,8 @@ $ethicsRequired = $proposal !== null
             </div>
             <div class="webform-field webform-field--full">
                 <label for="rpa-graphical-abstract">Graphical Abstract (if applicable)</label>
-                <input id="rpa-graphical-abstract" type="url" name="graphical_abstract_link" value="<?= htmlspecialchars($field('graphical_abstract_link')) ?>" placeholder="Link to the graphical abstract image (e.g. Google Drive)">
+                <input id="rpa-graphical-abstract" type="url" name="graphical_abstract_link" value="<?= htmlspecialchars($field('graphical_abstract_link')) ?>" placeholder="https://">
+                <p class="webform-hint">Link to the graphical abstract image, such as a shared Google Drive file.</p>
             </div>
         </div>
     </section>
@@ -492,7 +493,8 @@ $ethicsRequired = $proposal !== null
         <div class="webform-grid">
             <div class="webform-field webform-field--full">
                 <label for="rpa-expected_outcomes">Expected Outcomes <span class="webform-req">*</span></label>
-                <textarea id="rpa-expected_outcomes" name="expected_outcomes" rows="4" data-autoresize placeholder="Measurable changes by the end of the project, e.g. products/processes developed, used in extension programs, commercialization."><?= htmlspecialchars($field('expected_outcomes')) ?></textarea>
+                <p class="webform-hint">Measurable changes expected by the end of the project, such as products or processes developed, adoption in extension programs, or commercialization.</p>
+                <textarea id="rpa-expected_outcomes" name="expected_outcomes" rows="4" data-autoresize><?= htmlspecialchars($field('expected_outcomes')) ?></textarea>
             </div>
         </div>
         <div class="webform-subsection">
@@ -559,11 +561,11 @@ $ethicsRequired = $proposal !== null
         <div class="webform-grid">
             <div class="webform-field">
                 <label for="rpa-plan-from">From CY <span class="webform-req">*</span></label>
-                <input id="rpa-plan-from" type="number" name="plan_year_from" min="2000" max="2100" value="<?= htmlspecialchars($field('plan_year_from')) ?>" placeholder="e.g. 2026">
+                <input id="rpa-plan-from" type="number" name="plan_year_from" min="2000" max="2100" value="<?= htmlspecialchars($field('plan_year_from')) ?>" placeholder="2026">
             </div>
             <div class="webform-field">
                 <label for="rpa-plan-to">To CY</label>
-                <input id="rpa-plan-to" type="number" name="plan_year_to" min="2000" max="2100" value="<?= htmlspecialchars($field('plan_year_to')) ?>" placeholder="e.g. 2027">
+                <input id="rpa-plan-to" type="number" name="plan_year_to" min="2000" max="2100" value="<?= htmlspecialchars($field('plan_year_to')) ?>" placeholder="2027">
             </div>
         </div>
         <div class="webform-table-wrap">

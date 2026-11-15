@@ -92,7 +92,7 @@ $renderField = static function (string $name, array $field, string $current, boo
             <p class="webform-hint"><?= htmlspecialchars((string) $field['hint']) ?></p>
         <?php endif; ?>
         <?php if ($locked): ?>
-            <p class="webform-hint">Taken from the approved research picked above.</p>
+            <p class="webform-hint">Filled in from the approved research selected above.</p>
         <?php endif; ?>
     </div>
     <?php
@@ -166,7 +166,7 @@ $renderField = static function (string $name, array $field, string $current, boo
                 <span class="webform-card-num"><?= $cardNo('req-sec-research') ?></span>
                 <div>
                     <h2>Research</h2>
-                    <p><?= $definition['research_link'] === 'required' ? 'The approved research this request is for.' : 'If this comes from one of your approved researches, pick it to fill in its details.' ?></p>
+                    <p><?= $definition['research_link'] === 'required' ? 'The approved research this request is for.' : 'If this request relates to one of your approved researches, select it to fill in its details.' ?></p>
                 </div>
             </header>
             <div class="webform-grid">
@@ -322,11 +322,11 @@ $renderField = static function (string $name, array $field, string $current, boo
             <div class="webform-grid">
                 <div class="webform-field">
                     <label for="req-plan-from">From <?= $yearLabel ?><?= $reqMark($name) ?></label>
-                    <input type="number" id="req-plan-from" name="plan_year_from" min="2000" max="2100" value="<?= htmlspecialchars($value('plan_year_from')) ?>" placeholder="e.g. 2027">
+                    <input type="number" id="req-plan-from" name="plan_year_from" min="2000" max="2100" value="<?= htmlspecialchars($value('plan_year_from')) ?>" placeholder="2027">
                 </div>
                 <div class="webform-field">
                     <label for="req-plan-to">To <?= $yearLabel ?></label>
-                    <input type="number" id="req-plan-to" name="plan_year_to" min="2000" max="2100" value="<?= htmlspecialchars($value('plan_year_to')) ?>" placeholder="e.g. 2028">
+                    <input type="number" id="req-plan-to" name="plan_year_to" min="2000" max="2100" value="<?= htmlspecialchars($value('plan_year_to')) ?>" placeholder="2028">
                 </div>
             </div>
             <div class="webform-table-wrap">

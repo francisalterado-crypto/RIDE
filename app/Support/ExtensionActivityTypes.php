@@ -76,7 +76,7 @@ final class ExtensionActivityTypes
                     'training_title' => ['label' => 'Title of Training', 'type' => 'textarea', 'required' => true],
                     'venue' => ['label' => 'Venue', 'type' => 'text'],
                     'training_date' => ['label' => 'Date', 'type' => 'date', 'required' => true],
-                    'participant_type' => ['label' => 'Type of Participants', 'type' => 'text', 'placeholder' => 'e.g. Farmers'],
+                    'participant_type' => ['label' => 'Type of Participants', 'type' => 'text', 'placeholder' => 'Farmers'],
                     'persons_trained' => ['label' => 'No. of Persons Trained', 'type' => 'number'],
                     'training_length' => ['label' => 'Length of Training', 'type' => 'select', 'options' => [
                         'lt_8h' => '< 8 hours (0.5)',
@@ -164,7 +164,7 @@ final class ExtensionActivityTypes
                 'fields' => [
                     'extension_personnel' => ['label' => 'Name of Extension Personnel', 'type' => 'text'],
                     'demonstration_farm' => ['label' => 'Name and Location of Demonstration Farm', 'type' => 'textarea', 'only' => ['demonstration_farm']],
-                    'year_established' => ['label' => 'Year Established', 'type' => 'text', 'placeholder' => 'e.g. 2024', 'only' => ['demonstration_farm']],
+                    'year_established' => ['label' => 'Year Established', 'type' => 'text', 'placeholder' => '2024', 'only' => ['demonstration_farm']],
                     'extension_service_title' => ['label' => 'Title of Extension Service Provided', 'type' => 'textarea', 'only' => ['training']],
                     'date_conducted' => ['label' => 'Date Conducted', 'type' => 'date', 'required' => true, 'only' => ['training']],
                     'technology_demonstrated' => ['label' => 'Technology Demonstrated / Product / Enterprise', 'type' => 'textarea', 'required' => true],

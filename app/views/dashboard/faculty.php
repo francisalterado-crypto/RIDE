@@ -76,7 +76,7 @@ $activity = is_array($monthlyActivity ?? null) ? $monthlyActivity : ['labels' =>
                 <h2>Needs your attention</h2>
             </div>
             <?php if ($attentionCount === 0): ?>
-                <p class="fd-empty">You're all caught up. Nothing is waiting on you right now.</p>
+                <p class="fd-empty">There are no pending items that require your action.</p>
             <?php endif; ?>
             <ul class="fd-list">
                 <?php foreach ($returnedProposals as $p): ?>

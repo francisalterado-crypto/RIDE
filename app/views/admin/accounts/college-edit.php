@@ -28,7 +28,7 @@ $pageSubtitle = 'Update the college code or name used for account assignment and
             value="<?= old('edit_college_code', (string) ($college['code'] ?? '')) ?>"
             required
             maxlength="20"
-            placeholder="e.g. CIT"
+            placeholder="CIT"
         >
 
         <label for="edit_college_name">College Name</label>
@@ -38,7 +38,7 @@ $pageSubtitle = 'Update the college code or name used for account assignment and
             value="<?= old('edit_college_name', (string) ($college['name'] ?? '')) ?>"
             required
             maxlength="150"
-            placeholder="e.g. College of Information Technology"
+            placeholder="College of Information Technology"
         >
 
         <?php $unitType = (string) ($college['unit_type'] ?? 'college'); ?>

@@ -62,7 +62,7 @@ $renderRow = static function (string $sectionKey, int $index, array $row, bool $
         <td><textarea class="proposal-textarea proposal-textarea-compact" rows="2" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[training_title]' ?>"><?= htmlspecialchars((string) ($row['training_title'] ?? '')) ?></textarea></td>
         <td><input type="text" data-location-picker="ph" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[venue]' ?>" value="<?= htmlspecialchars((string) ($row['venue'] ?? '')) ?>"></td>
         <td><input type="date" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[training_date]' ?>" value="<?= htmlspecialchars((string) ($row['training_date'] ?? '')) ?>"></td>
-        <td><input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[participant_type]' ?>" value="<?= htmlspecialchars((string) ($row['participant_type'] ?? '')) ?>" placeholder="e.g. Farmers"></td>
+        <td><input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[participant_type]' ?>" value="<?= htmlspecialchars((string) ($row['participant_type'] ?? '')) ?>" placeholder="Farmers"></td>
         <td class="tc-col-count"><input type="number" min="0" step="1" class="tc-persons-trained tc-input-num" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[persons_trained]' ?>" value="<?= htmlspecialchars((string) ($row['persons_trained'] ?? '')) ?>"></td>
         <td class="tc-col-weighted">
             <?php if ($readOnly): ?>
@@ -81,7 +81,7 @@ $renderRow = static function (string $sectionKey, int $index, array $row, bool $
             <?php endif; ?>
         </td>
         <td><input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[personnel_name]' ?>" value="<?= htmlspecialchars((string) ($row['personnel_name'] ?? '')) ?>"></td>
-        <td><input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[personnel_role]' ?>" value="<?= htmlspecialchars((string) ($row['personnel_role'] ?? '')) ?>" placeholder="e.g. Facilitator"></td>
+        <td><input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[personnel_role]' ?>" value="<?= htmlspecialchars((string) ($row['personnel_role'] ?? '')) ?>" placeholder="Facilitator"></td>
         <td><input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[budget_source]' ?>" value="<?= htmlspecialchars((string) ($row['budget_source'] ?? '')) ?>"></td>
         <td><input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[budget_amount]' ?>" value="<?= htmlspecialchars((string) ($row['budget_amount'] ?? '')) ?>"></td>
         <td class="tc-col-count"><input type="number" min="0" step="1" class="tc-input-num" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[trainees_surveyed]' ?>" value="<?= htmlspecialchars((string) ($row['trainees_surveyed'] ?? '')) ?>"></td>

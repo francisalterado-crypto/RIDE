@@ -128,7 +128,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
             </select>
 
             <label for="paper_indexing">Indexing</label>
-            <input id="paper_indexing" name="indexing" maxlength="120" placeholder="e.g. Scopus, Web of Science">
+            <input id="paper_indexing" name="indexing" maxlength="120" placeholder="Scopus, Web of Science">
 
             <label for="paper_doi">DOI</label>
             <input id="paper_doi" name="doi" maxlength="120">

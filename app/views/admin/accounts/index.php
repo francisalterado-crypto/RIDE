@@ -415,7 +415,7 @@ $collegeCount = count($colleges);
 
                     <label for="college_code">College Code</label>
 
-                    <input id="college_code" name="college_code" value="<?= old('college_code') ?>" required maxlength="20" placeholder="e.g. CIT" class="no-capitalize">
+                    <input id="college_code" name="college_code" value="<?= old('college_code') ?>" required maxlength="20" placeholder="CIT" class="no-capitalize">
 
                 </div>
 
@@ -425,7 +425,7 @@ $collegeCount = count($colleges);
 
                     <label for="college_name">College Name</label>
 
-                    <input id="college_name" name="college_name" value="<?= old('college_name') ?>" required maxlength="150" placeholder="e.g. College of Information Technology">
+                    <input id="college_name" name="college_name" value="<?= old('college_name') ?>" required maxlength="150" placeholder="College of Information Technology">
 
                 </div>
 
@@ -586,7 +586,7 @@ $collegeCount = count($colleges);
             <?= csrf_field() ?>
             <div class="accounts-form-field">
                 <label for="cluster_name">Cluster Name</label>
-                <input id="cluster_name" name="cluster_name" value="<?= old('cluster_name') ?>" required maxlength="100" placeholder="e.g. Extension Cluster 4">
+                <input id="cluster_name" name="cluster_name" value="<?= old('cluster_name') ?>" required maxlength="100" placeholder="Extension Cluster 4">
             </div>
             <div class="accounts-form-field">
                 <label for="cluster_track">Track</label>

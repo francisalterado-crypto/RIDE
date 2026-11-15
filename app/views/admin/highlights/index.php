@@ -25,7 +25,7 @@ $pageSubtitle = 'Manage vision, mission, and picture activities shown on the pub
 
 <div class="card">
   <h2>Upload Highlight Photos</h2>
-  <p class="muted">Programs, activities, and announcements from the WPU RIDE Office appear in the login carousel. You can select multiple images at once.</p>
+  <p class="muted">Programs, activities, and announcements from the WPU RIDE Office appear in the login carousel. Multiple images may be selected at once.</p>
   <form method="post" action="<?= base_url('admin/highlights') ?>" enctype="multipart/form-data">
     <?= csrf_field() ?>
 
@@ -35,7 +35,7 @@ $pageSubtitle = 'Manage vision, mission, and picture activities shown on the pub
     <p id="highlight-file-count" class="highlight-upload-hint" hidden></p>
 
     <label for="title">Title</label>
-    <input type="text" id="title" name="title" maxlength="200" placeholder="e.g. Research Week 2026">
+    <input type="text" id="title" name="title" maxlength="200" placeholder="Research Week 2026">
 
     <label for="caption">Caption</label>
     <textarea id="caption" name="caption" rows="2" placeholder="Brief description of the activity or announcement"></textarea>
@@ -65,7 +65,7 @@ $pageSubtitle = 'Manage vision, mission, and picture activities shown on the pub
 <div class="card">
   <h2>Carousel Slides</h2>
   <?php if (empty($slides)): ?>
-    <p class="muted">No carousel images yet. Upload your first slide above.</p>
+    <p class="muted">No carousel images have been added. Upload a slide using the form above.</p>
   <?php else: ?>
     <p class="muted section-note">Use the arrows to reorder. Only active slides appear on the login page.</p>
     <div class="highlight-slide-list">

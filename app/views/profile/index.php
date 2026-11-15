@@ -69,11 +69,11 @@ $selectedCollegeId = old('profile_college_id', (string) ($user['college_id'] ?? 
                     </div>
                     <div class="settings-field">
                         <label for="profile_position">Position held</label>
-                        <input id="profile_position" name="position" value="<?= htmlspecialchars((string) ($user['position'] ?? '')) ?>" maxlength="120" placeholder="e.g. Assistant Professor IV">
+                        <input id="profile_position" name="position" value="<?= htmlspecialchars((string) ($user['position'] ?? '')) ?>" maxlength="120" placeholder="Assistant Professor IV">
                     </div>
                     <div class="settings-field">
                         <label for="profile_contact_number">Contact number</label>
-                        <input id="profile_contact_number" name="contact_number" value="<?= htmlspecialchars((string) ($user['contact_number'] ?? '')) ?>" maxlength="30" placeholder="e.g. 0917 123 4567">
+                        <input id="profile_contact_number" name="contact_number" value="<?= htmlspecialchars((string) ($user['contact_number'] ?? '')) ?>" maxlength="30" placeholder="0917 123 4567">
                     </div>
                     <div class="settings-field settings-field--full">
                         <label for="profile_email">Email</label>
@@ -105,7 +105,7 @@ $selectedCollegeId = old('profile_college_id', (string) ($user['college_id'] ?? 
                             <?php endforeach; ?>
                         </select>
                         <?php if (($campuses ?? []) === []): ?>
-                            <p class="settings-hint">Save your college first to choose a campus.</p>
+                            <p class="settings-hint">Save the college first to enable campus selection.</p>
                         <?php endif; ?>
                     </div>
                     <p class="settings-hint settings-field--full">These details fill in the proponent section of your Research Proposal Application and request forms.</p>
@@ -173,22 +173,22 @@ $selectedCollegeId = old('profile_college_id', (string) ($user['college_id'] ?? 
                 <div class="settings-field">
                     <label for="profile_orcid_id">ORCID iD</label>
                     <input id="profile_orcid_id" name="orcid_id" value="<?= old('profile_orcid_id', (string) ($user['orcid_id'] ?? '')) ?>" maxlength="60" placeholder="0000-0002-1825-0097" autocomplete="off">
-                    <p class="settings-hint">Your 16-digit iD from orcid.org. You can paste the full link.</p>
+                    <p class="settings-hint">The 16-digit ORCID iD from orcid.org. The full profile link is also accepted.</p>
                 </div>
                 <div class="settings-field">
                     <label for="profile_google_scholar_url">Google Scholar</label>
                     <input id="profile_google_scholar_url" type="url" name="google_scholar_url" value="<?= old('profile_google_scholar_url', (string) ($user['google_scholar_url'] ?? '')) ?>" maxlength="255" placeholder="https://scholar.google.com/citations?user=...">
-                    <p class="settings-hint">Open your Google Scholar profile and copy the address from the browser.</p>
+                    <p class="settings-hint">Copy the profile address from the browser address bar while viewing your Google Scholar profile.</p>
                 </div>
                 <div class="settings-field">
                     <label for="profile_researchgate_url">ResearchGate</label>
                     <input id="profile_researchgate_url" type="url" name="researchgate_url" value="<?= old('profile_researchgate_url', (string) ($user['researchgate_url'] ?? '')) ?>" maxlength="255" placeholder="https://www.researchgate.net/profile/Your-Name">
-                    <p class="settings-hint">Open your ResearchGate profile and copy the address from the browser.</p>
+                    <p class="settings-hint">Copy the profile address from the browser address bar while viewing your ResearchGate profile.</p>
                 </div>
                 <div class="settings-field">
                     <label for="profile_github_url">GitHub</label>
                     <input id="profile_github_url" name="github_url" value="<?= old('profile_github_url', (string) ($user['github_url'] ?? '')) ?>" maxlength="255" placeholder="https://github.com/username" autocomplete="off">
-                    <p class="settings-hint">Your GitHub username or profile link.</p>
+                    <p class="settings-hint">GitHub username or profile link.</p>
                 </div>
             </div>
             <div class="settings-actions">

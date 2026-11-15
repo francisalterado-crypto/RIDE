@@ -45,7 +45,7 @@ $cardNo = 0;
             <span class="webform-card-num"><?= ++$cardNo ?></span>
             <div>
                 <h2>Report details</h2>
-                <p>Pick the reporting period. Changing it reloads the rows for that period.</p>
+                <p>Select the reporting period. Changing the period reloads the entries recorded for it.</p>
             </div>
         </header>
         <div class="webform-grid">

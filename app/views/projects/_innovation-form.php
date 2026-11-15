@@ -11,7 +11,7 @@
     <div id="inn-name" style="display:none;"><label>Name</label><input name="name"></div>
     <div id="inn-partner" style="display:none;"><label>Partner</label><input name="partner_name"></div>
     <label>Status / Stage</label>
-    <input name="status" placeholder="e.g. filed, granted, beta">
+    <input name="status" placeholder="Filed, granted, or beta">
     <button type="submit" class="btn btn-sm btn-accent">Add Record</button>
 </form>
 <script>

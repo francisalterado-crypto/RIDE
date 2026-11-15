@@ -90,7 +90,7 @@ $renderDataRow = static function (
             <?php if ($periodInputType === 'date'): ?>
                 <input type="date" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $prefix . '[' . $periodField . ']' ?>" value="<?= htmlspecialchars((string) ($row[$periodField] ?? '')) ?>">
             <?php else: ?>
-                <input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $prefix . '[' . $periodField . ']' ?>" value="<?= htmlspecialchars((string) ($row[$periodField] ?? '')) ?>" placeholder="e.g. 2024">
+                <input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $prefix . '[' . $periodField . ']' ?>" value="<?= htmlspecialchars((string) ($row[$periodField] ?? '')) ?>" placeholder="2024">
             <?php endif; ?>
         </td>
         <td>

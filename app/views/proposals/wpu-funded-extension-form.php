@@ -316,9 +316,9 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                     <?php endforeach; ?>
                 </select>
                 <?php if ($selectedProgramId === 0 && $collegeProgramValue !== ''): ?>
-                    <p class="webform-hint">Previously entered: <?= htmlspecialchars($collegeProgramValue) ?>. Pick the matching program from the list.</p>
+                    <p class="webform-hint">Previously entered: <?= htmlspecialchars($collegeProgramValue) ?>. Select the matching program from the list.</p>
                 <?php else: ?>
-                    <p class="webform-hint">Programs from the approved RIDE agenda. Ask the RIDE admin if yours is missing.</p>
+                    <p class="webform-hint">Programs from the approved RIDE agenda. Contact the RIDE administrator if the program is not listed.</p>
                 <?php endif; ?>
             </div>
             <div class="webform-field webform-field--full">
@@ -329,7 +329,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                         <option value="<?= (int) $projectRow['id'] ?>" data-program="<?= (int) $projectRow['extension_program_id'] ?>"<?= (int) $projectRow['id'] === $selectedProjectId ? ' selected' : '' ?>><?= htmlspecialchars(\App\Models\ExtensionProject::label($projectRow)) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <p class="webform-hint">If this proposal is for a project already in the ESO plan, pick it so its activities stay linked.</p>
+                <p class="webform-hint">If this proposal covers a project already in the ESO plan, select it so that its activities remain linked.</p>
             </div>
             <div class="webform-field">
                 <label for="eso-team-leader">Project Team Leader <span class="webform-req">*</span></label>
@@ -370,7 +370,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             </div>
             <div class="webform-field webform-field--full">
                 <label for="eso-collaborating">Collaborating Organizations</label>
-                <textarea id="eso-collaborating" name="collaborating_organizations" rows="2" data-autoresize placeholder="e.g. LGU of Aborlan, DA-MIMAROPA"><?= htmlspecialchars($collaboratingOrgsValue) ?></textarea>
+                <textarea id="eso-collaborating" name="collaborating_organizations" rows="2" data-autoresize placeholder="LGU of Aborlan, DA-MIMAROPA"><?= htmlspecialchars($collaboratingOrgsValue) ?></textarea>
             </div>
             <div class="webform-field webform-field--full">
                 <label for="eso-beneficiaries">Beneficiaries</label>
@@ -397,7 +397,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <p class="webform-calc webform-field--half webform-field--right" id="eso-duration-calc" hidden></p>
             </div>
             <?php if ($durationValue !== '' && $durationStartValue === '' && $durationEndValue === ''): ?>
-                <p class="webform-hint webform-field--full">Previously entered as: <?= htmlspecialchars($durationValue) ?>. Pick dates above to replace it.</p>
+                <p class="webform-hint webform-field--full">Previously entered as: <?= htmlspecialchars($durationValue) ?>. Select the start and end dates above to replace it.</p>
             <?php endif; ?>
             <div class="webform-field webform-field--full">
                 <label for="eso-location">Location <span class="webform-req">*</span></label>
@@ -480,16 +480,16 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 
         <div class="webform-subsection">
             <h3>D. Partnership</h3>
-            <p class="webform-hint">Tasks, areas of responsibility, and resource sharing among partners and implementers.</p>
+            <p class="webform-hint">Tasks, areas of responsibility, and resource sharing among partners and implementers. Example: Barangay San Juan; Coordination; Coordinate with the target participants; Venue, meals and documentation.</p>
             <div class="webform-repeater" id="eso-partnerships-body">
                 <?php foreach ($partnerships as $index => $row): ?>
                     <div class="webform-item eso-repeater-row">
                         <div class="webform-item-head"><span class="webform-item-label">Partner</span><?= $removeItemButton ?></div>
                         <div class="webform-grid">
-                            <div class="webform-field"><label>Partner</label><textarea rows="1" data-autoresize data-field="partner" name="partnerships[<?= (int) $index ?>][partner]" placeholder="e.g. Barangay San Juan"><?= htmlspecialchars((string) ($row['partner'] ?? '')) ?></textarea></div>
-                            <div class="webform-field"><label>Area of responsibility</label><textarea rows="1" data-autoresize data-field="area_of_responsibility" name="partnerships[<?= (int) $index ?>][area_of_responsibility]" placeholder="e.g. Coordination"><?= htmlspecialchars((string) ($row['area_of_responsibility'] ?? '')) ?></textarea></div>
-                            <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description" name="partnerships[<?= (int) $index ?>][task_description]" placeholder="e.g. Coordinate with the target participants"><?= htmlspecialchars((string) ($row['task_description'] ?? '')) ?></textarea></div>
-                            <div class="webform-field"><label>Resource sharing</label><textarea rows="2" data-autoresize data-field="resource_sharing" name="partnerships[<?= (int) $index ?>][resource_sharing]" placeholder="e.g. Venue, meals, documentation"><?= htmlspecialchars((string) ($row['resource_sharing'] ?? '')) ?></textarea></div>
+                            <div class="webform-field"><label>Partner</label><textarea rows="1" data-autoresize data-field="partner" name="partnerships[<?= (int) $index ?>][partner]" placeholder="Barangay San Juan"><?= htmlspecialchars((string) ($row['partner'] ?? '')) ?></textarea></div>
+                            <div class="webform-field"><label>Area of responsibility</label><textarea rows="1" data-autoresize data-field="area_of_responsibility" name="partnerships[<?= (int) $index ?>][area_of_responsibility]" placeholder="Coordination"><?= htmlspecialchars((string) ($row['area_of_responsibility'] ?? '')) ?></textarea></div>
+                            <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description" name="partnerships[<?= (int) $index ?>][task_description]"><?= htmlspecialchars((string) ($row['task_description'] ?? '')) ?></textarea></div>
+                            <div class="webform-field"><label>Resource sharing</label><textarea rows="2" data-autoresize data-field="resource_sharing" name="partnerships[<?= (int) $index ?>][resource_sharing]"><?= htmlspecialchars((string) ($row['resource_sharing'] ?? '')) ?></textarea></div>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -519,7 +519,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                                 <?php endif; ?>
                                 <input data-field="member" name="team_duties[<?= (int) $index ?>][member]" value="<?= htmlspecialchars((string) ($row['member'] ?? '')) ?>" placeholder="Added from Members / Trainers" readonly>
                             </div>
-                            <div class="webform-field"><label>Role</label><input data-field="role" list="eso-role-options" name="team_duties[<?= (int) $index ?>][role]" value="<?= htmlspecialchars((string) ($row['role'] ?? '')) ?>" placeholder="e.g. Project Leader"></div>
+                            <div class="webform-field"><label>Role</label><input data-field="role" list="eso-role-options" name="team_duties[<?= (int) $index ?>][role]" value="<?= htmlspecialchars((string) ($row['role'] ?? '')) ?>" placeholder="Project Leader"></div>
                             <div class="webform-field"><label>College</label><input data-field="college" name="team_duties[<?= (int) $index ?>][college]" value="<?= htmlspecialchars((string) ($row['college'] ?? '')) ?>" placeholder="College" <?= $linkedUserId > 0 ? 'readonly' : '' ?>></div>
                             <div class="webform-field"><label>Department / Program</label><input data-field="department" name="team_duties[<?= (int) $index ?>][department]" value="<?= htmlspecialchars((string) ($row['department'] ?? '')) ?>" placeholder="Department / program" <?= $linkedUserId > 0 ? 'readonly' : '' ?>></div>
                             <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description" name="team_duties[<?= (int) $index ?>][task_description]" placeholder="Tasks assigned to this member"><?= htmlspecialchars((string) ($row['task_description'] ?? '')) ?></textarea></div>
@@ -547,6 +547,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <div>
                 <h2>Logical Framework</h2>
                 <p>Show how each input leads to activities, outputs, and long-term impact.</p>
+                <p class="webform-hint">Example: Inputs: Fund 164, PHP 5,000.00. Activities: Workshops on sustainable agriculture. Outputs: 50 participants trained. Effects: Increased awareness and skills. Outcomes: Sustainable practices adopted. Impact: Long-term economic stability.</p>
             </div>
         </header>
         <div class="webform-repeater" id="eso-framework-body">
@@ -554,12 +555,12 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <div class="webform-item eso-repeater-row">
                     <div class="webform-item-head"><span class="webform-item-label">Framework entry</span><?= $removeItemButton ?></div>
                     <div class="webform-grid webform-grid--3">
-                        <div class="webform-field"><label>Inputs</label><textarea rows="2" data-autoresize data-field="inputs" name="logical_framework[<?= (int) $index ?>][inputs]" placeholder="e.g. WPU Fund, ₱5,000.00"><?= htmlspecialchars((string) ($row['inputs'] ?? '')) ?></textarea></div>
-                        <div class="webform-field"><label>Activities</label><textarea rows="2" data-autoresize data-field="activities" name="logical_framework[<?= (int) $index ?>][activities]" placeholder="e.g. Workshops on sustainable agriculture"><?= htmlspecialchars((string) ($row['activities'] ?? '')) ?></textarea></div>
-                        <div class="webform-field"><label>Outputs</label><textarea rows="2" data-autoresize data-field="outputs" name="logical_framework[<?= (int) $index ?>][outputs]" placeholder="e.g. 50 participants trained"><?= htmlspecialchars((string) ($row['outputs'] ?? '')) ?></textarea></div>
-                        <div class="webform-field"><label>Effects</label><textarea rows="2" data-autoresize data-field="effects" name="logical_framework[<?= (int) $index ?>][effects]" placeholder="e.g. Increased awareness and skills"><?= htmlspecialchars((string) ($row['effects'] ?? '')) ?></textarea></div>
-                        <div class="webform-field"><label>Outcomes</label><textarea rows="2" data-autoresize data-field="outcomes" name="logical_framework[<?= (int) $index ?>][outcomes]" placeholder="e.g. Sustainable practices adopted"><?= htmlspecialchars((string) ($row['outcomes'] ?? '')) ?></textarea></div>
-                        <div class="webform-field"><label>Impact</label><textarea rows="2" data-autoresize data-field="impact" name="logical_framework[<?= (int) $index ?>][impact]" placeholder="e.g. Long-term economic stability"><?= htmlspecialchars((string) ($row['impact'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Inputs</label><textarea rows="2" data-autoresize data-field="inputs" name="logical_framework[<?= (int) $index ?>][inputs]"><?= htmlspecialchars((string) ($row['inputs'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Activities</label><textarea rows="2" data-autoresize data-field="activities" name="logical_framework[<?= (int) $index ?>][activities]"><?= htmlspecialchars((string) ($row['activities'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Outputs</label><textarea rows="2" data-autoresize data-field="outputs" name="logical_framework[<?= (int) $index ?>][outputs]"><?= htmlspecialchars((string) ($row['outputs'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Effects</label><textarea rows="2" data-autoresize data-field="effects" name="logical_framework[<?= (int) $index ?>][effects]"><?= htmlspecialchars((string) ($row['effects'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Outcomes</label><textarea rows="2" data-autoresize data-field="outcomes" name="logical_framework[<?= (int) $index ?>][outcomes]"><?= htmlspecialchars((string) ($row['outcomes'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Impact</label><textarea rows="2" data-autoresize data-field="impact" name="logical_framework[<?= (int) $index ?>][impact]"><?= htmlspecialchars((string) ($row['impact'] ?? '')) ?></textarea></div>
                         <div class="webform-field webform-field--full"><label>Sustainable Development Goal</label><?= $sdgSelect((string) ($row['sdg'] ?? ''), 'logical_framework[' . (int) $index . '][sdg]') ?></div>
                     </div>
                 </div>
@@ -595,6 +596,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <div>
                 <h2>Work &amp; Financial Plan</h2>
                 <p>Add one entry for each activity, with its schedule, people in charge, and budget.</p>
+                <p class="webform-hint">Example: Activity: Training Workshop on Organic Farming. Indicator: Number of farmers trained. Strategies: Partner with local NGOs. Expected output: Accomplishment Report (ETR).</p>
             </div>
         </header>
         <div class="webform-repeater" id="eso-workplan-body">
@@ -602,14 +604,14 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 <div class="webform-item eso-repeater-row">
                     <div class="webform-item-head"><span class="webform-item-label">Activity</span><?= $removeItemButton ?></div>
                     <div class="webform-grid">
-                        <div class="webform-field webform-field--full"><label>Activity</label><textarea rows="1" data-autoresize data-field="activities" name="work_plan[<?= (int) $index ?>][activities]" placeholder="e.g. Training Workshop on Organic Farming"><?= htmlspecialchars((string) ($row['activities'] ?? '')) ?></textarea></div>
+                        <div class="webform-field webform-field--full"><label>Activity</label><textarea rows="1" data-autoresize data-field="activities" name="work_plan[<?= (int) $index ?>][activities]"><?= htmlspecialchars((string) ($row['activities'] ?? '')) ?></textarea></div>
                         <div class="webform-field"><label>Objective</label><textarea rows="2" data-autoresize data-field="objective" name="work_plan[<?= (int) $index ?>][objective]" placeholder="What this activity aims to achieve"><?= htmlspecialchars((string) ($row['objective'] ?? '')) ?></textarea></div>
-                        <div class="webform-field"><label>Indicator</label><textarea rows="2" data-autoresize data-field="indicator" name="work_plan[<?= (int) $index ?>][indicator]" placeholder="e.g. Number of farmers trained"><?= htmlspecialchars((string) ($row['indicator'] ?? '')) ?></textarea></div>
-                        <div class="webform-field"><label>Strategies</label><textarea rows="2" data-autoresize data-field="strategies" name="work_plan[<?= (int) $index ?>][strategies]" placeholder="e.g. Partner with local NGOs"><?= htmlspecialchars((string) ($row['strategies'] ?? '')) ?></textarea></div>
-                        <div class="webform-field"><label>Expected output/s</label><textarea rows="2" data-autoresize data-field="outputs" name="work_plan[<?= (int) $index ?>][outputs]" placeholder="e.g. Accomplishment Report (ETR)"><?= htmlspecialchars((string) ($row['outputs'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Indicator</label><textarea rows="2" data-autoresize data-field="indicator" name="work_plan[<?= (int) $index ?>][indicator]"><?= htmlspecialchars((string) ($row['indicator'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Strategies</label><textarea rows="2" data-autoresize data-field="strategies" name="work_plan[<?= (int) $index ?>][strategies]"><?= htmlspecialchars((string) ($row['strategies'] ?? '')) ?></textarea></div>
+                        <div class="webform-field"><label>Expected output/s</label><textarea rows="2" data-autoresize data-field="outputs" name="work_plan[<?= (int) $index ?>][outputs]"><?= htmlspecialchars((string) ($row['outputs'] ?? '')) ?></textarea></div>
                         <div class="webform-field"><label>Responsible persons</label><textarea rows="1" data-autoresize data-field="responsible_persons" name="work_plan[<?= (int) $index ?>][responsible_persons]" placeholder="Names or roles"><?= htmlspecialchars((string) ($row['responsible_persons'] ?? '')) ?></textarea></div>
                         <div class="webform-field webform-field--split">
-                            <div><label>Time frame</label><input data-field="time_frame" name="work_plan[<?= (int) $index ?>][time_frame]" value="<?= htmlspecialchars((string) ($row['time_frame'] ?? '')) ?>" placeholder="e.g. June 1-2, 2026"></div>
+                            <div><label>Time frame</label><input data-field="time_frame" name="work_plan[<?= (int) $index ?>][time_frame]" value="<?= htmlspecialchars((string) ($row['time_frame'] ?? '')) ?>" placeholder="June 1-2, 2026"></div>
                             <div><label>Budget needed</label><div class="webform-affix"><span>₱</span><input data-field="budget_needed" inputmode="decimal" name="work_plan[<?= (int) $index ?>][budget_needed]" value="<?= htmlspecialchars((string) ($row['budget_needed'] ?? '')) ?>" placeholder="0.00"></div></div>
                         </div>
                     </div>
@@ -644,7 +646,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                     <tbody id="eso-budget-general-body">
                         <?php foreach ($budgetGeneral as $index => $row): ?>
                             <tr class="eso-repeater-row">
-                                <td><input data-field="item" name="budget_general[<?= (int) $index ?>][item]" value="<?= htmlspecialchars((string) ($row['item'] ?? '')) ?>" placeholder="e.g. Supplies" aria-label="Item"></td>
+                                <td><input data-field="item" name="budget_general[<?= (int) $index ?>][item]" value="<?= htmlspecialchars((string) ($row['item'] ?? '')) ?>" placeholder="Supplies" aria-label="Item"></td>
                                 <td><textarea rows="1" data-autoresize data-field="particulars" name="budget_general[<?= (int) $index ?>][particulars]" placeholder="Particulars" aria-label="Particulars"><?= htmlspecialchars((string) ($row['particulars'] ?? '')) ?></textarea></td>
                                 <td><input data-field="amount" inputmode="decimal" class="webform-num" name="budget_general[<?= (int) $index ?>][amount]" value="<?= htmlspecialchars((string) ($row['amount'] ?? '')) ?>" placeholder="0.00" aria-label="Amount"></td>
                                 <td class="webform-table-action"><?= $removeItemButton ?></td>
@@ -692,7 +694,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                                         <td><input data-field="item_no" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][item_no]" value="<?= (int) $itemIndex + 1 ?>" class="webform-num eso-item-no" readonly tabindex="-1" aria-label="Item number" title="Numbered automatically"></td>
                                         <td><textarea rows="1" data-autoresize data-field="particulars" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][particulars]" placeholder="Bond paper" aria-label="Particulars"><?= htmlspecialchars((string) ($item['particulars'] ?? '')) ?></textarea></td>
                                         <td><input data-field="qty" inputmode="decimal" class="webform-num" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][qty]" value="<?= htmlspecialchars((string) ($item['qty'] ?? '')) ?>" placeholder="0" aria-label="Quantity"></td>
-                                        <td><input data-field="unit" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][unit]" value="<?= htmlspecialchars((string) ($item['unit'] ?? '')) ?>" placeholder="e.g. ream" aria-label="Unit"></td>
+                                        <td><input data-field="unit" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][unit]" value="<?= htmlspecialchars((string) ($item['unit'] ?? '')) ?>" placeholder="ream" aria-label="Unit"></td>
                                         <td><input data-field="cost_unit" inputmode="decimal" class="webform-num" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][cost_unit]" value="<?= htmlspecialchars((string) ($item['cost_unit'] ?? '')) ?>" placeholder="0.00" aria-label="Cost per unit"></td>
                                         <td><input data-field="total_cost" class="eso-line-total webform-num" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][total_cost]" value="<?= htmlspecialchars((string) ($item['total_cost'] ?? '')) ?>" placeholder="0.00" readonly tabindex="-1" aria-label="Total cost"></td>
                                         <td class="webform-table-action"><button type="button" class="webform-icon-btn eso-remove-line-item" title="Remove" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button></td>
@@ -795,10 +797,10 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     <div class="webform-item eso-repeater-row">
         <div class="webform-item-head"><span class="webform-item-label">Partner</span><?= $removeItemButton ?></div>
         <div class="webform-grid">
-            <div class="webform-field"><label>Partner</label><textarea rows="1" data-autoresize data-field="partner" placeholder="e.g. Barangay San Juan"></textarea></div>
-            <div class="webform-field"><label>Area of responsibility</label><textarea rows="1" data-autoresize data-field="area_of_responsibility" placeholder="e.g. Coordination"></textarea></div>
-            <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description" placeholder="e.g. Coordinate with the target participants"></textarea></div>
-            <div class="webform-field"><label>Resource sharing</label><textarea rows="2" data-autoresize data-field="resource_sharing" placeholder="e.g. Venue, meals, documentation"></textarea></div>
+            <div class="webform-field"><label>Partner</label><textarea rows="1" data-autoresize data-field="partner" placeholder="Barangay San Juan"></textarea></div>
+            <div class="webform-field"><label>Area of responsibility</label><textarea rows="1" data-autoresize data-field="area_of_responsibility" placeholder="Coordination"></textarea></div>
+            <div class="webform-field"><label>Task description</label><textarea rows="2" data-autoresize data-field="task_description"></textarea></div>
+            <div class="webform-field"><label>Resource sharing</label><textarea rows="2" data-autoresize data-field="resource_sharing"></textarea></div>
         </div>
     </div>
 </template>
@@ -821,12 +823,12 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     <div class="webform-item eso-repeater-row">
         <div class="webform-item-head"><span class="webform-item-label">Framework entry</span><?= $removeItemButton ?></div>
         <div class="webform-grid webform-grid--3">
-            <div class="webform-field"><label>Inputs</label><textarea rows="2" data-autoresize data-field="inputs" placeholder="e.g. WPU Fund, ₱5,000.00"></textarea></div>
-            <div class="webform-field"><label>Activities</label><textarea rows="2" data-autoresize data-field="activities" placeholder="e.g. Workshops on sustainable agriculture"></textarea></div>
-            <div class="webform-field"><label>Outputs</label><textarea rows="2" data-autoresize data-field="outputs" placeholder="e.g. 50 participants trained"></textarea></div>
-            <div class="webform-field"><label>Effects</label><textarea rows="2" data-autoresize data-field="effects" placeholder="e.g. Increased awareness and skills"></textarea></div>
-            <div class="webform-field"><label>Outcomes</label><textarea rows="2" data-autoresize data-field="outcomes" placeholder="e.g. Sustainable practices adopted"></textarea></div>
-            <div class="webform-field"><label>Impact</label><textarea rows="2" data-autoresize data-field="impact" placeholder="e.g. Long-term economic stability"></textarea></div>
+            <div class="webform-field"><label>Inputs</label><textarea rows="2" data-autoresize data-field="inputs"></textarea></div>
+            <div class="webform-field"><label>Activities</label><textarea rows="2" data-autoresize data-field="activities"></textarea></div>
+            <div class="webform-field"><label>Outputs</label><textarea rows="2" data-autoresize data-field="outputs"></textarea></div>
+            <div class="webform-field"><label>Effects</label><textarea rows="2" data-autoresize data-field="effects"></textarea></div>
+            <div class="webform-field"><label>Outcomes</label><textarea rows="2" data-autoresize data-field="outcomes"></textarea></div>
+            <div class="webform-field"><label>Impact</label><textarea rows="2" data-autoresize data-field="impact"></textarea></div>
             <div class="webform-field webform-field--full"><label>Sustainable Development Goal</label><?= $sdgSelect() ?></div>
         </div>
     </div>
@@ -836,14 +838,14 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
     <div class="webform-item eso-repeater-row">
         <div class="webform-item-head"><span class="webform-item-label">Activity</span><?= $removeItemButton ?></div>
         <div class="webform-grid">
-            <div class="webform-field webform-field--full"><label>Activity</label><textarea rows="1" data-autoresize data-field="activities" placeholder="e.g. Training Workshop on Organic Farming"></textarea></div>
+            <div class="webform-field webform-field--full"><label>Activity</label><textarea rows="1" data-autoresize data-field="activities"></textarea></div>
             <div class="webform-field"><label>Objective</label><textarea rows="2" data-autoresize data-field="objective" placeholder="What this activity aims to achieve"></textarea></div>
-            <div class="webform-field"><label>Indicator</label><textarea rows="2" data-autoresize data-field="indicator" placeholder="e.g. Number of farmers trained"></textarea></div>
-            <div class="webform-field"><label>Strategies</label><textarea rows="2" data-autoresize data-field="strategies" placeholder="e.g. Partner with local NGOs"></textarea></div>
-            <div class="webform-field"><label>Expected output/s</label><textarea rows="2" data-autoresize data-field="outputs" placeholder="e.g. Accomplishment Report (ETR)"></textarea></div>
+            <div class="webform-field"><label>Indicator</label><textarea rows="2" data-autoresize data-field="indicator"></textarea></div>
+            <div class="webform-field"><label>Strategies</label><textarea rows="2" data-autoresize data-field="strategies"></textarea></div>
+            <div class="webform-field"><label>Expected output/s</label><textarea rows="2" data-autoresize data-field="outputs"></textarea></div>
             <div class="webform-field"><label>Responsible persons</label><textarea rows="1" data-autoresize data-field="responsible_persons" placeholder="Names or roles"></textarea></div>
             <div class="webform-field webform-field--split">
-                <div><label>Time frame</label><input data-field="time_frame" placeholder="e.g. June 1-2, 2026"></div>
+                <div><label>Time frame</label><input data-field="time_frame" placeholder="June 1-2, 2026"></div>
                 <div><label>Budget needed</label><div class="webform-affix"><span>₱</span><input data-field="budget_needed" inputmode="decimal" placeholder="0.00"></div></div>
             </div>
         </div>
@@ -852,7 +854,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 
 <template id="eso-budget-general-row-template">
     <tr class="eso-repeater-row">
-        <td><input data-field="item" placeholder="e.g. Supplies" aria-label="Item"></td>
+        <td><input data-field="item" placeholder="Supplies" aria-label="Item"></td>
         <td><textarea rows="1" data-autoresize data-field="particulars" placeholder="Particulars" aria-label="Particulars"></textarea></td>
         <td><input data-field="amount" inputmode="decimal" class="webform-num" placeholder="0.00" aria-label="Amount"></td>
         <td class="webform-table-action"><?= $removeItemButton ?></td>
@@ -864,7 +866,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         <td><input data-field="item_no" class="webform-num eso-item-no" readonly tabindex="-1" aria-label="Item number" title="Numbered automatically"></td>
         <td><textarea rows="1" data-autoresize data-field="particulars" placeholder="Bond paper" aria-label="Particulars"></textarea></td>
         <td><input data-field="qty" inputmode="decimal" class="webform-num" placeholder="0" aria-label="Quantity"></td>
-        <td><input data-field="unit" placeholder="e.g. ream" aria-label="Unit"></td>
+        <td><input data-field="unit" placeholder="ream" aria-label="Unit"></td>
         <td><input data-field="cost_unit" inputmode="decimal" class="webform-num" placeholder="0.00" aria-label="Cost per unit"></td>
         <td><input data-field="total_cost" class="eso-line-total webform-num" placeholder="0.00" readonly tabindex="-1" aria-label="Total cost"></td>
         <td class="webform-table-action"><button type="button" class="webform-icon-btn eso-remove-line-item" title="Remove" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button></td>
@@ -2019,7 +2021,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         form.querySelectorAll('textarea[data-autoresize]').forEach((textarea) => textarea.dispatchEvent(new Event('input')));
         refreshAll();
         saveDraft();
-        setStatus("Your unsaved changes have been restored. Don't forget to save.");
+        setStatus("Unsaved changes have been restored. Save the form to keep them.");
     };
 
     const banner = document.getElementById('eso-draft-banner');

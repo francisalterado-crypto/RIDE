@@ -50,7 +50,7 @@ $paperFields = static function (array $paper, string $prefix) use ($e, $statusLa
         </div>
         <div class="scholarly-field scholarly-field--full">
             <label for="<?= $prefix ?>_authors">Authors</label>
-            <input id="<?= $prefix ?>_authors" name="authors" maxlength="500" value="<?= $e($paper['authors'] ?? '') ?>" placeholder="e.g. Dela Cruz, J., Santos, M.">
+            <input id="<?= $prefix ?>_authors" name="authors" maxlength="500" value="<?= $e($paper['authors'] ?? '') ?>" placeholder="Dela Cruz, J., Santos, M.">
         </div>
         <div class="scholarly-field scholarly-field--full">
             <label for="<?= $prefix ?>_journal">Journal name <span class="required">*</span></label>
@@ -74,11 +74,11 @@ $paperFields = static function (array $paper, string $prefix) use ($e, $statusLa
         </div>
         <div class="scholarly-field">
             <label for="<?= $prefix ?>_indexing">Indexing</label>
-            <input id="<?= $prefix ?>_indexing" name="indexing" maxlength="120" value="<?= $e($paper['indexing'] ?? '') ?>" placeholder="e.g. Scopus, Web of Science">
+            <input id="<?= $prefix ?>_indexing" name="indexing" maxlength="120" value="<?= $e($paper['indexing'] ?? '') ?>" placeholder="Scopus, Web of Science">
         </div>
         <div class="scholarly-field">
             <label for="<?= $prefix ?>_doi">DOI</label>
-            <input id="<?= $prefix ?>_doi" name="doi" maxlength="120" value="<?= $e($paper['doi'] ?? '') ?>" placeholder="e.g. 10.1000/xyz123">
+            <input id="<?= $prefix ?>_doi" name="doi" maxlength="120" value="<?= $e($paper['doi'] ?? '') ?>" placeholder="10.1000/xyz123">
         </div>
         <div class="scholarly-field">
             <label for="<?= $prefix ?>_link">Link to the paper</label>
@@ -86,7 +86,8 @@ $paperFields = static function (array $paper, string $prefix) use ($e, $statusLa
         </div>
         <div class="scholarly-field scholarly-field--full">
             <label for="<?= $prefix ?>_notes">Notes</label>
-            <textarea id="<?= $prefix ?>_notes" name="notes" rows="2" placeholder="Optional, e.g. volume and issue, page numbers, or funding source"><?= $e($paper['notes'] ?? '') ?></textarea>
+            <textarea id="<?= $prefix ?>_notes" name="notes" rows="2"><?= $e($paper['notes'] ?? '') ?></textarea>
+            <small class="muted scholarly-field-hint">Optional. Volume and issue, page numbers, or funding source.</small>
         </div>
     </div>
     <?php
@@ -129,7 +130,8 @@ $presentationFields = static function (array $presentation, string $prefix) use 
         </div>
         <div class="scholarly-field scholarly-field--full">
             <label for="<?= $prefix ?>_notes">Notes</label>
-            <textarea id="<?= $prefix ?>_notes" name="notes" rows="2" placeholder="Optional, e.g. award received or session name"><?= $e($presentation['notes'] ?? '') ?></textarea>
+            <textarea id="<?= $prefix ?>_notes" name="notes" rows="2"><?= $e($presentation['notes'] ?? '') ?></textarea>
+            <small class="muted scholarly-field-hint">Optional. Award received or session name.</small>
         </div>
     </div>
     <?php

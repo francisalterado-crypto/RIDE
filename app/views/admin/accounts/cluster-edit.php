@@ -28,7 +28,7 @@ $pageSubtitle = 'Rename this cluster, set its track, or change which colleges an
             value="<?= old('edit_cluster_name', (string) ($cluster['name'] ?? '')) ?>"
             required
             maxlength="100"
-            placeholder="e.g. Extension Cluster 1"
+            placeholder="Extension Cluster 1"
         >
 
         <?php $clusterTrack = (string) ($cluster['track'] ?? 'extension'); ?>
@@ -41,7 +41,7 @@ $pageSubtitle = 'Rename this cluster, set its track, or change which colleges an
         <p class="muted">Changing the track clears this cluster's members, since research and extension group units differently.</p>
 
         <label for="edit_cluster_leader">Head / Coordinator</label>
-        <input id="edit_cluster_leader" name="leader_name" maxlength="150" value="<?= htmlspecialchars((string) ($cluster['leader_name'] ?? '')) ?>" placeholder="e.g. Arlene L. Avillanosa (University Researcher V)">
+        <input id="edit_cluster_leader" name="leader_name" maxlength="150" value="<?= htmlspecialchars((string) ($cluster['leader_name'] ?? '')) ?>" placeholder="Arlene L. Avillanosa (University Researcher V)">
 
         <label for="edit_cluster_notes">Notes (staff, extensionists)</label>
         <textarea id="edit_cluster_notes" name="cluster_notes" rows="3"><?= htmlspecialchars((string) ($cluster['notes'] ?? '')) ?></textarea>

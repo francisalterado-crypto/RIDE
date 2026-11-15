@@ -132,7 +132,7 @@ $plannedParticipants = array_sum(array_map(static fn (array $a): int => (int) ($
         </div>
         <div class="accounts-form-field">
             <label for="pa_schedule">Schedule</label>
-            <input id="pa_schedule" name="activity_schedule" maxlength="255" placeholder="e.g. Q1: Mar 04, 2027">
+            <input id="pa_schedule" name="activity_schedule" maxlength="255" placeholder="Q1: Mar 04, 2027">
         </div>
         <div class="accounts-form-actions">
             <button type="submit" class="btn btn-accent">Add Activity</button>

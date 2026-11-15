@@ -142,7 +142,7 @@ rsort($yearOptions);
                 <p>No proposals found.<?= ($newForms !== [] || $requestForms !== []) ? ' Use New form above to start one.' : '' ?></p>
             </div>
         <?php else: ?>
-            <div class="empty-state" id="proposal-registry-empty" hidden><p>Nothing here for these filters.</p></div>
+            <div class="empty-state" id="proposal-registry-empty" hidden><p>No records match the selected filters.</p></div>
             <div class="data-table-wrap proposal-registry-table-wrap">
                 <table class="data-table proposal-registry-table" id="proposal-registry-table">
                     <thead>

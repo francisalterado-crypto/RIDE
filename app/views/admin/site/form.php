@@ -84,7 +84,7 @@ $action = $isEdit ? base_url('admin/public-site/posts/' . $post['id']) : base_ur
             </div>
             <div class="webform-field">
                 <label for="post-link-label">Link button text</label>
-                <input id="post-link-label" name="link_label" value="<?= $e($values['link_label'] ?? '') ?>" maxlength="80" placeholder="e.g. Submit a paper">
+                <input id="post-link-label" name="link_label" value="<?= $e($values['link_label'] ?? '') ?>" maxlength="80" placeholder="Submit a paper">
             </div>
             <div class="webform-field webform-field--full">
                 <label for="post-image">Cover image</label>
@@ -93,7 +93,7 @@ $action = $isEdit ? base_url('admin/public-site/posts/' . $post['id']) : base_ur
                     <label class="check-row"><input type="checkbox" name="remove_image" value="1"> Remove current image</label>
                 <?php endif; ?>
                 <input id="post-image" type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
-                <small class="webform-hint">JPG, PNG, WebP or GIF, up to 5 MB. A wide (16:9) picture looks best.</small>
+                <small class="webform-hint">JPG, PNG, WebP, or GIF; maximum of 5 MB. A landscape image (16:9) is recommended.</small>
             </div>
         </div>
     </section>

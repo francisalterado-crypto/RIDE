@@ -5182,6 +5182,7 @@ th { background: #f9fafb; font-size: 0.85rem; }
 .scholarly-field { min-width: 0; }
 .scholarly-field--full { grid-column: 1 / -1; }
 .scholarly-field textarea { min-height: 0; }
+.scholarly-field-hint { display: block; margin-top: 4px; font-size: 0.82rem; }
 .scholarly-hint { margin: -0.5rem 0 0.85rem; font-size: 0.82rem; }
 
 .scholarly-list-card { margin-top: 1.5rem; }

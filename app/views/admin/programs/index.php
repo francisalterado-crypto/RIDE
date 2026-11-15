@@ -16,7 +16,7 @@ use App\Models\ExtensionProject;
 
 $pageTitle = 'Programs | RIDE Hub';
 $pageHeading = 'Programs and Projects';
-$pageSubtitle = 'Academic programs, the extension programs of each college, and the extension projects under them. Forms pick from these lists instead of free text.';
+$pageSubtitle = 'Academic programs, the extension programs of each college, and the extension projects under them. Forms draw their options from these lists so that entries remain consistent.';
 $e = static fn (mixed $v): string => htmlspecialchars((string) $v);
 $tabUrl = static fn (string $t, array $extra = []): string => base_url('admin/programs?' . http_build_query(array_filter(['tab' => $t] + $extra)));
 $collegeOptions = static function (?int $selected, string $emptyLabel) use ($colleges, $e): string {
@@ -72,15 +72,15 @@ $collegeOptions = static function (?int $selected, string $emptyLabel) use ($col
             </div>
             <div class="accounts-form-field">
                 <label for="ep_acronym">Acronym</label>
-                <input id="ep_acronym" name="acronym" maxlength="40" placeholder="e.g. THERMACAD">
+                <input id="ep_acronym" name="acronym" maxlength="40" placeholder="THERMACAD">
             </div>
             <div class="accounts-form-field accounts-form-field-span-2">
                 <label for="ep_name">Program Name <span class="required">*</span></label>
-                <input id="ep_name" name="name" maxlength="255" required placeholder="e.g. Mechanization Assistance to Small Fishermen, Farmers and Processors">
+                <input id="ep_name" name="name" maxlength="255" required placeholder="Mechanization Assistance to Small Fishermen, Farmers and Processors">
             </div>
             <div class="accounts-form-field">
                 <label for="ep_period">Agenda Period</label>
-                <input id="ep_period" name="agenda_period" maxlength="20" placeholder="e.g. 2025-2030">
+                <input id="ep_period" name="agenda_period" maxlength="20" placeholder="2025-2030">
             </div>
             <div class="accounts-form-actions">
                 <button type="submit" class="btn btn-accent">Add Program</button>
@@ -142,7 +142,7 @@ $collegeOptions = static function (?int $selected, string $emptyLabel) use ($col
             </div>
             <div class="accounts-form-field">
                 <label for="pj_campus">Campus</label>
-                <input id="pj_campus" name="campus" maxlength="80" placeholder="e.g. Main, PPC, Quezon">
+                <input id="pj_campus" name="campus" maxlength="80" placeholder="Main, PPC, Quezon">
             </div>
             <div class="accounts-form-field">
                 <label for="pj_leader">Project Leader</label>
@@ -196,7 +196,7 @@ $collegeOptions = static function (?int $selected, string $emptyLabel) use ($col
             </div>
             <div class="accounts-form-field">
                 <label for="ap_name">Program Name <span class="required">*</span></label>
-                <input id="ap_name" name="name" maxlength="150" required placeholder="e.g. BS in Computer Engineering">
+                <input id="ap_name" name="name" maxlength="150" required placeholder="BS in Computer Engineering">
             </div>
             <div class="accounts-form-actions">
                 <button type="submit" class="btn btn-accent">Add Program</button>
