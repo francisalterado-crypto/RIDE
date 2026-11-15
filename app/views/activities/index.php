@@ -88,13 +88,14 @@ $formatDate = static function (?string $date): string {
     <?php endforeach; ?>
 </nav>
 
-<?php if ($canGenerateReports && $selectedType !== '' && $selectedPeriod !== 'all'): ?>
-    <div class="page-actions-bar">
-        <a class="btn btn-accent" href="<?= base_url('proposals/create/' . $selectedSlug . '?period=' . rawurlencode($selectedPeriod)) ?>">
-            <i class="fas fa-file-alt" aria-hidden="true"></i>
-            Generate <?= htmlspecialchars((string) $types[$selectedType]['label']) ?> report (<?= count($entries) ?> <?= count($entries) === 1 ? 'entry' : 'entries' ?>)
-        </a>
-    </div>
+<?php
+$deadlineFormType = $selectedType !== '' ? $selectedType : (string) array_key_first($types);
+$deadlinePeriod = $selectedPeriod !== 'all' ? $selectedPeriod : '';
+require APP_PATH . '/views/partials/quarterly-deadline-notice.php';
+?>
+
+<?php if ($canGenerateReports && $selectedType !== ''): ?>
+    <p class="muted activity-report-link">Reports are generated from <a href="<?= base_url('quarterly-reports/' . $selectedSlug . ($selectedPeriod !== 'all' ? '?period=' . rawurlencode($selectedPeriod) : '')) ?>">Quarterly Report: <?= htmlspecialchars((string) $types[$selectedType]['label']) ?></a>.</p>
 <?php endif; ?>
 
 <div class="card list-card">

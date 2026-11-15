@@ -129,16 +129,16 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 </a>
                 <?php
                 $newProposalActive = nav_active('proposals/create');
-                $completedResearchesNavActive = nav_active('proposals/create/completed-researches');
-                $ongoingResearchesNavActive = nav_active('proposals/create/ongoing-researches');
-                $researchOutputPublishedNavActive = nav_active('proposals/create/research-output-published');
-                $researchOutputPresentedNavActive = nav_active('proposals/create/research-output-presented');
-                $commercializedNavActive = nav_active('proposals/create/commercialized');
-                $resultedInExtensionNavActive = nav_active('proposals/create/resulted-in-extension');
-                $journalCitationNavActive = nav_active('proposals/create/journal-citation');
-                $bookCitationNavActive = nav_active('proposals/create/book-citation');
-                $inventionsUmCopyrightsNavActive = nav_active('proposals/create/inventions-um-copyrights');
-                $linkagesNavActive = nav_active('proposals/create/linkages');
+                $completedResearchesNavActive = nav_active('quarterly-reports/completed-researches') || nav_active('proposals/create/completed-researches');
+                $ongoingResearchesNavActive = nav_active('quarterly-reports/ongoing-researches') || nav_active('proposals/create/ongoing-researches');
+                $researchOutputPublishedNavActive = nav_active('quarterly-reports/research-output-published') || nav_active('proposals/create/research-output-published');
+                $researchOutputPresentedNavActive = nav_active('quarterly-reports/research-output-presented') || nav_active('proposals/create/research-output-presented');
+                $commercializedNavActive = nav_active('quarterly-reports/commercialized') || nav_active('proposals/create/commercialized');
+                $resultedInExtensionNavActive = nav_active('quarterly-reports/resulted-in-extension') || nav_active('proposals/create/resulted-in-extension');
+                $journalCitationNavActive = nav_active('quarterly-reports/journal-citation') || nav_active('proposals/create/journal-citation');
+                $bookCitationNavActive = nav_active('quarterly-reports/book-citation') || nav_active('proposals/create/book-citation');
+                $inventionsUmCopyrightsNavActive = nav_active('quarterly-reports/inventions-um-copyrights') || nav_active('proposals/create/inventions-um-copyrights');
+                $linkagesNavActive = nav_active('quarterly-reports/linkages') || nav_active('proposals/create/linkages');
                 $consolidatedCompletedResearchesNavActive = nav_active('proposals/create/consolidated-completed-researches');
                 $consolidatedOngoingResearchesNavActive = nav_active('proposals/create/consolidated-ongoing-researches');
                 $consolidatedResearchOutputPublishedNavActive = nav_active('proposals/create/consolidated-research-output-published');
@@ -159,11 +159,11 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     );
                 $terminalReportAssessmentFormNavActive = nav_active('proposals/create/terminal-report-assessment-form')
                     || (nav_active('proposals/terminal-report-registry') && $registryFormType === 'terminal_report_assessment_form');
-                $trainingsConductedNavActive = nav_active('proposals/create/trainings-conducted');
-                $technicalAdvisoryNavActive = nav_active('proposals/create/technical-advisory');
-                $extensionLinkagesNavActive = nav_active('proposals/create/extension-linkages');
-                $outreachActivitiesNavActive = nav_active('proposals/create/outreach-activities');
-                $technologyAdoptionNavActive = nav_active('proposals/create/technology-adoption');
+                $trainingsConductedNavActive = nav_active('quarterly-reports/trainings-conducted') || nav_active('proposals/create/trainings-conducted');
+                $technicalAdvisoryNavActive = nav_active('quarterly-reports/technical-advisory') || nav_active('proposals/create/technical-advisory');
+                $extensionLinkagesNavActive = nav_active('quarterly-reports/extension-linkages') || nav_active('proposals/create/extension-linkages');
+                $outreachActivitiesNavActive = nav_active('quarterly-reports/outreach-activities') || nav_active('proposals/create/outreach-activities');
+                $technologyAdoptionNavActive = nav_active('quarterly-reports/technology-adoption') || nav_active('proposals/create/technology-adoption');
                 $requiredFilesNavActive = nav_active('proposals/create/required-files')
                     || preg_match('#^proposals/\d+/edit/required-files$#', request_path()) === 1;
                 $applicantNavActive = nav_active('proposals/create')

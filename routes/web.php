@@ -22,6 +22,7 @@ use App\Controllers\ProjectController;
 use App\Controllers\ProfileController;
 use App\Controllers\ProgramCatalogController;
 use App\Controllers\ProposalController;
+use App\Controllers\QuarterlyReportController;
 use App\Controllers\ScholarlyController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RoleMiddleware;
@@ -240,6 +241,7 @@ $router->get('/admin/scholarly/attachments/{id}', [AdminScholarlyController::cla
 $router->post('/admin/scholarly/papers/{id}/delete', [AdminScholarlyController::class, 'destroyPaper'], $admin);
 $router->post('/admin/scholarly/presentations/{id}/delete', [AdminScholarlyController::class, 'destroyPresentation'], $admin);
 
+$router->get('/quarterly-reports/{slug}', [QuarterlyReportController::class, 'index'], $auth);
 $router->get('/activities', [ExtensionActivityController::class, 'index'], $auth);
 $router->get('/activities/new/{slug}', [ExtensionActivityController::class, 'create'], $auth);
 $router->post('/activities/new/{slug}', [ExtensionActivityController::class, 'store'], $auth);

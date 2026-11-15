@@ -34,6 +34,7 @@ $pageSubtitle = 'Quarterly report' . ($formCode !== '' ? ' (' . $formCode . ')' 
 $cardNo = 0;
 ?>
 <div class="page-actions-bar">
+    <a class="btn btn-outline" href="<?= base_url('quarterly-reports/' . $slug) ?>">Back to <?= htmlspecialchars($reportLabel) ?> Reports</a>
     <a class="btn btn-outline" href="<?= base_url(ExtensionActivityTypes::basePath($office) . '?type=' . rawurlencode($slug)) ?>">Open <?= htmlspecialchars($terms['page']) ?></a>
 </div>
 
@@ -113,7 +114,7 @@ $cardNo = 0;
     <?php endif; ?>
 
     <div class="webform-actionbar">
-        <a class="btn btn-outline" href="<?= $isEdit ? base_url('proposals/' . (int) $proposal['id']) : base_url('proposals') ?>">Cancel</a>
+        <a class="btn btn-outline" href="<?= $isEdit ? base_url('proposals/' . (int) $proposal['id']) : base_url('quarterly-reports/' . $slug) ?>">Cancel</a>
         <button type="submit" class="btn"><?= $isEdit ? 'Save changes' : 'Save draft' ?></button>
     </div>
 </form>

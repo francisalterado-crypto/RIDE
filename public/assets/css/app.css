@@ -6390,3 +6390,16 @@ html.lp-open { overflow: hidden; }
 .wf-view-gantt th:not(:first-child), .wf-view-gantt-cell { width: 2.4rem; text-align: center; padding-left: 0.25rem; padding-right: 0.25rem; }
 .wf-view-gantt-cell.is-on { background: var(--accent, #14b8a6); }
 
+/* Quarterly Report page (one report type): period, generate / open, generated reports. */
+.quarterly-report-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 0.5rem 1.5rem; margin-bottom: 1rem; }
+.quarterly-report-toolbar p { margin: 0; }
+.quarterly-report-toolbar select { margin: 0; min-width: 16rem; }
+.quarterly-report-generate { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.quarterly-report-generate h2 { margin: 0 0 0.35rem; font-size: 1.05rem; }
+.quarterly-report-generate p { margin: 0.2rem 0 0; }
+.quarterly-report-generate-actions { flex: none; }
+.quarterly-report-row-actions { white-space: nowrap; }
+.quarterly-report-row-actions .btn + .btn { margin-left: 0.35rem; }
+.data-table tr.is-selected-period td { background: var(--success-bg, #ecfdf5); }
+.activity-report-link { margin: 0 0 1rem; }
+

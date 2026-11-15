@@ -63,7 +63,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showCompletedResearchesNav): ?>
 
-    <a href="<?= base_url('proposals/create/completed-researches' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($completedResearchesNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/completed-researches') ?>" class="nav-subitem<?= $navActive($completedResearchesNavActive) ? ' active' : '' ?>">
 
         <span>Completed Researches</span>
 
@@ -73,7 +73,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showOngoingResearchesNav): ?>
 
-    <a href="<?= base_url('proposals/create/ongoing-researches' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($ongoingResearchesNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/ongoing-researches') ?>" class="nav-subitem<?= $navActive($ongoingResearchesNavActive) ? ' active' : '' ?>">
 
         <span>Ongoing Researches</span>
 
@@ -93,7 +93,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showResearchOutputPublishedNav): ?>
 
-    <a href="<?= base_url('proposals/create/research-output-published' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($researchOutputPublishedNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/research-output-published') ?>" class="nav-subitem<?= $navActive($researchOutputPublishedNavActive) ? ' active' : '' ?>">
 
         <span>Research Output Published</span>
 
@@ -113,7 +113,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showResearchOutputPresentedNav): ?>
 
-    <a href="<?= base_url('proposals/create/research-output-presented' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($researchOutputPresentedNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/research-output-presented') ?>" class="nav-subitem<?= $navActive($researchOutputPresentedNavActive) ? ' active' : '' ?>">
 
         <span>Research Output Presented</span>
 
@@ -133,7 +133,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showCommercializedNav): ?>
 
-    <a href="<?= base_url('proposals/create/commercialized' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($commercializedNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/commercialized') ?>" class="nav-subitem<?= $navActive($commercializedNavActive) ? ' active' : '' ?>">
 
         <span>Commercialized</span>
 
@@ -153,7 +153,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showResultedInExtensionNav): ?>
 
-    <a href="<?= base_url('proposals/create/resulted-in-extension' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($resultedInExtensionNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/resulted-in-extension') ?>" class="nav-subitem<?= $navActive($resultedInExtensionNavActive) ? ' active' : '' ?>">
 
         <span>Resulted in Extension</span>
 
@@ -173,7 +173,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showJournalCitationNav): ?>
 
-    <a href="<?= base_url('proposals/create/journal-citation' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($journalCitationNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/journal-citation') ?>" class="nav-subitem<?= $navActive($journalCitationNavActive) ? ' active' : '' ?>">
 
         <span>Journal Citation</span>
 
@@ -193,7 +193,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showBookCitationNav): ?>
 
-    <a href="<?= base_url('proposals/create/book-citation' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($bookCitationNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/book-citation') ?>" class="nav-subitem<?= $navActive($bookCitationNavActive) ? ' active' : '' ?>">
 
         <span>Book Citation</span>
 
@@ -213,7 +213,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showInventionsUmCopyrightsNav): ?>
 
-    <a href="<?= base_url('proposals/create/inventions-um-copyrights' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($inventionsUmCopyrightsNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/inventions-um-copyrights') ?>" class="nav-subitem<?= $navActive($inventionsUmCopyrightsNavActive) ? ' active' : '' ?>">
 
         <span>Inventions, UM, Copyrights</span>
 
@@ -233,7 +233,7 @@ $groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::
 
 <?php if (!$isExtensionMenu && $showLinkagesNav): ?>
 
-    <a href="<?= base_url('proposals/create/linkages' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($linkagesNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/linkages') ?>" class="nav-subitem<?= $navActive($linkagesNavActive) ? ' active' : '' ?>">
 
         <span>Linkages</span>
 
@@ -302,7 +302,7 @@ $groupQuarterlyReportNav = $isExtensionMenu && \App\Support\MonitoringRoles::isC
 
 <?php if ($isExtensionMenu && $showTrainingsConductedNav): ?>
 
-    <a href="<?= base_url('proposals/create/trainings-conducted' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($trainingsConductedNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/trainings-conducted') ?>" class="nav-subitem<?= $navActive($trainingsConductedNavActive) ? ' active' : '' ?>">
 
         <span>Trainings Conducted</span>
 
@@ -312,7 +312,7 @@ $groupQuarterlyReportNav = $isExtensionMenu && \App\Support\MonitoringRoles::isC
 
 <?php if ($isExtensionMenu && $showTechnicalAdvisoryNav): ?>
 
-    <a href="<?= base_url('proposals/create/technical-advisory' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($technicalAdvisoryNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/technical-advisory') ?>" class="nav-subitem<?= $navActive($technicalAdvisoryNavActive) ? ' active' : '' ?>">
 
         <span>Technical Advisory</span>
 
@@ -322,7 +322,7 @@ $groupQuarterlyReportNav = $isExtensionMenu && \App\Support\MonitoringRoles::isC
 
 <?php if ($isExtensionMenu && $showExtensionLinkagesNav): ?>
 
-    <a href="<?= base_url('proposals/create/extension-linkages' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($extensionLinkagesNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/extension-linkages') ?>" class="nav-subitem<?= $navActive($extensionLinkagesNavActive) ? ' active' : '' ?>">
 
         <span>Extension Linkages</span>
 
@@ -332,7 +332,7 @@ $groupQuarterlyReportNav = $isExtensionMenu && \App\Support\MonitoringRoles::isC
 
 <?php if ($isExtensionMenu && $showOutreachActivitiesNav): ?>
 
-    <a href="<?= base_url('proposals/create/outreach-activities' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($outreachActivitiesNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/outreach-activities') ?>" class="nav-subitem<?= $navActive($outreachActivitiesNavActive) ? ' active' : '' ?>">
 
         <span>Outreach Activities</span>
 
@@ -342,7 +342,7 @@ $groupQuarterlyReportNav = $isExtensionMenu && \App\Support\MonitoringRoles::isC
 
 <?php if ($isExtensionMenu && $showTechnologyAdoptionNav): ?>
 
-    <a href="<?= base_url('proposals/create/technology-adoption' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($technologyAdoptionNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url('quarterly-reports/technology-adoption') ?>" class="nav-subitem<?= $navActive($technologyAdoptionNavActive) ? ' active' : '' ?>">
 
         <span>Technology Adoption</span>
 
