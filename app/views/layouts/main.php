@@ -242,10 +242,18 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     : ($terminalReportNavActive || $terminalReportAssessmentFormNavActive);
                 $showConductedActivitiesNav = conducted_activities_in_extension_nav();
                 $conductedActivitiesNavActive = $showConductedActivitiesNav && nav_active('activities');
+                $researchMenuScope = (\App\Support\MonitoringRoles::isCoordinatorExtension()
+                    || \App\Support\MonitoringRoles::isDirectorExtension()
+                    || \App\Support\MonitoringRoles::isExtensionWorker())
+                    ? 'extension'
+                    : 'research';
+                // Progress, Terminal and Terminal Report Assessment are research (VPRDE) forms: they sit in the research menu.
+                $projectReportsInResearchMenu = $showTerminalReportNav && $showResearchProposalNav && $researchMenuScope === 'research';
                 $researchProposalNavActive = ($hasDualProposalMenu
                     ? proposal_nav_scoped_active($proposalNavItemsActive, 'research')
                     : ($proposalNavItemsActive || $conductedActivitiesNavActive))
-                    || $researchAccomplishmentsNavActive || $researchRequestsNavActive;
+                    || $researchAccomplishmentsNavActive || $researchRequestsNavActive
+                    || ($projectReportsInResearchMenu && $terminalReportNavGroupActive);
                 $researchExtensionNavActive = $hasDualProposalMenu
                     && (proposal_nav_scoped_active($proposalNavItemsActive, 'extension') || $conductedActivitiesNavActive);
                 ?>
@@ -258,13 +266,23 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </button>
                     <div class="nav-submenu" id="research-proposal-submenu">
                     <?php
-                    $menuScope = (\App\Support\MonitoringRoles::isCoordinatorExtension()
-                        || \App\Support\MonitoringRoles::isDirectorExtension()
-                        || \App\Support\MonitoringRoles::isExtensionWorker())
-                        ? 'extension'
-                        : 'research';
+                    $menuScope = $researchMenuScope;
                     require APP_PATH . '/views/layouts/_proposal-nav-submenu.php';
                     ?>
+                    <?php if ($projectReportsInResearchMenu): ?>
+                    <div class="nav-subgroup<?= $terminalReportNavGroupActive ? ' has-active' : '' ?>" id="project-reports-nav" data-nav-subgroup>
+                        <button type="button" class="nav-subitem nav-subgroup-toggle<?= $terminalReportNavGroupActive ? ' is-current' : '' ?>" aria-expanded="true" aria-controls="project-reports-subitems">
+                            <span>Project Reports</span>
+                            <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
+                        </button>
+                        <div class="nav-subgroup-items" id="project-reports-subitems">
+                        <?php
+                        $menuScope = 'research';
+                        require APP_PATH . '/views/layouts/_terminal-report-nav-submenu.php';
+                        ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -283,7 +301,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </div>
                 </div>
                 <?php endif; ?>
-                <?php if ($showTerminalReportNav): ?>
+                <?php if ($showTerminalReportNav && !$projectReportsInResearchMenu): ?>
                 <div class="nav-group nav-group-collapsible" id="terminal-report-nav" data-nav-collapsible>
                     <button type="button" class="nav-item nav-item-toggle<?= $terminalReportNavGroupActive ? ' active' : '' ?>" id="terminal-report-nav-toggle" aria-expanded="true" aria-controls="terminal-report-submenu">
                         <i class="fas fa-clipboard-check" aria-hidden="true"></i>
