@@ -9,7 +9,7 @@
     <div id="ext-beneficiary">
         <label>Group name</label><input name="group_name" maxlength="255">
         <label>Beneficiary count</label><input type="number" name="beneficiary_count" min="0" value="0">
-        <label>Location</label><input name="location">
+        <label>Location</label><input name="location" data-location-picker="ph" placeholder="Barangay, municipality or city, province">
         <label>Year</label><input type="number" name="beneficiary_year" min="1900" max="2100" value="<?= date('Y') ?>">
     </div>
     <div id="ext-mou" style="display:none;">

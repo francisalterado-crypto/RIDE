@@ -181,7 +181,7 @@ $pageSubtitle = 'Monitor published papers and paper presentations submitted by f
             <input id="presentation_date" type="date" name="presentation_date">
 
             <label for="presentation_location">Location</label>
-            <input id="presentation_location" name="location" maxlength="255" placeholder="City, country, or venue">
+            <input id="presentation_location" name="location" data-location-picker="world" maxlength="255" placeholder="City, country, or venue">
 
             <label class="proposal-checkbox-row">
                 <input type="checkbox" name="is_international" value="1">

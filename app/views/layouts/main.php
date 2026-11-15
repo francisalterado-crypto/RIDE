@@ -486,6 +486,8 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
     $appJsVersion = is_file($appJsPath) ? (string) filemtime($appJsPath) : '1';
     ?>
     <script src="<?= base_url('assets/js/app.js') ?>?v=<?= htmlspecialchars($appJsVersion) ?>"></script>
+    <?php $lpJsPath = BASE_PATH . '/public/assets/js/location-picker.js'; ?>
+    <script src="<?= base_url('assets/js/location-picker.js') ?>?v=<?= is_file($lpJsPath) ? filemtime($lpJsPath) : 1 ?>" defer></script>
 <?php endif; ?>
 </body>
 </html>

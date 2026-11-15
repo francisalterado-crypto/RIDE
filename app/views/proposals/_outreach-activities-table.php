@@ -59,7 +59,7 @@ foreach ($rows as $row) {
                             <textarea class="proposal-textarea proposal-textarea-compact" rows="2" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[title]' ?>"><?= htmlspecialchars((string) ($row['title'] ?? '')) ?></textarea>
                         </td>
                         <td>
-                            <input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[venue]' ?>" value="<?= htmlspecialchars((string) ($row['venue'] ?? '')) ?>">
+                            <input type="text" data-location-picker="ph" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[venue]' ?>" value="<?= htmlspecialchars((string) ($row['venue'] ?? '')) ?>">
                         </td>
                         <td>
                             <input type="date" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $namePrefix . '[start_date]' ?>" value="<?= htmlspecialchars((string) ($row['start_date'] ?? '')) ?>">

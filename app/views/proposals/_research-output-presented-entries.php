@@ -205,6 +205,7 @@ $presentationTypeLabel = static function (string $value): string {
                             <?php else: ?>
                                 <input
                                     type="text"
+                                    data-location-picker="world"
                                     name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][venue]"
                                     value="<?= htmlspecialchars($entryValue($row, 'venue')) ?>"
                                     placeholder="Venue"

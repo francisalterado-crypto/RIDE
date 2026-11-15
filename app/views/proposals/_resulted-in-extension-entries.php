@@ -134,7 +134,7 @@ $entryValue = static function (array $row, string $key): string {
                             <?php if ($readOnly): ?>
                                 <?= htmlspecialchars($entryValue($row, 'venue') !== '' ? $entryValue($row, 'venue') : '-') ?>
                             <?php else: ?>
-                                <input type="text" name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][venue]" value="<?= htmlspecialchars($entryValue($row, 'venue')) ?>" placeholder="Venue">
+                                <input type="text" data-location-picker="ph" name="entries[<?= htmlspecialchars($sectionKey) ?>][<?= (int) $index ?>][venue]" value="<?= htmlspecialchars($entryValue($row, 'venue')) ?>" placeholder="Venue">
                             <?php endif; ?>
                         </td>
                         <td>

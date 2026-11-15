@@ -100,7 +100,7 @@ $renderDataRow = static function (
             <input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $prefix . '[adopter_name]' ?>" value="<?= htmlspecialchars((string) ($row['adopter_name'] ?? '')) ?>">
         </td>
         <td>
-            <input type="text" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $prefix . '[adopter_location]' ?>" value="<?= htmlspecialchars((string) ($row['adopter_location'] ?? '')) ?>">
+            <input type="text" data-location-picker="ph" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $prefix . '[adopter_location]' ?>" value="<?= htmlspecialchars((string) ($row['adopter_location'] ?? '')) ?>">
         </td>
         <td>
             <input type="date" <?= $readOnly ? 'readonly' : '' ?> name="<?= $readOnly ? '' : $prefix . '[date_adopted]' ?>" value="<?= htmlspecialchars((string) ($row['date_adopted'] ?? '')) ?>">

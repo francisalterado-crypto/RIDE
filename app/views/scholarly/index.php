@@ -119,7 +119,7 @@ $presentationFields = static function (array $presentation, string $prefix) use 
         </div>
         <div class="scholarly-field scholarly-field--full">
             <label for="<?= $prefix ?>_location">Location</label>
-            <input id="<?= $prefix ?>_location" name="location" maxlength="255" value="<?= $e($presentation['location'] ?? '') ?>" placeholder="City, country, or venue">
+            <input id="<?= $prefix ?>_location" name="location" data-location-picker="world" maxlength="255" value="<?= $e($presentation['location'] ?? '') ?>" placeholder="City, country, or venue">
         </div>
         <div class="scholarly-field scholarly-field--full">
             <label class="proposal-checkbox-row">

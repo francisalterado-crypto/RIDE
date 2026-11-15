@@ -401,7 +401,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
             <?php endif; ?>
             <div class="webform-field webform-field--full">
                 <label for="eso-location">Location <span class="webform-req">*</span></label>
-                <input id="eso-location" name="location" value="<?= htmlspecialchars($locationValue) ?>" placeholder="Barangay, municipality, province">
+                <input id="eso-location" name="location" data-location-picker="ph" value="<?= htmlspecialchars($locationValue) ?>" placeholder="Barangay, municipality, province">
             </div>
             <div class="webform-field">
                 <label for="eso-budget">Budget</label>

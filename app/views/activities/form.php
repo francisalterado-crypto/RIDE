@@ -56,6 +56,7 @@ $renderField = static function (string $name, array $field, string $value, strin
             <input type="number" min="0" step="1" <?= $common ?> value="<?= htmlspecialchars($value) ?>">
         <?php else: ?>
             <input type="<?= $field['type'] === 'date' ? 'date' : 'text' ?>" <?= $common ?> value="<?= htmlspecialchars($value) ?>"
+                <?= in_array($name, ['venue', 'location', 'adopter_location'], true) ? 'data-location-picker="ph"' : '' ?>
                 <?= isset($field['placeholder']) ? 'placeholder="' . htmlspecialchars((string) $field['placeholder']) . '"' : '' ?>>
         <?php endif; ?>
         <?php if (isset($field['hint'])): ?>

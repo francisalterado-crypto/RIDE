@@ -76,7 +76,7 @@ $action = $isEdit ? base_url('admin/public-site/posts/' . $post['id']) : base_ur
             </div>
             <div class="webform-field webform-field--full">
                 <label for="post-location">Venue</label>
-                <input id="post-location" name="location" value="<?= $e($values['location'] ?? '') ?>" maxlength="255" placeholder="Venue, city or online">
+                <input id="post-location" name="location" data-location-picker="world" value="<?= $e($values['location'] ?? '') ?>" maxlength="255" placeholder="Venue, city or online">
             </div>
             <div class="webform-field">
                 <label for="post-link">Link</label>
