@@ -689,8 +689,8 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                             <tbody class="eso-budget-group-body">
                                 <?php foreach ($groupItems as $itemIndex => $item): ?>
                                     <tr class="eso-repeater-row">
-                                        <td><input data-field="item_no" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][item_no]" value="<?= htmlspecialchars((string) ($item['item_no'] ?? '')) ?>" placeholder="<?= (int) $itemIndex + 1 ?>" aria-label="Item number"></td>
-                                        <td><textarea rows="1" data-autoresize data-field="particulars" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][particulars]" placeholder="e.g. Bond paper" aria-label="Particulars"><?= htmlspecialchars((string) ($item['particulars'] ?? '')) ?></textarea></td>
+                                        <td><input data-field="item_no" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][item_no]" value="<?= (int) $itemIndex + 1 ?>" class="webform-num eso-item-no" readonly tabindex="-1" aria-label="Item number" title="Numbered automatically"></td>
+                                        <td><textarea rows="1" data-autoresize data-field="particulars" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][particulars]" placeholder="Bond paper" aria-label="Particulars"><?= htmlspecialchars((string) ($item['particulars'] ?? '')) ?></textarea></td>
                                         <td><input data-field="qty" inputmode="decimal" class="webform-num" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][qty]" value="<?= htmlspecialchars((string) ($item['qty'] ?? '')) ?>" placeholder="0" aria-label="Quantity"></td>
                                         <td><input data-field="unit" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][unit]" value="<?= htmlspecialchars((string) ($item['unit'] ?? '')) ?>" placeholder="e.g. ream" aria-label="Unit"></td>
                                         <td><input data-field="cost_unit" inputmode="decimal" class="webform-num" name="budget_line_groups[<?= (int) $groupIndex ?>][items][<?= (int) $itemIndex ?>][cost_unit]" value="<?= htmlspecialchars((string) ($item['cost_unit'] ?? '')) ?>" placeholder="0.00" aria-label="Cost per unit"></td>
@@ -861,8 +861,8 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 
 <template id="eso-line-item-row-template">
     <tr class="eso-repeater-row">
-        <td><input data-field="item_no" placeholder="#" aria-label="Item number"></td>
-        <td><textarea rows="1" data-autoresize data-field="particulars" placeholder="e.g. Bond paper" aria-label="Particulars"></textarea></td>
+        <td><input data-field="item_no" class="webform-num eso-item-no" readonly tabindex="-1" aria-label="Item number" title="Numbered automatically"></td>
+        <td><textarea rows="1" data-autoresize data-field="particulars" placeholder="Bond paper" aria-label="Particulars"></textarea></td>
         <td><input data-field="qty" inputmode="decimal" class="webform-num" placeholder="0" aria-label="Quantity"></td>
         <td><input data-field="unit" placeholder="e.g. ream" aria-label="Unit"></td>
         <td><input data-field="cost_unit" inputmode="decimal" class="webform-num" placeholder="0.00" aria-label="Cost per unit"></td>
@@ -1014,7 +1014,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         row.querySelector('.eso-remove-line-item')?.addEventListener('click', () => {
             const rows = group.querySelectorAll('.eso-budget-group-body .eso-repeater-row');
             if (rows.length <= 1) {
-                row.querySelectorAll('input, textarea').forEach((el) => {
+                row.querySelectorAll('input:not(.eso-item-no), textarea').forEach((el) => {
                     el.value = '';
                 });
                 recalc();
@@ -1046,6 +1046,10 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
                 row.querySelectorAll('[data-field]').forEach((input) => {
                     input.name = `budget_line_groups[${groupIndex}][items][${itemIndex}][${input.dataset.field}]`;
                 });
+                const itemNo = row.querySelector('[data-field="item_no"]');
+                if (itemNo) {
+                    itemNo.value = String(itemIndex + 1);
+                }
             });
             updateGroupSubtotal(group);
         });

@@ -3503,8 +3503,14 @@ final class ProposalController
                 $label = 'Line-Item Budget ' . ($index + 1);
             }
 
-            $items = $this->validatedKeyedRows($group['items'] ?? [], [
-                'item_no',
+            // Item numbers are assigned here (1, 2, 3...), so a blank row with only a number is not kept.
+            $rawItems = is_array($group['items'] ?? null) ? $group['items'] : [];
+            foreach ($rawItems as $key => $item) {
+                if (is_array($item)) {
+                    unset($rawItems[$key]['item_no']);
+                }
+            }
+            $items = $this->validatedKeyedRows($rawItems, [
                 'particulars',
                 'qty',
                 'unit',
@@ -3515,6 +3521,11 @@ final class ProposalController
             if ($items === []) {
                 continue;
             }
+            $items = array_map(
+                static fn(array $item, int $position): array => ['item_no' => (string) ($position + 1)] + $item,
+                array_values($items),
+                array_keys(array_values($items))
+            );
 
             $out[] = [
                 'label' => $label,
