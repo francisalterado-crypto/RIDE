@@ -5177,8 +5177,13 @@ th { background: #f9fafb; font-size: 0.85rem; }
 .scholarly-form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 0.85rem;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
 }
+/* Spacing comes from the grid gap, not from the global input margin. */
+.scholarly-field input:not([type="checkbox"]):not([type="radio"]),
+.scholarly-field select,
+.scholarly-field textarea { margin: 0; }
 .scholarly-field { min-width: 0; }
 .scholarly-field--full { grid-column: 1 / -1; }
 .scholarly-field textarea { min-height: 0; }
@@ -5876,9 +5881,11 @@ a.fd-item-title:hover { color: var(--success); text-decoration: underline; }
 .webform-card .activity-documents { border-top: 0; margin-top: 0; padding-top: 0; }
 .activity-field { margin-bottom: 0.85rem; }
 .activity-field textarea { min-height: 3.2rem; }
-.activity-field-group { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem 0.25rem; margin: 0 0 1rem; }
+.activity-field-group { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem 0.9rem; margin: 0 0 1rem; }
 .activity-field-group legend { font-weight: 600; font-size: 0.9rem; padding: 0 0.35rem; }
-.activity-field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0 0.75rem; }
+/* Wide enough for a full date; inputs line up along the bottom when a label wraps. */
+.activity-field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.85rem 0.75rem; align-items: end; }
+.activity-field-row > .webform-field--full { align-self: start; }
 .activity-section-options { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin-bottom: 0.6rem; }
 .activity-section-option { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500; margin: 0; }
 .activity-section-option input { width: auto; margin: 0; }
