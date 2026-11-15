@@ -18,9 +18,9 @@ $printMissing = \App\Support\FormPreviewRequirements::missing($proposal, \App\Su
         <a class="btn btn-accent" href="<?= base_url('projects/' . $proposal['id']) ?>">Monitor Project</a>
     <?php endif; ?>
     <?php if ($printMissing === []): ?>
-        <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id'] . '/print') ?>" target="_blank" rel="noopener">Print or Save as PDF</a>
+        <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id'] . '/docx') ?>" title="The filled ESO-03 form. Open it in Word to print or save as PDF.">Print Preview (.docx)</a>
     <?php else: ?>
-        <button type="button" class="btn btn-outline" disabled title="<?= htmlspecialchars('Still missing: ' . implode(', ', $printMissing)) ?>">Print or Save as PDF</button>
+        <button type="button" class="btn btn-outline" disabled title="<?= htmlspecialchars('Still missing: ' . implode(', ', $printMissing)) ?>">Print Preview (.docx)</button>
     <?php endif; ?>
     <?php if ($canEdit): ?>
         <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id'] . '/edit') ?>">Edit</a>

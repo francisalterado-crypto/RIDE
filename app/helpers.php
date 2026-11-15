@@ -1480,14 +1480,22 @@ function send_form_missing_page(array $missing, bool $isUnsavedPreview = false):
 
 function send_form_docx(array $proposal, bool $isUnsavedPreview = false): void
 {
-    $missing = \App\Support\FormPreviewRequirements::missing($proposal);
+    // ESO-03 Extension Project Proposal, or an RDO form (RDO-20 and the request forms).
+    $isExtension = proposal_is_wpu_funded_extension($proposal);
+    $missing = $isExtension
+        ? \App\Support\FormPreviewRequirements::missing($proposal, \App\Support\FormPreviewRequirements::forExtensionProposal())
+        : \App\Support\FormPreviewRequirements::missing($proposal);
     if ($missing !== []) {
         send_form_missing_page($missing, $isUnsavedPreview);
         return;
     }
 
-    $bytes = (string) \App\Services\ResearchFormDocument::build($proposal);
-    $fileName = \App\Services\ResearchFormDocument::fileName($proposal);
+    $bytes = $isExtension
+        ? \App\Services\ExtensionFormDocument::build($proposal)
+        : (string) \App\Services\ResearchFormDocument::build($proposal);
+    $fileName = $isExtension
+        ? \App\Services\ExtensionFormDocument::fileName($proposal)
+        : \App\Services\ResearchFormDocument::fileName($proposal);
     if ($isUnsavedPreview) {
         $fileName = preg_replace('/\.docx$/', ' (preview).docx', $fileName);
     }

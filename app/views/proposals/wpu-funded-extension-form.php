@@ -238,8 +238,8 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
 
 <form class="webform eso-webform" id="eso-proposal-form" novalidate
       data-preview-rules="<?= htmlspecialchars(\App\Support\FormPreviewRequirements::forScript(\App\Support\FormPreviewRequirements::forExtensionProposal())) ?>"
-      data-preview-ready-title="Open the printable form"
-      data-preview-ready-text="Form complete. Print Preview opens the printable form, ready to print or save as PDF."
+      data-preview-ready-title="Download the filled form"
+      data-preview-ready-text="Form complete. Print Preview downloads the filled ESO-03 form (.docx), ready to print or save as PDF."
       data-draft-key="ride:eso-draft:<?= (int) ($user['id'] ?? 0) ?>:<?= $isEdit ? (int) $proposal['id'] : 'new' ?>"
       data-server-version="<?= htmlspecialchars((string) ($proposal['updated_at'] ?? '')) ?>"
       method="post" action="<?= $isEdit ? base_url('proposals/' . $proposal['id'] . '/update') : base_url('proposals') ?>">
@@ -254,11 +254,11 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         <div>
             <p class="webform-eyebrow">Office of Extension Services, Form WPU-QSF-RIDE-ESO-03</p>
             <h2 class="webform-hero-title">Extension Project Proposal</h2>
-            <p class="webform-hero-text">Fill out each section below. When every required part is filled, <strong>Print Preview</strong> opens the printable form, ready to print or save as PDF.</p>
+            <p class="webform-hero-text">Fill out each section below. When every required part is filled, <strong>Print Preview</strong> downloads the filled office form (.docx) on the letterhead, ready to print or save as PDF.</p>
             <p class="webform-hint webform-req-legend"><span class="webform-req">*</span> Required before Print Preview.</p>
             <p class="webform-hint js-preview-hint" aria-live="polite"></p>
         </div>
-        <button type="submit" class="btn btn-outline webform-preview-btn js-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formtarget="_blank" formnovalidate disabled>
+        <button type="submit" class="btn btn-outline webform-preview-btn js-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formnovalidate disabled>
             Print Preview
         </button>
     </div>
@@ -742,7 +742,7 @@ $removeItemButton = '<button type="button" class="webform-icon-btn eso-remove-ro
         <?php if ($isEdit): ?>
             <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id']) ?>">Cancel</a>
         <?php endif; ?>
-        <button type="submit" class="btn btn-outline js-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formtarget="_blank" formnovalidate disabled>
+        <button type="submit" class="btn btn-outline js-preview-btn" formaction="<?= base_url('proposals/preview/extension-program') ?>" formnovalidate disabled>
             Print Preview
         </button>
         <button type="submit" class="btn"><?= $isEdit ? 'Save Changes' : 'Save Draft' ?></button>

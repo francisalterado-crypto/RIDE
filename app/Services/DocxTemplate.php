@@ -308,6 +308,191 @@ final class DocxTemplate
         $row?->parentNode?->removeChild($row);
     }
 
+    /** Empties every cell of the table's rows from $firstRow on (sample text the template ships with). */
+    public function clearRows(?DOMElement $table, int $firstRow, ?int $lastRow = null): void
+    {
+        if ($table === null) {
+            return;
+        }
+        foreach ($this->rows($table) as $i => $row) {
+            if ($i < $firstRow || ($lastRow !== null && $i > $lastRow)) {
+                continue;
+            }
+            foreach ($this->cells($row) as $cell) {
+                $this->setCell($cell, '', true);
+            }
+        }
+    }
+
+    /**
+     * Writes $text as plain paragraphs right after the body paragraph starting with $prefix (for labels such as
+     * "General objective:" that have no blank line of their own). Numbering and bold of the label are dropped.
+     */
+    public function insertAfterParagraph(string $prefix, string $text): void
+    {
+        if (trim($text) === '') {
+            return;
+        }
+        $anchor = $this->paragraphStarting($prefix);
+        if ($anchor === null || $anchor->parentNode === null) {
+            return;
+        }
+        $next = $anchor->nextSibling;
+        foreach ($this->lines($text) as $line) {
+            $p = $this->paragraphLike($anchor, $line);
+            foreach ($this->elements($this->xpath->query('w:pPr/w:numPr|w:r/w:rPr/w:b|w:r/w:rPr/w:bCs|w:pPr/w:rPr/w:b', $p)) as $strip) {
+                $strip->parentNode?->removeChild($strip);
+            }
+            $anchor->parentNode->insertBefore($p, $next);
+        }
+    }
+
+    /**
+     * Fills the underscore blanks ("_____") of the paragraph starting with $prefix and of the paragraphs after it,
+     * in order. A blank that gets a value is replaced by the underlined value; null or '' leaves the blank.
+     *
+     * @param list<string|null> $values
+     */
+    public function fillUnderscores(string $prefix, array $values, int $paragraphsToScan = 2): void
+    {
+        $paragraph = $this->paragraphStarting($prefix);
+        for ($scanned = 0; $paragraph !== null && $values !== [] && $scanned <= $paragraphsToScan; $scanned++) {
+            // A blank can be split over several runs; the underscores right after a filled one are dropped.
+            $afterFill = false;
+            foreach ($this->elements($this->xpath->query('.//w:r', $paragraph)) as $run) {
+                $t = $this->xpath->query('w:t', $run)->item(0);
+                if (!$t instanceof DOMElement) {
+                    // A tab separates two blanks (e.g. name and date).
+                    $afterFill = $afterFill && $this->xpath->query('w:tab', $run)->length === 0;
+                    continue;
+                }
+                if ($afterFill && preg_match('/^_+$/', $t->textContent) === 1) {
+                    $t->textContent = '';
+                    continue;
+                }
+                $afterFill = false;
+                if (preg_match('/_{5,}/', $t->textContent) !== 1) {
+                    continue;
+                }
+                $filled = false;
+                $t->textContent = (string) preg_replace_callback('/_{5,}/', static function (array $m) use (&$values, &$filled): string {
+                    if ($values === []) {
+                        return $m[0];
+                    }
+                    $value = array_shift($values);
+                    if ($value === null || trim($value) === '') {
+                        return $m[0];
+                    }
+                    $filled = true;
+                    return $value;
+                }, $t->textContent);
+                $t->setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+                $afterFill = $filled;
+                if ($filled) {
+                    $rPr = $this->xpath->query('w:rPr', $run)->item(0);
+                    if (!$rPr instanceof DOMElement) {
+                        $rPr = $this->dom->createElementNS(self::W, 'w:rPr');
+                        $run->insertBefore($rPr, $run->firstChild);
+                    }
+                    if ($this->xpath->query('w:u', $rPr)->length === 0) {
+                        $u = $this->dom->createElementNS(self::W, 'w:u');
+                        $u->setAttributeNS(self::W, 'w:val', 'single');
+                        $rPr->appendChild($u);
+                    }
+                }
+            }
+            $paragraph = $this->nextParagraph($paragraph);
+        }
+    }
+
+    /** Replaces the last $word in the first paragraph whose text contains $marker (e.g. the "Date" under "Dean"). */
+    public function replaceLastWord(string $marker, string $word, string $replacement): void
+    {
+        if (trim($replacement) === '') {
+            return;
+        }
+        foreach ($this->elements($this->xpath->query('w:p', $this->body)) as $paragraph) {
+            if (stripos($this->text($paragraph), $marker) === false) {
+                continue;
+            }
+            $texts = $this->elements($this->xpath->query('.//w:t', $paragraph));
+            for ($i = count($texts) - 1; $i >= 0; $i--) {
+                $pos = strripos($texts[$i]->textContent, $word);
+                if ($pos !== false) {
+                    $texts[$i]->textContent = substr_replace($texts[$i]->textContent, $replacement, $pos, strlen($word));
+                    return;
+                }
+            }
+        }
+    }
+
+    /** Removes the body paragraph starting with $prefix and the table that follows it (with blank lines between). */
+    public function removeTableWithHeading(string $headingPrefix): void
+    {
+        $heading = $this->paragraphStarting($headingPrefix);
+        if ($heading === null) {
+            return;
+        }
+        $node = $heading;
+        while ($node !== null) {
+            $next = $node->nextSibling;
+            $isTable = $node instanceof DOMElement && $node->localName === 'tbl';
+            $node->parentNode?->removeChild($node);
+            if ($isTable) {
+                return;
+            }
+            $node = $next;
+        }
+    }
+
+    /**
+     * Copies the paragraph starting with $headingPrefix and the table after it, puts the copy after the last
+     * table of the same heading family, and retitles it. Returns the copied table.
+     */
+    public function duplicateTableWithHeading(string $headingPrefix, DOMElement $after, string $newHeading): ?DOMElement
+    {
+        $heading = $this->paragraphStarting($headingPrefix);
+        if ($heading === null || $after->parentNode === null) {
+            return null;
+        }
+        $table = $heading->nextSibling;
+        while ($table !== null && !($table instanceof DOMElement && $table->localName === 'tbl')) {
+            $table = $table->nextSibling;
+        }
+        if (!$table instanceof DOMElement) {
+            return null;
+        }
+        $headingCopy = $this->paragraphLike($heading, $newHeading);
+        $tableCopy = $table->cloneNode(true);
+        $insertBefore = $after->nextSibling;
+        $after->parentNode->insertBefore($headingCopy, $insertBefore);
+        $after->parentNode->insertBefore($tableCopy, $insertBefore);
+
+        return $tableCopy instanceof DOMElement ? $tableCopy : null;
+    }
+
+    public function paragraphStarting(string $prefix): ?DOMElement
+    {
+        foreach ($this->elements($this->body->childNodes) as $child) {
+            if ($child->localName === 'p' && trim($this->text($child)) !== '' && $this->startsWith($this->text($child), $prefix)) {
+                return $child;
+            }
+        }
+
+        return null;
+    }
+
+    private function nextParagraph(DOMElement $paragraph): ?DOMElement
+    {
+        for ($node = $paragraph->nextSibling; $node !== null; $node = $node->nextSibling) {
+            if ($node instanceof DOMElement && $node->localName === 'p') {
+                return $node;
+            }
+        }
+
+        return null;
+    }
+
     // ---- Internals --------------------------------------------------------------------------------------------
 
     private function shade(?DOMElement $cell, ?string $fill): void

@@ -2257,17 +2257,18 @@ final class ProposalController
             redirect('proposals/' . $id);
         }
 
-        $this->renderWpuFundedExtensionPrint($proposal, false);
+        // The filled ESO-03 Word template, like the RDO forms.
+        send_form_docx($proposal);
     }
 
-    /** The filled office Word form (.docx) of a saved RDO-20 application or RDO request form. */
+    /** The filled office Word form (.docx) of a saved RDO-20 application, RDO request form or ESO-03 proposal. */
     public function downloadDocx(int $id): void
     {
         $proposal = $this->authorizeView($id);
         if (!$proposal) {
             return;
         }
-        if (\App\Services\ResearchFormDocument::formKey($proposal) === null) {
+        if (\App\Services\ResearchFormDocument::formKey($proposal) === null && !proposal_is_wpu_funded_extension($proposal)) {
             redirect('proposals/' . $id);
         }
         send_form_docx($proposal);
@@ -2348,19 +2349,7 @@ final class ProposalController
             'funding_source' => $data['funding_source'],
         ]);
 
-        $this->renderWpuFundedExtensionPrint($proposal, true);
-    }
-
-    private function renderWpuFundedExtensionPrint(array $proposal, bool $isUnsavedPreview): void
-    {
-        $missing = \App\Support\FormPreviewRequirements::missing($proposal, \App\Support\FormPreviewRequirements::forExtensionProposal());
-        if ($missing !== []) {
-            send_form_missing_page($missing, $isUnsavedPreview);
-            return;
-        }
-
-        $stepLabel = MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? ''));
-        require APP_PATH . '/views/proposals/wpu-funded-extension-print.php';
+        send_form_docx($proposal, true);
     }
 
     private function showCompletedResearches(int $id, array $proposal): void
