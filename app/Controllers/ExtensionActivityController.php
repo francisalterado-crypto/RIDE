@@ -103,7 +103,7 @@ final class ExtensionActivityController
         }
 
         [$section, $data, $errors] = $this->validatedInput($type);
-        $data = $this->withProjectProgram($type, $data);
+        $data = $this->withProjectProgram($type, $data, $entry);
         if ($errors !== []) {
             $this->renderForm($type, $entry, $section, $data, $errors);
             return;
@@ -314,9 +314,22 @@ final class ExtensionActivityController
 
         $isEso = ExtensionActivityTypes::officeOf($type) === 'eso';
         $userCollegeId = (int) ((Auth::user() ?? [])['college_id'] ?? 0);
+        // Active catalog programs, the user's college first.
+        $extensionPrograms = $isEso ? \App\Models\ExtensionProgram::all(null, true) : [];
+        usort($extensionPrograms, static function (array $a, array $b) use ($userCollegeId): int {
+            $aMine = (int) ($a['college_id'] ?? 0) === $userCollegeId;
+            $bMine = (int) ($b['college_id'] ?? 0) === $userCollegeId;
+            return $aMine === $bMine ? 0 : ($aMine ? -1 : 1);
+        });
         view('activities.form', [
             // ESO entries can be tied to a planned extension project; the user's college's projects are listed.
             'extensionProjects' => $isEso ? \App\Models\ExtensionProject::options($userCollegeId > 0 ? $userCollegeId : null) : [],
+            'extensionPrograms' => $extensionPrograms,
+            // Suggested names for personnel fields; names of people without an account can still be typed.
+            'peopleNames' => array_values(array_unique(array_filter(array_map(
+                static fn (array $row): string => trim((string) $row['first_name'] . ' ' . (string) $row['last_name']),
+                \App\Models\User::allFaculty()
+            )))),
             'selectedProjectId' => isset($_POST['extension_project_id'])
                 ? (int) $_POST['extension_project_id']
                 : (int) ($entry['extension_project_id'] ?? 0),
@@ -333,22 +346,29 @@ final class ExtensionActivityController
     }
 
     /**
-     * When a planned project is picked, the "Extension Program" column of the quarterly report comes from the
-     * catalog instead of typed text.
+     * The "Extension Program" column of the quarterly report comes from the catalog: the picked project's
+     * program, else the picked program. extension_program_id -1 keeps the text saved before the field was a
+     * selection.
      *
      * @param array<string, string> $data
+     * @param array<string, mixed>|null $entry
      * @return array<string, string>
      */
-    private function withProjectProgram(string $type, array $data): array
+    private function withProjectProgram(string $type, array $data, ?array $entry = null): array
     {
         $fields = (array) (ExtensionActivityTypes::get($type)['fields'] ?? []);
         if (!array_key_exists('extension_program', $fields)) {
             return $data;
         }
         $project = \App\Models\ExtensionProject::find((int) ($_POST['extension_project_id'] ?? 0));
-        if ($project !== null) {
-            $program = trim((string) ($project['program_acronym'] ?? '')) ?: (string) $project['program_name'];
-            $data['extension_program'] = $program . ': ' . $project['title'];
+        $programId = $project !== null ? (int) $project['extension_program_id'] : (int) ($_POST['extension_program_id'] ?? 0);
+        $program = $programId > 0 ? \App\Models\ExtensionProgram::find($programId) : null;
+        if ($program !== null) {
+            $data['extension_program'] = \App\Models\ExtensionProgram::label($program);
+        } elseif ($programId === -1 && is_array($entry['data'] ?? null)) {
+            $data['extension_program'] = mb_substr(trim((string) ($entry['data']['extension_program'] ?? '')), 0, self::MAX_TEXT);
+        } else {
+            $data['extension_program'] = '';
         }
 
         return $data;

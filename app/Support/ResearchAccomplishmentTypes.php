@@ -107,7 +107,7 @@ final class ResearchAccomplishmentTypes
                     'duration_months' => ['label' => 'Duration in Months', 'type' => 'number', 'group' => 'Program/Project/Study'],
                     'researchers' => ['label' => 'Researcher(s)', 'type' => 'textarea'],
                     'paper_title' => ['label' => 'Title of Research Paper', 'type' => 'textarea', 'required' => true],
-                    'presenter_name' => ['label' => 'Name of Presenter', 'type' => 'text'],
+                    'presenter_name' => ['label' => 'Name of Presenter', 'type' => 'text', 'suggest' => 'people'],
                     'conference_title' => ['label' => 'Title of Conference/Forum', 'type' => 'text'],
                     'venue' => ['label' => 'Venue', 'type' => 'text'],
                     'presentation_date' => ['label' => 'Date', 'type' => 'date', 'required' => true],

@@ -109,7 +109,25 @@ if ($coauthors === []) {
             </tr>
             <tr>
                 <th>Campus</th>
-                <td colspan="3"><input name="campus" value="<?= htmlspecialchars($value('campus', (string) ($user['campus_name'] ?? ''))) ?>"></td>
+                <td colspan="3"><?php
+                    // Campuses of the user's college come from the database; a saved value outside the list is kept.
+                    $campusValue = $value('campus', (string) ($user['campus_name'] ?? ''));
+                    $campusNames = array_map(static fn (array $row): string => (string) $row['name'], \App\Models\College::campuses((int) ($user['college_id'] ?? 0)));
+                    if ($campusValue !== '' && !in_array($campusValue, $campusNames, true)) {
+                        $campusNames[] = $campusValue;
+                    }
+                    ?>
+                    <?php if ($campusNames !== []): ?>
+                        <select name="campus">
+                            <option value="">Select the campus</option>
+                            <?php foreach ($campusNames as $campusName): ?>
+                                <option value="<?= htmlspecialchars($campusName) ?>"<?= $campusName === $campusValue ? ' selected' : '' ?>><?= htmlspecialchars($campusName) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    <?php else: ?>
+                        <input name="campus" value="<?= htmlspecialchars($campusValue) ?>">
+                    <?php endif; ?>
+                </td>
             </tr>
             <tr>
                 <th>Email</th>

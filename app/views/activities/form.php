@@ -30,6 +30,60 @@ foreach ($definition['fields'] as $name => $field) {
     $blocks[] = ['group' => $group, 'fields' => [$name => $field]];
 }
 
+// Extension Program comes from the catalog. Text saved before it was a selection stays as its own option.
+$extensionPrograms = $extensionPrograms ?? [];
+$extensionProjects = $extensionProjects ?? [];
+$hasProgramField = in_array('program', array_column($definition['fields'], 'type'), true);
+$programText = trim((string) ($values['extension_program'] ?? ''));
+$selectedProgramId = 0;
+foreach ($extensionPrograms as $programRow) {
+    if ($programText !== '' && strcasecmp(\App\Models\ExtensionProgram::label($programRow), $programText) === 0) {
+        $selectedProgramId = (int) $programRow['id'];
+        break;
+    }
+}
+$legacyProgramText = $selectedProgramId === 0 && $programText !== '' ? $programText : '';
+$programsByCollege = [];
+foreach ($extensionPrograms as $programRow) {
+    $programsByCollege[trim((string) ($programRow['college_name'] ?? '')) ?: 'University-wide'][] = $programRow;
+}
+
+$renderCatalogPick = static function () use ($hasProgramField, $programsByCollege, $selectedProgramId, $legacyProgramText, $extensionProjects, $selectedProjectId): void {
+    if ($hasProgramField && $programsByCollege !== []): ?>
+        <div class="webform-field webform-field--full">
+            <label for="activity-extension-program">Extension Program</label>
+            <select id="activity-extension-program" name="extension_program_id">
+                <option value="0">Not under an extension program</option>
+                <?php if ($legacyProgramText !== ''): ?>
+                    <option value="-1" selected>Saved value: <?= htmlspecialchars($legacyProgramText) ?></option>
+                <?php endif; ?>
+                <?php foreach ($programsByCollege as $collegeName => $rows): ?>
+                    <optgroup label="<?= htmlspecialchars($collegeName) ?>">
+                        <?php foreach ($rows as $programRow): ?>
+                            <option value="<?= (int) $programRow['id'] ?>"<?= (int) $programRow['id'] === $selectedProgramId ? ' selected' : '' ?>><?= htmlspecialchars(\App\Models\ExtensionProgram::label($programRow)) ?></option>
+                        <?php endforeach; ?>
+                    </optgroup>
+                <?php endforeach; ?>
+            </select>
+            <p class="webform-hint">Programs are maintained by the RIDE administrator in the program catalog.</p>
+        </div>
+    <?php endif;
+    if ($extensionProjects !== []): ?>
+        <div class="webform-field webform-field--full">
+            <label for="activity-extension-project">Extension Project</label>
+            <select id="activity-extension-project" name="extension_project_id">
+                <option value="0">Not part of a planned project</option>
+                <?php foreach ($extensionProjects as $projectRow): ?>
+                    <option value="<?= (int) $projectRow['id'] ?>" data-program="<?= (int) $projectRow['extension_program_id'] ?>"<?= (int) $projectRow['id'] === (int) ($selectedProjectId ?? 0) ? ' selected' : '' ?>><?= htmlspecialchars(\App\Models\ExtensionProject::label($projectRow)) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <p class="webform-hint"><?= $hasProgramField
+                ? 'Links this activity to a planned project for monitoring. Selecting a project also sets its Extension Program.'
+                : 'Links this activity to its program and project for monitoring.' ?></p>
+        </div>
+    <?php endif;
+};
+
 $renderField = static function (string $name, array $field, string $value, string $section): void {
     $id = 'activity-field-' . $name;
     $only = $field['only'] ?? null;
@@ -57,6 +111,7 @@ $renderField = static function (string $name, array $field, string $value, strin
         <?php else: ?>
             <input type="<?= $field['type'] === 'date' ? 'date' : 'text' ?>" <?= $common ?> value="<?= htmlspecialchars($value) ?>"
                 <?= in_array($name, ['venue', 'location', 'adopter_location'], true) ? 'data-location-picker="ph"' : '' ?>
+                <?= ($field['suggest'] ?? '') === 'people' ? 'list="activity-people-options" autocomplete="off"' : '' ?>
                 <?= isset($field['placeholder']) ? 'placeholder="' . htmlspecialchars((string) $field['placeholder']) . '"' : '' ?>>
         <?php endif; ?>
         <?php if (isset($field['hint'])): ?>
@@ -108,17 +163,15 @@ $renderField = static function (string $name, array $field, string $value, strin
     <?php endif; ?>
 
     <div class="webform-grid">
-    <?php if (!empty($extensionProjects)): ?>
-        <div class="webform-field webform-field--full">
-            <label for="activity-extension-project">Extension Project</label>
-            <select id="activity-extension-project" name="extension_project_id">
-                <option value="0">Not part of a planned project</option>
-                <?php foreach ($extensionProjects as $projectRow): ?>
-                    <option value="<?= (int) $projectRow['id'] ?>"<?= (int) $projectRow['id'] === (int) ($selectedProjectId ?? 0) ? ' selected' : '' ?>><?= htmlspecialchars(\App\Models\ExtensionProject::label($projectRow)) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <p class="webform-hint">Links this activity to its program and project for monitoring. When a project is picked, the Extension Program field is filled from it.</p>
-        </div>
+    <?php if (!$hasProgramField) {
+        $renderCatalogPick();
+    } ?>
+    <?php if (!empty($peopleNames) && in_array('people', array_column($definition['fields'], 'suggest'), true)): ?>
+        <datalist id="activity-people-options">
+            <?php foreach ($peopleNames as $personName): ?>
+                <option value="<?= htmlspecialchars($personName) ?>">
+            <?php endforeach; ?>
+        </datalist>
     <?php endif; ?>
     <?php foreach ($blocks as $block): ?>
         <?php if ($block['group'] !== ''): ?>
@@ -132,12 +185,57 @@ $renderField = static function (string $name, array $field, string $value, strin
             </fieldset>
         <?php else: ?>
             <?php foreach ($block['fields'] as $name => $field): ?>
-                <?php $renderField($name, $field, (string) ($values[$name] ?? ''), $section); ?>
+                <?php if ($field['type'] === 'program'): ?>
+                    <?php $renderCatalogPick(); ?>
+                <?php else: ?>
+                    <?php $renderField($name, $field, (string) ($values[$name] ?? ''), $section); ?>
+                <?php endif; ?>
             <?php endforeach; ?>
         <?php endif; ?>
     <?php endforeach; ?>
     </div>
     </section>
+
+    <?php if ($hasProgramField && $extensionProjects !== []): ?>
+    <script>
+    (() => {
+        // Picking a program narrows the project list; picking a project sets its program.
+        const programSelect = document.getElementById('activity-extension-program');
+        const projectSelect = document.getElementById('activity-extension-project');
+        if (!programSelect || !projectSelect) {
+            return;
+        }
+        const filterProjects = () => {
+            const programId = programSelect.value;
+            const narrow = Number(programId) > 0;
+            Array.from(projectSelect.options).forEach((option) => {
+                if (option.value === '0') {
+                    return;
+                }
+                option.hidden = narrow && option.dataset.program !== programId;
+                option.disabled = option.hidden;
+            });
+            if (projectSelect.selectedOptions[0]?.disabled) {
+                projectSelect.value = '0';
+            }
+        };
+        const syncProgramFromProject = () => {
+            const programId = projectSelect.selectedOptions[0]?.dataset.program;
+            if (programId && programSelect.querySelector(`option[value="${programId}"]`)) {
+                programSelect.value = programId;
+            }
+        };
+        programSelect.addEventListener('change', filterProjects);
+        projectSelect.addEventListener('change', () => {
+            syncProgramFromProject();
+            filterProjects();
+        });
+        // Entries saved with a project show that project's program.
+        syncProgramFromProject();
+        filterProjects();
+    })();
+    </script>
+    <?php endif; ?>
 
     <?php if ($checklist !== []): ?>
         <section class="webform-card">

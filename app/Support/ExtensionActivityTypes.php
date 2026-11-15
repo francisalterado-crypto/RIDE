@@ -24,7 +24,7 @@ final class ExtensionActivityTypes
      *     description: string,
      *     title_field: string,
      *     sections: array<string, array{label: string, path: list<string>, date_field: string}>,
-     *     fields: array<string, array{label: string, type: string, required?: bool, placeholder?: string, options?: array<string, string>, group?: string, only?: list<string>}>
+     *     fields: array<string, array{label: string, type: string (text|textarea|number|date|select|program: catalog extension program), required?: bool, placeholder?: string, options?: array<string, string>, group?: string, only?: list<string>}>
      * }>
      */
     public static function all(): array
@@ -72,7 +72,7 @@ final class ExtensionActivityTypes
                     'other' => ['label' => 'Other training', 'path' => ['entries', 'other'], 'date_field' => 'training_date'],
                 ],
                 'fields' => [
-                    'extension_program' => ['label' => 'Extension Program', 'type' => 'textarea'],
+                    'extension_program' => ['label' => 'Extension Program', 'type' => 'program'],
                     'training_title' => ['label' => 'Title of Training', 'type' => 'textarea', 'required' => true],
                     'venue' => ['label' => 'Venue', 'type' => 'text'],
                     'training_date' => ['label' => 'Date', 'type' => 'date', 'required' => true],
@@ -85,8 +85,8 @@ final class ExtensionActivityTypes
                         '3_4d' => '3-4 days (1.5)',
                         '5d_plus' => '5 days or more (2)',
                     ]],
-                    'personnel_name' => ['label' => 'Name', 'type' => 'text', 'group' => 'Personnel Involved'],
-                    'personnel_role' => ['label' => 'Role', 'type' => 'text', 'placeholder' => 'e.g. Facilitator', 'group' => 'Personnel Involved'],
+                    'personnel_name' => ['label' => 'Name', 'type' => 'text', 'suggest' => 'people', 'group' => 'Personnel Involved'],
+                    'personnel_role' => ['label' => 'Role', 'type' => 'text', 'placeholder' => 'Facilitator', 'group' => 'Personnel Involved'],
                     'budget_source' => ['label' => 'Source', 'type' => 'text', 'group' => 'Budget'],
                     'budget_amount' => ['label' => 'Amount', 'type' => 'text', 'group' => 'Budget'],
                     'trainees_surveyed' => ['label' => 'No. of Trainees Surveyed', 'type' => 'number'],
@@ -103,13 +103,13 @@ final class ExtensionActivityTypes
                     '' => ['label' => '', 'path' => ['entries'], 'date_field' => 'advisory_date'],
                 ],
                 'fields' => [
-                    'extension_program' => ['label' => 'Extension Program', 'type' => 'textarea'],
+                    'extension_program' => ['label' => 'Extension Program', 'type' => 'program'],
                     'technical_advisory_conducted' => ['label' => 'Technical Advisory Conducted', 'type' => 'textarea', 'required' => true],
                     'venue' => ['label' => 'Venue', 'type' => 'text'],
                     'advisory_date' => ['label' => 'Date', 'type' => 'date', 'required' => true],
                     'client_type' => ['label' => 'Type of Clients', 'type' => 'text'],
                     'clients_served' => ['label' => 'No. of Clients Served', 'type' => 'number'],
-                    'personnel_name' => ['label' => 'Resource Person / Name of Personnel', 'type' => 'text'],
+                    'personnel_name' => ['label' => 'Resource Person / Name of Personnel', 'type' => 'text', 'suggest' => 'people'],
                     'trainees_surveyed' => ['label' => 'No. of Trainees Surveyed', 'type' => 'number'],
                 ] + self::ratingFields('quality', 'No. of Trainees who Rate the Quality as')
                   + self::ratingFields('timeliness', 'No. of Trainees who Rate the Timeliness as'),
@@ -162,7 +162,7 @@ final class ExtensionActivityTypes
                     'training' => ['label' => 'Through Trainings Extended', 'path' => ['training_entries'], 'date_field' => 'date_conducted'],
                 ],
                 'fields' => [
-                    'extension_personnel' => ['label' => 'Name of Extension Personnel', 'type' => 'text'],
+                    'extension_personnel' => ['label' => 'Name of Extension Personnel', 'type' => 'text', 'suggest' => 'people'],
                     'demonstration_farm' => ['label' => 'Name and Location of Demonstration Farm', 'type' => 'textarea', 'only' => ['demonstration_farm']],
                     'year_established' => ['label' => 'Year Established', 'type' => 'text', 'placeholder' => '2024', 'only' => ['demonstration_farm']],
                     'extension_service_title' => ['label' => 'Title of Extension Service Provided', 'type' => 'textarea', 'only' => ['training']],
