@@ -42,8 +42,11 @@ final class DashboardController
         // Reviewers (coordinator, dean, director, VPRIDE) get an action-focused dashboard for their step and scope.
         $reviewerContext = $facultyOnly ? null : self::reviewerContext($user);
 
+        // Extension workers record Conducted Activities; their dashboard is about those entries.
+        $workerOnly = !$facultyOnly && $reviewerContext === null && MonitoringRoles::isExtensionWorker();
+
         $dashboardSections = [];
-        if ($facultyOnly || $reviewerContext !== null) {
+        if ($facultyOnly || $reviewerContext !== null || $workerOnly) {
             // Built below, after the shared notices.
         } elseif ($splitDashboard) {
             foreach (['research', 'extension'] as $projectType) {
@@ -122,6 +125,15 @@ final class DashboardController
                 'pendingCoAuthorInvitations' => $pendingCoAuthorInvitations,
                 'ownOverdueMilestones' => $isOwnScoped ? $overdueMilestones : [],
                 'ownOverdueReports' => $isOwnScoped ? $overdueReports : [],
+            ]));
+            return;
+        }
+
+        if ($workerOnly) {
+            view('dashboard.worker', array_merge(self::workerDashboardData((int) $user['id']), [
+                'user' => $user,
+                'globalMessage' => $globalMessage,
+                'facultyReportingNotice' => $facultyReportingNotice,
             ]));
             return;
         }
@@ -317,6 +329,71 @@ final class DashboardController
             'monthlyActivity' => Proposal::monthlyWorkflowActivity(null, $collegeId, $types),
             'scopeLabel' => ($collegeId !== null ? ($collegeNames[$collegeId] ?? 'Your college') : 'All colleges')
                 . ', ' . ($singleType !== null ? ucfirst($singleType) : 'Research and Extension'),
+        ];
+    }
+
+    /**
+     * Extension worker: their Conducted Activities in the current reporting period, entries still missing
+     * supporting documents, and entries per month.
+     *
+     * @return array<string, mixed>
+     */
+    private static function workerDashboardData(int $userId): array
+    {
+        $types = \App\Support\ExtensionActivityTypes::forOffice('eso');
+        $period = QuarterlyReporting::currentPeriodKey() ?? '';
+        $range = $period !== '' ? \App\Support\ExtensionActivityTypes::periodDateRange($period) : null;
+        $scope = ['user_id' => $userId];
+        $periodEntries = $range !== null ? \App\Models\ExtensionActivity::list($scope, null, $range[0], $range[1]) : [];
+
+        $byType = array_fill_keys(array_keys($types), 0);
+        foreach ($periodEntries as $entry) {
+            if (isset($byType[(string) $entry['activity_type']])) {
+                $byType[(string) $entry['activity_type']]++;
+            }
+        }
+
+        // Entries of the period whose required supporting documents are not all attached.
+        $filled = \App\Models\ExtensionActivityDocument::filledCategoryCounts(
+            array_map(static fn (array $entry): int => (int) $entry['id'], $periodEntries),
+            \App\Support\ExtensionActivityTypes::allRequiredDocumentCategories()
+        );
+        $missingDocs = [];
+        foreach ($periodEntries as $entry) {
+            $required = count(\App\Support\ExtensionActivityTypes::requiredDocumentCategories((string) $entry['activity_type']));
+            $have = (int) ($filled[(int) $entry['id']] ?? 0);
+            if ($required > 0 && $have < $required) {
+                $missingDocs[] = $entry + ['docs_required' => $required, 'docs_filled' => $have];
+            }
+        }
+
+        // Entries per month by activity date, last six months.
+        $labels = [];
+        $monthIndex = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = new \DateTimeImmutable('first day of -' . $i . ' month');
+            $monthIndex[$month->format('Y-m')] = count($labels);
+            $labels[] = $month->format('M');
+        }
+        $perMonth = array_fill(0, count($labels), 0);
+        $since = (new \DateTimeImmutable('first day of -5 month'))->format('Y-m-01');
+        $recent = \App\Models\ExtensionActivity::list($scope, null, $since, null);
+        foreach ($recent as $entry) {
+            $key = substr((string) ($entry['activity_date'] ?? ''), 0, 7);
+            if (isset($monthIndex[$key])) {
+                $perMonth[$monthIndex[$key]]++;
+            }
+        }
+
+        return [
+            'types' => $types,
+            'period' => $period,
+            'periodRange' => $range,
+            'periodEntries' => $periodEntries,
+            'byType' => $byType,
+            'missingDocs' => $missingDocs,
+            'recentEntries' => array_slice(array_reverse($recent), 0, 6),
+            'entriesPerMonth' => ['labels' => $labels, 'counts' => $perMonth],
         ];
     }
 
