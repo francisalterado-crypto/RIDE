@@ -24,17 +24,17 @@ final class DirectMessaging
 
     public const STAFF_ROLE_SLUGS = [
 
-        MonitoringRoles::COORDINATOR_RESEARCH,
+        AccessControl::COORDINATOR_RESEARCH,
 
-        MonitoringRoles::COORDINATOR_EXTENSION,
+        AccessControl::COORDINATOR_EXTENSION,
 
-        MonitoringRoles::DEAN,
+        AccessControl::DEAN,
 
-        MonitoringRoles::DIRECTOR_RESEARCH,
+        AccessControl::DIRECTOR_RESEARCH,
 
-        MonitoringRoles::DIRECTOR_EXTENSION,
+        AccessControl::DIRECTOR_EXTENSION,
 
-        MonitoringRoles::VPRIDE,
+        AccessControl::VPRIDE,
 
     ];
 
@@ -44,17 +44,17 @@ final class DirectMessaging
 
     public const STAFF_ROLE_LABELS = [
 
-        MonitoringRoles::COORDINATOR_RESEARCH => 'Research Coordinator',
+        AccessControl::COORDINATOR_RESEARCH => 'Research Coordinator',
 
-        MonitoringRoles::COORDINATOR_EXTENSION => 'Field Extensionist',
+        AccessControl::COORDINATOR_EXTENSION => 'Field Extensionist',
 
-        MonitoringRoles::DEAN => 'College Dean',
+        AccessControl::DEAN => 'College Dean',
 
-        MonitoringRoles::DIRECTOR_RESEARCH => 'RDO Director',
+        AccessControl::DIRECTOR_RESEARCH => 'RDO Director',
 
-        MonitoringRoles::DIRECTOR_EXTENSION => 'ESO Director',
+        AccessControl::DIRECTOR_EXTENSION => 'ESO Director',
 
-        MonitoringRoles::VPRIDE => 'VPRIDE',
+        AccessControl::VPRIDE => 'VPRIDE',
 
     ];
 
@@ -64,11 +64,11 @@ final class DirectMessaging
 
     private const COLLEGE_SCOPED_ROLE_SLUGS = [
 
-        MonitoringRoles::COORDINATOR_RESEARCH,
+        AccessControl::COORDINATOR_RESEARCH,
 
-        MonitoringRoles::COORDINATOR_EXTENSION,
+        AccessControl::COORDINATOR_EXTENSION,
 
-        MonitoringRoles::DEAN,
+        AccessControl::DEAN,
 
     ];
 
@@ -108,7 +108,7 @@ final class DirectMessaging
 
         if ($roles === [] && in_array('ride_admin', $rows, true)) {
 
-            return [MonitoringRoles::VPRIDE];
+            return [AccessControl::VPRIDE];
 
         }
 
@@ -214,7 +214,7 @@ final class DirectMessaging
 
 
 
-            if (in_array($roleSlug, [MonitoringRoles::DIRECTOR_RESEARCH, MonitoringRoles::DIRECTOR_EXTENSION, MonitoringRoles::VPRIDE], true)) {
+            if (in_array($roleSlug, [AccessControl::DIRECTOR_RESEARCH, AccessControl::DIRECTOR_EXTENSION, AccessControl::VPRIDE], true)) {
 
                 return true;
 
@@ -396,9 +396,9 @@ final class DirectMessaging
 
 
 
-        if ($roleSlug === MonitoringRoles::VPRIDE) {
+        if ($roleSlug === AccessControl::VPRIDE) {
 
-            return User::findActiveByRoleSlugs([MonitoringRoles::VPRIDE, 'ride_admin']);
+            return User::findActiveByRoleSlugs([AccessControl::VPRIDE, 'ride_admin']);
 
         }
 

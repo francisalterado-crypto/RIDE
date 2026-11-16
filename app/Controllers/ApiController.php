@@ -8,7 +8,7 @@ use App\Core\Auth;
 use App\Models\Extension;
 use App\Models\Proposal;
 use App\Models\User;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 final class ApiController
 {
@@ -94,10 +94,10 @@ final class ApiController
     {
         $this->requireApiAuth();
         $user = Auth::user();
-        $scopeType = MonitoringRoles::proposalScopeType();
-        if (MonitoringRoles::isVpride() || Auth::hasRole('ride_reporter')) {
+        $scopeType = AccessControl::proposalScopeType();
+        if (AccessControl::isVpride() || Auth::hasRole('ride_reporter')) {
             $data = $scopeType !== null ? Proposal::all(null, $scopeType) : Proposal::all();
-        } elseif (MonitoringRoles::isCoordinatorResearch() || MonitoringRoles::isCoordinatorExtension() || MonitoringRoles::isExtensionWorker()) {
+        } elseif (AccessControl::isCoordinatorResearch() || AccessControl::isCoordinatorExtension() || AccessControl::isExtensionWorker()) {
             $data = $user['college_id']
                 ? array_values(array_filter(
                     Proposal::forCollege((int) $user['college_id']),
@@ -124,10 +124,10 @@ final class ApiController
     {
         $this->requireApiAuth();
         $user = Auth::user();
-        $scopeType = MonitoringRoles::proposalScopeType();
-        if (MonitoringRoles::isVpride() || Auth::hasRole('ride_reporter')) {
+        $scopeType = AccessControl::proposalScopeType();
+        if (AccessControl::isVpride() || Auth::hasRole('ride_reporter')) {
             $data = $scopeType !== null ? Proposal::ongoing(null, null, $scopeType) : Proposal::ongoing();
-        } elseif (MonitoringRoles::isCoordinatorResearch() || MonitoringRoles::isCoordinatorExtension() || MonitoringRoles::isExtensionWorker()) {
+        } elseif (AccessControl::isCoordinatorResearch() || AccessControl::isCoordinatorExtension() || AccessControl::isExtensionWorker()) {
             $data = $user['college_id'] ? Proposal::ongoing((int) $user['college_id'], null, $scopeType) : [];
         } elseif ($scopeType !== null) {
             $data = Proposal::ongoing(null, null, $scopeType);
@@ -142,7 +142,7 @@ final class ApiController
     public function extensionBeneficiaries(): void
     {
         $this->requireApiAuth();
-        if (!MonitoringRoles::isVpride() && !Auth::hasRole('ride_reporter') && !MonitoringRoles::isDirectorExtension()) {
+        if (!AccessControl::isVpride() && !Auth::hasRole('ride_reporter') && !AccessControl::isDirectorExtension()) {
             json_response(['error' => 'Forbidden'], 403);
         }
         $years = (int) ($_GET['years'] ?? 3);

@@ -9,7 +9,7 @@ use App\Models\ExtensionActivity;
 use App\Models\Proposal;
 use App\Services\QuarterlyReportFile;
 use App\Support\ExtensionActivityTypes;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 use App\Support\QuarterlyReporting;
 
 /**
@@ -30,8 +30,8 @@ final class QuarterlyReportController
         }
         $office = ExtensionActivityTypes::officeOf($type);
         $canPrepare = $office === 'rdo'
-            ? MonitoringRoles::canPrepareResearchQuarterlyReports()
-            : MonitoringRoles::isCoordinatorExtension();
+            ? AccessControl::canPrepareResearchQuarterlyReports()
+            : AccessControl::isCoordinatorExtension();
         if (!$canPrepare) {
             http_response_code(403);
             view('errors.403');

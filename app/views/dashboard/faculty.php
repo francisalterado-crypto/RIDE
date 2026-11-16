@@ -9,7 +9,7 @@
 /** @var list<array<string, mixed>> $overdueReports */
 /** @var list<array<string, mixed>> $recentPapers */
 
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 $firstName = trim((string) ($user['first_name'] ?? ''));
 $pageTitle = 'Dashboard | RIDE Hub';
@@ -143,7 +143,7 @@ $activity = is_array($monthlyActivity ?? null) ? $monthlyActivity : ['labels' =>
                                 <?php if (($p['membership'] ?? 'lead') === 'coauthor'): ?><span class="fd-tag">Co-author</span><?php endif; ?>
                                 <a class="fd-item-title" href="<?= base_url('proposals/' . (int) $p['id']) ?>"><?= $e($p['title']) ?></a>
                                 <p class="fd-item-note">
-                                    Waiting on: <strong><?= $e(MonitoringRoles::stepLabel((string) ($p['current_step'] ?? ''))) ?></strong>
+                                    Waiting on: <strong><?= $e(AccessControl::stepLabel((string) ($p['current_step'] ?? ''))) ?></strong>
                                     <?php if (!empty($p['submitted_at'])): ?>, submitted <?= $e($formatDate($p['submitted_at'])) ?><?php endif; ?>
                                 </p>
                             </div>

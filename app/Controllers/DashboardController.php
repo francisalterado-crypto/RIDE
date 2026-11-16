@@ -16,7 +16,7 @@ use App\Models\ProposalCoAuthorInvitation;
 use App\Models\DirectMessage;
 use App\Support\DirectMessaging;
 use App\Support\FacultyFormDeadlines;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 use App\Support\QuarterlyReporting;
 
 final class DashboardController
@@ -27,8 +27,8 @@ final class DashboardController
         $user = Auth::user();
         $isFaculty = Auth::hasRole('faculty');
         $facultyTypes = ['research', 'extension'];
-        $scopeType = MonitoringRoles::proposalScopeType();
-        $all = MonitoringRoles::isVpride() || Auth::hasRole('ride_reporter');
+        $scopeType = AccessControl::proposalScopeType();
+        $all = AccessControl::isVpride() || Auth::hasRole('ride_reporter');
         $collegeId = $user['college_id'] ? (int) $user['college_id'] : null;
         $splitDashboard = $scopeType === null && (
             $all
@@ -43,7 +43,7 @@ final class DashboardController
         $reviewerContext = $facultyOnly ? null : self::reviewerContext($user);
 
         // Extension workers record Conducted Activities; their dashboard is about those entries.
-        $workerOnly = !$facultyOnly && $reviewerContext === null && MonitoringRoles::isExtensionWorker();
+        $workerOnly = !$facultyOnly && $reviewerContext === null && AccessControl::isExtensionWorker();
 
         $dashboardSections = [];
         if ($facultyOnly || $reviewerContext !== null || $workerOnly) {
@@ -87,7 +87,7 @@ final class DashboardController
             ];
         }
 
-        $isOwnScoped = $isFaculty || MonitoringRoles::isExtensionWorker();
+        $isOwnScoped = $isFaculty || AccessControl::isExtensionWorker();
         $overdueMilestones = Milestone::overdueForUser(
             $all ? null : ($collegeId && !$isOwnScoped ? $collegeId : null),
             $isOwnScoped ? (int) $user['id'] : null,
@@ -105,7 +105,7 @@ final class DashboardController
             : [];
 
         $facultyReportingNotice = null;
-        if ($isFaculty || MonitoringRoles::isExtensionWorker() || MonitoringRoles::isCoordinator()) {
+        if ($isFaculty || AccessControl::isExtensionWorker() || AccessControl::isCoordinator()) {
             $currentPeriod = QuarterlyReporting::currentPeriodKey();
             $facultyReportingNotice = [
                 'scheduleNotice' => FacultyFormDeadlines::scheduleNoticeText(),
@@ -178,26 +178,26 @@ final class DashboardController
             'collegeId' => $college,
         ];
 
-        if (MonitoringRoles::isVpride()) {
-            return $context('vpride', 'Vice President for RIDE', MonitoringRoles::VPRIDE, ['research', 'extension'], null);
+        if (AccessControl::isVpride()) {
+            return $context('vpride', 'Vice President for RIDE', AccessControl::VPRIDE, ['research', 'extension'], null);
         }
-        if (MonitoringRoles::isDirectorResearch()) {
-            return $context('director', 'RDO Director', MonitoringRoles::DIRECTOR_RESEARCH, ['research'], null);
+        if (AccessControl::isDirectorResearch()) {
+            return $context('director', 'RDO Director', AccessControl::DIRECTOR_RESEARCH, ['research'], null);
         }
-        if (MonitoringRoles::isDirectorExtension()) {
-            return $context('director', 'ESO Director', MonitoringRoles::DIRECTOR_EXTENSION, ['extension'], null);
+        if (AccessControl::isDirectorExtension()) {
+            return $context('director', 'ESO Director', AccessControl::DIRECTOR_EXTENSION, ['extension'], null);
         }
         if ($collegeId === null) {
             return null;
         }
-        if (MonitoringRoles::isDean()) {
-            return $context('dean', 'College Dean', MonitoringRoles::DEAN, ['research', 'extension'], $collegeId);
+        if (AccessControl::isDean()) {
+            return $context('dean', 'College Dean', AccessControl::DEAN, ['research', 'extension'], $collegeId);
         }
-        if (MonitoringRoles::isCoordinatorResearch()) {
-            return $context('coordinator', 'Research Coordinator', MonitoringRoles::COORDINATOR_RESEARCH, ['research'], $collegeId);
+        if (AccessControl::isCoordinatorResearch()) {
+            return $context('coordinator', 'Research Coordinator', AccessControl::COORDINATOR_RESEARCH, ['research'], $collegeId);
         }
-        if (MonitoringRoles::isCoordinatorExtension()) {
-            return $context('coordinator', 'Field Extensionist', MonitoringRoles::COORDINATOR_EXTENSION, ['extension'], $collegeId);
+        if (AccessControl::isCoordinatorExtension()) {
+            return $context('coordinator', 'Field Extensionist', AccessControl::COORDINATOR_EXTENSION, ['extension'], $collegeId);
         }
 
         return null;
@@ -222,20 +222,20 @@ final class DashboardController
         // Pipeline: how many proposals sit at each review step, in workflow order.
         $stepOrder = [];
         foreach ($types as $type) {
-            $stepOrder[] = MonitoringRoles::coordinatorStepForType($type);
+            $stepOrder[] = AccessControl::coordinatorStepForType($type);
         }
-        $stepOrder[] = MonitoringRoles::DEAN;
+        $stepOrder[] = AccessControl::DEAN;
         foreach ($types as $type) {
-            $stepOrder[] = MonitoringRoles::directorStepForType($type);
+            $stepOrder[] = AccessControl::directorStepForType($type);
         }
-        $stepOrder[] = MonitoringRoles::VPRIDE;
+        $stepOrder[] = AccessControl::VPRIDE;
         $shortStepLabels = [
-            MonitoringRoles::COORDINATOR_RESEARCH => 'Research Coordinator',
-            MonitoringRoles::COORDINATOR_EXTENSION => 'Field Extensionist',
-            MonitoringRoles::DEAN => 'College Dean',
-            MonitoringRoles::DIRECTOR_RESEARCH => 'RDO Director',
-            MonitoringRoles::DIRECTOR_EXTENSION => 'ESO Director',
-            MonitoringRoles::VPRIDE => 'VPRIDE',
+            AccessControl::COORDINATOR_RESEARCH => 'Research Coordinator',
+            AccessControl::COORDINATOR_EXTENSION => 'Field Extensionist',
+            AccessControl::DEAN => 'College Dean',
+            AccessControl::DIRECTOR_RESEARCH => 'RDO Director',
+            AccessControl::DIRECTOR_EXTENSION => 'ESO Director',
+            AccessControl::VPRIDE => 'VPRIDE',
         ];
         $pipeline = [];
         foreach ($stepOrder as $step) {

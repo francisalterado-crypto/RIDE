@@ -47,7 +47,7 @@ $researchQuarterlyNavActive = $navActive($completedResearchesNavActive)
     || $navActive($bookCitationNavActive)
     || $navActive($inventionsUmCopyrightsNavActive)
     || $navActive($linkagesNavActive);
-$groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\MonitoringRoles::canPrepareResearchQuarterlyReports()
+$groupResearchQuarterlyNav = !$isExtensionMenu && \App\Support\AccessControl::canPrepareResearchQuarterlyReports()
     && ($showCompletedResearchesNav || $showOngoingResearchesNav || $showResearchOutputPublishedNav
         || $showResearchOutputPresentedNav || $showCommercializedNav || $showResultedInExtensionNav
         || $showJournalCitationNav || $showBookCitationNav || $showInventionsUmCopyrightsNav || $showLinkagesNav);
@@ -288,7 +288,7 @@ $quarterlyReportNavActive = $navActive($trainingsConductedNavActive)
     || $navActive($extensionLinkagesNavActive)
     || $navActive($outreachActivitiesNavActive)
     || $navActive($technologyAdoptionNavActive);
-$groupQuarterlyReportNav = $isExtensionMenu && \App\Support\MonitoringRoles::isCoordinatorExtension()
+$groupQuarterlyReportNav = $isExtensionMenu && \App\Support\AccessControl::isCoordinatorExtension()
     && ($showTrainingsConductedNav || $showTechnicalAdvisoryNav || $showExtensionLinkagesNav || $showOutreachActivitiesNav || $showTechnologyAdoptionNav);
 ?>
 <?php if ($groupQuarterlyReportNav): ?>

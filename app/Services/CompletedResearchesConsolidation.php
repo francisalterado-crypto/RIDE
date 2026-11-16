@@ -7,7 +7,7 @@ namespace App\Services;
 use App\Models\College;
 use App\Models\Proposal;
 use App\Models\User;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 final class CompletedResearchesConsolidation
 {
@@ -249,7 +249,7 @@ final class CompletedResearchesConsolidation
             return false;
         }
 
-        if (Proposal::approvalAtStep($proposalId, MonitoringRoles::DIRECTOR_RESEARCH) !== null) {
+        if (Proposal::approvalAtStep($proposalId, AccessControl::DIRECTOR_RESEARCH) !== null) {
             return true;
         }
 
@@ -326,12 +326,12 @@ final class CompletedResearchesConsolidation
     private static function resolveCoordinator(int $collegeId, ?int $preferredUserId = null): ?array
     {
         if ($preferredUserId !== null && $preferredUserId > 0) {
-            if (User::hasActiveRoleForCollege($preferredUserId, MonitoringRoles::COORDINATOR_RESEARCH, $collegeId)) {
+            if (User::hasActiveRoleForCollege($preferredUserId, AccessControl::COORDINATOR_RESEARCH, $collegeId)) {
                 return User::findById($preferredUserId);
             }
         }
 
-        return User::findActiveByRoleAndCollege(MonitoringRoles::COORDINATOR_RESEARCH, $collegeId);
+        return User::findActiveByRoleAndCollege(AccessControl::COORDINATOR_RESEARCH, $collegeId);
     }
 
     /** @return array<string, mixed> */

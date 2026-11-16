@@ -7,7 +7,7 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Models\AuditLog;
 use App\Models\FormTemplate;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 final class FormTemplateController
 {
@@ -143,7 +143,7 @@ final class FormTemplateController
     /** @return list<string> */
     public static function visibleAudiences(): array
     {
-        return match (MonitoringRoles::proposalScopeType()) {
+        return match (AccessControl::proposalScopeType()) {
             'extension' => [FormTemplate::AUDIENCE_EXTENSION, FormTemplate::AUDIENCE_ALL],
             'research' => [FormTemplate::AUDIENCE_RESEARCH, FormTemplate::AUDIENCE_ALL],
             default => array_keys(FormTemplate::AUDIENCE_LABELS),

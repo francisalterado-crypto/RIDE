@@ -14,7 +14,7 @@ use App\Core\Auth;
 
 
 
-final class MonitoringRoles
+final class AccessControl
 
 {
 

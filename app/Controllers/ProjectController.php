@@ -14,7 +14,7 @@ use App\Models\Notification;
 use App\Models\ProgressReport;
 use App\Models\Proposal;
 use App\Services\ProjectAccess;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 final class ProjectController
 {
@@ -22,10 +22,10 @@ final class ProjectController
     {
         Notification::checkOverdueAlerts();
         $user = Auth::user();
-        $scopeType = MonitoringRoles::proposalScopeType();
-        if (MonitoringRoles::isVpride() || Auth::hasRole('ride_reporter')) {
+        $scopeType = AccessControl::proposalScopeType();
+        if (AccessControl::isVpride() || Auth::hasRole('ride_reporter')) {
             $projects = $scopeType !== null ? Proposal::ongoing(null, null, $scopeType) : Proposal::ongoing();
-        } elseif (MonitoringRoles::isCoordinatorResearch() || MonitoringRoles::isCoordinatorExtension() || MonitoringRoles::isExtensionWorker()) {
+        } elseif (AccessControl::isCoordinatorResearch() || AccessControl::isCoordinatorExtension() || AccessControl::isExtensionWorker()) {
             $projects = $user['college_id'] ? Proposal::ongoing((int) $user['college_id'], null, $scopeType) : [];
         } elseif ($scopeType !== null) {
             $projects = Proposal::ongoing(null, null, $scopeType);
@@ -485,8 +485,8 @@ final class ProjectController
 
     public function accreditationReport(): void
     {
-        $extensionOnly = !MonitoringRoles::isVpride() && !Auth::hasRole('ride_reporter');
-        if ($extensionOnly && !MonitoringRoles::isDirectorExtension()) {
+        $extensionOnly = !AccessControl::isVpride() && !Auth::hasRole('ride_reporter');
+        if ($extensionOnly && !AccessControl::isDirectorExtension()) {
             http_response_code(403);
             view('errors.403');
             return;

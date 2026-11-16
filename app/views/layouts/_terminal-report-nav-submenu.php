@@ -3,7 +3,7 @@
 /** @var string $menuScope 'research'|'extension' */
 
 $scopeQuery = proposal_nav_scope_query($menuScope);
-$terminalAssessmentHref = \App\Support\MonitoringRoles::isCoordinatorResearch()
+$terminalAssessmentHref = \App\Support\AccessControl::isCoordinatorResearch()
     ? base_url('proposals/terminal-report-registry?form_type=terminal_report_assessment_form')
     : base_url('proposals/create/terminal-report-assessment-form' . $scopeQuery);
 
@@ -15,7 +15,7 @@ $navLabel = static fn (string $label): string => htmlspecialchars(proposal_nav_s
 
 <?php if ($showTerminalReportNav): ?>
 
-    <a href="<?= base_url(\App\Support\MonitoringRoles::isCoordinatorResearch() ? 'proposals/terminal-report-registry' : 'proposals/create/terminal-report' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($terminalReportNavActive) ? ' active' : '' ?>">
+    <a href="<?= base_url(\App\Support\AccessControl::isCoordinatorResearch() ? 'proposals/terminal-report-registry' : 'proposals/create/terminal-report' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($terminalReportNavActive) ? ' active' : '' ?>">
 
         <span><?= $navLabel('Terminal Report') ?></span>
 

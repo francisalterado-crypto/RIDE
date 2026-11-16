@@ -81,7 +81,7 @@ final class ProposalCoAuthors
 
     public static function shouldShowCoAuthorAccountDetails(): bool
     {
-        return !MonitoringRoles::isCoordinatorResearch();
+        return !AccessControl::isCoordinatorResearch();
     }
 
     public static function isDeclinedCoauthor(array $row): bool
@@ -149,12 +149,12 @@ final class ProposalCoAuthors
         }
 
         return in_array($step, [
-            MonitoringRoles::COORDINATOR_RESEARCH,
-            MonitoringRoles::COORDINATOR_EXTENSION,
-            MonitoringRoles::DEAN,
-            MonitoringRoles::DIRECTOR_RESEARCH,
-            MonitoringRoles::DIRECTOR_EXTENSION,
-            MonitoringRoles::VPRIDE,
+            AccessControl::COORDINATOR_RESEARCH,
+            AccessControl::COORDINATOR_EXTENSION,
+            AccessControl::DEAN,
+            AccessControl::DIRECTOR_RESEARCH,
+            AccessControl::DIRECTOR_EXTENSION,
+            AccessControl::VPRIDE,
         ], true);
     }
 

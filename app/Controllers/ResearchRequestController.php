@@ -7,7 +7,7 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Models\AuditLog;
 use App\Models\Proposal;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 use App\Support\ProponentProfile;
 use App\Support\ResearchRequestForms;
 
@@ -309,7 +309,7 @@ final class ResearchRequestController
 
     private function allowAccess(): bool
     {
-        if (MonitoringRoles::canFileResearchRequests()) {
+        if (AccessControl::canFileResearchRequests()) {
             return true;
         }
 

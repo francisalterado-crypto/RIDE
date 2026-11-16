@@ -9,7 +9,7 @@ use App\Models\AuditLog;
 use App\Models\College;
 use App\Models\Proposal;
 use App\Services\ResearchFormConsolidation;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 trait ManagesConsolidatedResearchForms
 {
@@ -128,8 +128,8 @@ trait ManagesConsolidatedResearchForms
                 'comments' => Proposal::comments($id),
                 'canEdit' => $this->canEdit($proposal),
                 'canApprove' => $this->canApprove($proposal),
-                'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-                'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+                'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+                'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             ]);
 
             return true;
@@ -291,7 +291,7 @@ trait ManagesConsolidatedResearchForms
 
     private function allowConsolidatedResearchFormAccess(string $formKey): bool
     {
-        if (MonitoringRoles::canAccessConsolidatedResearchForm($formKey)) {
+        if (AccessControl::canAccessConsolidatedResearchForm($formKey)) {
             return true;
         }
 

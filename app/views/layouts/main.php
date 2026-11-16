@@ -55,7 +55,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 </button>
             </div>
             <nav class="nav-menu">
-                <?php $isVprideAccount = \App\Support\MonitoringRoles::isVpride(); ?>
+                <?php $isVprideAccount = \App\Support\AccessControl::isVpride(); ?>
                 <a href="<?= base_url('dashboard') ?>" class="nav-item<?= nav_active('dashboard') ? ' active' : '' ?>">
                     <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                 </a>
@@ -98,7 +98,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <a href="<?= base_url('projects') ?>" class="nav-item<?= nav_active('projects') ? ' active' : '' ?>">
                     <i class="fas fa-project-diagram"></i> <span>Projects</span>
                 </a>
-                <?php if (\App\Support\MonitoringRoles::canEnterConductedActivities() && !conducted_activities_in_extension_nav()): ?>
+                <?php if (\App\Support\AccessControl::canEnterConductedActivities() && !conducted_activities_in_extension_nav()): ?>
                 <a href="<?= base_url('activities') ?>" class="nav-item<?= nav_active('activities') ? ' active' : '' ?>">
                     <i class="fas fa-clipboard-list"></i> <span>Conducted Activities</span>
                 </a>
@@ -187,40 +187,40 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     || $outreachActivitiesNavActive || $technologyAdoptionNavActive;
                 $isFacultyAccount = \App\Core\Auth::hasRole('faculty');
                 $hasDualProposalMenu = proposal_nav_has_dual_menu();
-                $showResearchRequestsNav = \App\Support\MonitoringRoles::canFileResearchRequests();
+                $showResearchRequestsNav = \App\Support\AccessControl::canFileResearchRequests();
                 $researchRequestsNavActive = $showResearchRequestsNav && nav_active('research-requests');
-                $showCompletedResearchesNav = \App\Support\MonitoringRoles::canAccessCompletedResearches();
-                $showOngoingResearchesNav = \App\Support\MonitoringRoles::canAccessOngoingResearches();
-                $showResearchOutputPublishedNav = \App\Support\MonitoringRoles::canAccessResearchOutputPublished();
-                $showResearchOutputPresentedNav = \App\Support\MonitoringRoles::canAccessResearchOutputPresented();
-                $showCommercializedNav = \App\Support\MonitoringRoles::canAccessCommercialized();
-                $showResultedInExtensionNav = \App\Support\MonitoringRoles::canAccessResultedInExtension();
-                $showJournalCitationNav = \App\Support\MonitoringRoles::canAccessJournalCitation();
-                $showBookCitationNav = \App\Support\MonitoringRoles::canAccessBookCitation();
-                $showInventionsUmCopyrightsNav = \App\Support\MonitoringRoles::canAccessInventionsUmCopyrights();
-                $showLinkagesNav = \App\Support\MonitoringRoles::canAccessLinkages();
-                $showConsolidatedCompletedResearchesNav = \App\Support\MonitoringRoles::canAccessConsolidatedCompletedResearches();
-                $showConsolidatedOngoingResearchesNav = \App\Support\MonitoringRoles::canAccessConsolidatedOngoingResearches();
-                $showConsolidatedResearchOutputPublishedNav = \App\Support\MonitoringRoles::canAccessConsolidatedResearchOutputPublished();
-                $showConsolidatedResearchOutputPresentedNav = \App\Support\MonitoringRoles::canAccessConsolidatedResearchOutputPresented();
-                $showConsolidatedCommercializedNav = \App\Support\MonitoringRoles::canAccessConsolidatedResearchForm('commercialized');
-                $showConsolidatedResultedInExtensionNav = \App\Support\MonitoringRoles::canAccessConsolidatedResearchForm('resulted_in_extension');
-                $showConsolidatedJournalCitationNav = \App\Support\MonitoringRoles::canAccessConsolidatedResearchForm('journal_citation');
-                $showConsolidatedBookCitationNav = \App\Support\MonitoringRoles::canAccessConsolidatedResearchForm('book_citation');
-                $showConsolidatedInventionsUmCopyrightsNav = \App\Support\MonitoringRoles::canAccessConsolidatedResearchForm('inventions_um_copyrights');
-                $showConsolidatedLinkagesNav = \App\Support\MonitoringRoles::canAccessConsolidatedResearchForm('linkages');
-                $hideDirectorResearchFormNav = \App\Support\MonitoringRoles::isDirectorResearch();
-                $showProgressReportNav = \App\Support\MonitoringRoles::canAccessProgressReport() && !$hideDirectorResearchFormNav;
-                $showTerminalReportNav = \App\Support\MonitoringRoles::canAccessTerminalReport() && !$hideDirectorResearchFormNav;
-                $showTerminalReportAssessmentFormNav = \App\Support\MonitoringRoles::canAccessTerminalReport() && !$hideDirectorResearchFormNav;
-                $showTrainingsConductedNav = \App\Support\MonitoringRoles::canAccessTrainingsConducted();
-                $showTechnicalAdvisoryNav = \App\Support\MonitoringRoles::canAccessTechnicalAdvisory();
-                $showExtensionLinkagesNav = \App\Support\MonitoringRoles::canAccessExtensionLinkages();
-                $showOutreachActivitiesNav = \App\Support\MonitoringRoles::canAccessOutreachActivities();
-                $showTechnologyAdoptionNav = \App\Support\MonitoringRoles::canAccessTechnologyAdoption();
-                $showResearchProposalNav = !\App\Support\MonitoringRoles::isVpride()
+                $showCompletedResearchesNav = \App\Support\AccessControl::canAccessCompletedResearches();
+                $showOngoingResearchesNav = \App\Support\AccessControl::canAccessOngoingResearches();
+                $showResearchOutputPublishedNav = \App\Support\AccessControl::canAccessResearchOutputPublished();
+                $showResearchOutputPresentedNav = \App\Support\AccessControl::canAccessResearchOutputPresented();
+                $showCommercializedNav = \App\Support\AccessControl::canAccessCommercialized();
+                $showResultedInExtensionNav = \App\Support\AccessControl::canAccessResultedInExtension();
+                $showJournalCitationNav = \App\Support\AccessControl::canAccessJournalCitation();
+                $showBookCitationNav = \App\Support\AccessControl::canAccessBookCitation();
+                $showInventionsUmCopyrightsNav = \App\Support\AccessControl::canAccessInventionsUmCopyrights();
+                $showLinkagesNav = \App\Support\AccessControl::canAccessLinkages();
+                $showConsolidatedCompletedResearchesNav = \App\Support\AccessControl::canAccessConsolidatedCompletedResearches();
+                $showConsolidatedOngoingResearchesNav = \App\Support\AccessControl::canAccessConsolidatedOngoingResearches();
+                $showConsolidatedResearchOutputPublishedNav = \App\Support\AccessControl::canAccessConsolidatedResearchOutputPublished();
+                $showConsolidatedResearchOutputPresentedNav = \App\Support\AccessControl::canAccessConsolidatedResearchOutputPresented();
+                $showConsolidatedCommercializedNav = \App\Support\AccessControl::canAccessConsolidatedResearchForm('commercialized');
+                $showConsolidatedResultedInExtensionNav = \App\Support\AccessControl::canAccessConsolidatedResearchForm('resulted_in_extension');
+                $showConsolidatedJournalCitationNav = \App\Support\AccessControl::canAccessConsolidatedResearchForm('journal_citation');
+                $showConsolidatedBookCitationNav = \App\Support\AccessControl::canAccessConsolidatedResearchForm('book_citation');
+                $showConsolidatedInventionsUmCopyrightsNav = \App\Support\AccessControl::canAccessConsolidatedResearchForm('inventions_um_copyrights');
+                $showConsolidatedLinkagesNav = \App\Support\AccessControl::canAccessConsolidatedResearchForm('linkages');
+                $hideDirectorResearchFormNav = \App\Support\AccessControl::isDirectorResearch();
+                $showProgressReportNav = \App\Support\AccessControl::canAccessProgressReport() && !$hideDirectorResearchFormNav;
+                $showTerminalReportNav = \App\Support\AccessControl::canAccessTerminalReport() && !$hideDirectorResearchFormNav;
+                $showTerminalReportAssessmentFormNav = \App\Support\AccessControl::canAccessTerminalReport() && !$hideDirectorResearchFormNav;
+                $showTrainingsConductedNav = \App\Support\AccessControl::canAccessTrainingsConducted();
+                $showTechnicalAdvisoryNav = \App\Support\AccessControl::canAccessTechnicalAdvisory();
+                $showExtensionLinkagesNav = \App\Support\AccessControl::canAccessExtensionLinkages();
+                $showOutreachActivitiesNav = \App\Support\AccessControl::canAccessOutreachActivities();
+                $showTechnologyAdoptionNav = \App\Support\AccessControl::canAccessTechnologyAdoption();
+                $showResearchProposalNav = !\App\Support\AccessControl::isVpride()
                     && !$hideDirectorResearchFormNav;
-                if (\App\Support\MonitoringRoles::isCoordinatorResearch()) {
+                if (\App\Support\AccessControl::isCoordinatorResearch()) {
                     // The R&D Coordinator prepares the quarterly reports themselves (generated from Research
                     // Accomplishments), so the Consolidated versions are no longer offered to them.
                     $showConsolidatedCompletedResearchesNav = $showConsolidatedOngoingResearchesNav = false;
@@ -230,10 +230,10 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     $showConsolidatedInventionsUmCopyrightsNav = $showConsolidatedLinkagesNav = false;
                 }
                 $showResearchAccomplishmentsNav = $showResearchProposalNav
-                    && \App\Support\MonitoringRoles::canEnterResearchAccomplishments();
+                    && \App\Support\AccessControl::canEnterResearchAccomplishments();
                 $researchAccomplishmentsNavActive = $showResearchAccomplishmentsNav && nav_active('research-accomplishments');
-                $hideCoordinatorProposalIntroNav = \App\Support\MonitoringRoles::isCoordinator()
-                    && !\App\Support\MonitoringRoles::isCoordinatorExtension();
+                $hideCoordinatorProposalIntroNav = \App\Support\AccessControl::isCoordinator()
+                    && !\App\Support\AccessControl::isCoordinatorExtension();
                 $terminalReportNavGroupActive = $hasDualProposalMenu
                     ? proposal_nav_scoped_active(
                         $progressReportNavActive || $terminalReportNavActive || $terminalReportAssessmentFormNavActive,
@@ -242,9 +242,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     : ($terminalReportNavActive || $terminalReportAssessmentFormNavActive);
                 $showConductedActivitiesNav = conducted_activities_in_extension_nav();
                 $conductedActivitiesNavActive = $showConductedActivitiesNav && nav_active('activities');
-                $researchMenuScope = (\App\Support\MonitoringRoles::isCoordinatorExtension()
-                    || \App\Support\MonitoringRoles::isDirectorExtension()
-                    || \App\Support\MonitoringRoles::isExtensionWorker())
+                $researchMenuScope = (\App\Support\AccessControl::isCoordinatorExtension()
+                    || \App\Support\AccessControl::isDirectorExtension()
+                    || \App\Support\AccessControl::isExtensionWorker())
                     ? 'extension'
                     : 'research';
                 // Progress, Terminal and Terminal Report Assessment are research (VPRDE) forms: they sit in the research menu.
@@ -316,7 +316,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </div>
                 </div>
                 <?php endif; ?>
-                <?php if ((\App\Core\Auth::hasRole('ride_reporter') || \App\Support\MonitoringRoles::isDirectorExtension()) && !$isVprideAccount): ?>
+                <?php if ((\App\Core\Auth::hasRole('ride_reporter') || \App\Support\AccessControl::isDirectorExtension()) && !$isVprideAccount): ?>
                     <a href="<?= base_url('reports/extension-beneficiaries') ?>" class="nav-item<?= nav_active('reports') ? ' active' : '' ?>">
                         <i class="fas fa-chart-pie"></i> <span>Reports</span>
                     </a>

@@ -96,7 +96,7 @@ require APP_PATH . '/views/partials/quarterly-deadline-notice.php';
                             <td><a href="<?= base_url('proposals/' . (int) $report['id']) ?>"><strong><?= htmlspecialchars($report['period_key'] !== '' ? $plainPeriod($report['period_key']) : 'No period') ?></strong></a></td>
                             <td><?= htmlspecialchars(trim((string) $report['first_name'] . ' ' . (string) $report['last_name'])) ?></td>
                             <td><span class="badge badge-<?= htmlspecialchars((string) $report['status']) ?>"><?= htmlspecialchars(status_label((string) $report['status'])) ?></span></td>
-                            <td class="<?= empty($report['current_step']) ? 'data-table-muted' : '' ?>"><?= htmlspecialchars(!empty($report['current_step']) ? \App\Support\MonitoringRoles::stepLabel((string) $report['current_step']) : '-') ?></td>
+                            <td class="<?= empty($report['current_step']) ? 'data-table-muted' : '' ?>"><?= htmlspecialchars(!empty($report['current_step']) ? \App\Support\AccessControl::stepLabel((string) $report['current_step']) : '-') ?></td>
                             <td><?= htmlspecialchars(date('M j, Y', (int) strtotime((string) $report['updated_at']))) ?></td>
                             <td class="quarterly-report-row-actions">
                                 <a class="btn btn-sm btn-outline" href="<?= base_url('proposals/' . (int) $report['id']) ?>">Open</a>

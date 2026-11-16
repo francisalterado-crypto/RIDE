@@ -6,7 +6,7 @@
 
 /** @var bool $showSignatureHint */
 
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 $proposalId = is_array($proposal) ? (int) ($proposal['id'] ?? 0) : 0;
 $projectType = is_array($proposal) ? (string) ($proposal['project_type'] ?? 'research') : 'research';
@@ -27,10 +27,10 @@ if ($collegeName === '' && $collegeId > 0) {
     $collegeName = is_array($college) ? (string) ($college['name'] ?? '') : '';
 }
 
-$coordinatorStep = MonitoringRoles::coordinatorStepForType($projectType);
+$coordinatorStep = AccessControl::coordinatorStepForType($projectType);
 $coordinatorLabel = $isExtension ? 'Field Extensionist' : 'Research Coordinator';
 $coordinatorEndorsement = $proposalId > 0 ? proposal_step_endorsement($proposalId, $coordinatorStep, $coordinatorLabel) : null;
-$deanEndorsement = $proposalId > 0 ? proposal_step_endorsement($proposalId, MonitoringRoles::DEAN, 'College Dean') : null;
+$deanEndorsement = $proposalId > 0 ? proposal_step_endorsement($proposalId, AccessControl::DEAN, 'College Dean') : null;
 
 $coordinatorSignatory = proposal_manuscript_college_signatory(
     $collegeId,
@@ -43,12 +43,12 @@ $coordinatorSignatory = proposal_manuscript_college_signatory(
 $deanSignatory = proposal_manuscript_college_signatory(
     $collegeId,
     $collegeName,
-    MonitoringRoles::DEAN,
+    AccessControl::DEAN,
     'College Dean',
     $deanEndorsement
 );
 
-$directorStep = MonitoringRoles::directorStepForType($projectType);
+$directorStep = AccessControl::directorStepForType($projectType);
 $directorRoleLabel = $isExtension ? 'ESO Director' : 'RDO Director';
 $directorDisplayRole = $isExtension
     ? 'ESO Director'

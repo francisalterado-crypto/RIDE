@@ -109,15 +109,15 @@ function nav_active(string $path): bool
 /** Faculty and college deans work on both tracks, so they get separate Research and Extension menus. */
 function proposal_nav_has_dual_menu(): bool
 {
-    return \App\Core\Auth::hasRole('faculty') || \App\Support\MonitoringRoles::isDean();
+    return \App\Core\Auth::hasRole('faculty') || \App\Support\AccessControl::isDean();
 }
 
 /** @return 'research'|'extension'|null Null when nav scope does not apply (single-track roles). */
 function proposal_nav_scope(): ?string
 {
     if (\App\Core\Auth::hasRole('extension_worker')
-        || \App\Support\MonitoringRoles::isCoordinatorExtension()
-        || \App\Support\MonitoringRoles::isDirectorExtension()) {
+        || \App\Support\AccessControl::isCoordinatorExtension()
+        || \App\Support\AccessControl::isDirectorExtension()) {
         return 'extension';
     }
 
@@ -187,10 +187,10 @@ function proposal_nav_redirect_suffix(?string $scope = null): string
  */
 function conducted_activities_in_extension_nav(): bool
 {
-    if (!\App\Support\MonitoringRoles::canEnterConductedActivities()
-        || \App\Support\MonitoringRoles::isVpride()
-        || \App\Support\MonitoringRoles::isCoordinatorResearch()
-        || \App\Support\MonitoringRoles::isDirectorResearch()) {
+    if (!\App\Support\AccessControl::canEnterConductedActivities()
+        || \App\Support\AccessControl::isVpride()
+        || \App\Support\AccessControl::isCoordinatorResearch()
+        || \App\Support\AccessControl::isDirectorResearch()) {
         return false;
     }
 
@@ -199,9 +199,9 @@ function conducted_activities_in_extension_nav(): bool
 
 function proposal_nav_group_label(): string
 {
-    if (\App\Support\MonitoringRoles::isCoordinatorExtension()
-        || \App\Support\MonitoringRoles::isDirectorExtension()
-        || \App\Support\MonitoringRoles::isExtensionWorker()) {
+    if (\App\Support\AccessControl::isCoordinatorExtension()
+        || \App\Support\AccessControl::isDirectorExtension()
+        || \App\Support\AccessControl::isExtensionWorker()) {
         return 'Extension Services';
     }
 
@@ -210,7 +210,7 @@ function proposal_nav_group_label(): string
 
 function proposal_nav_submenu_label(string $label): string
 {
-    if (!\App\Support\MonitoringRoles::isCoordinatorResearch()) {
+    if (!\App\Support\AccessControl::isCoordinatorResearch()) {
         return $label;
     }
 
@@ -250,22 +250,22 @@ function user_avatar_url(array $user): ?string
 
 function user_role_label(): string
 {
-    if (\App\Support\MonitoringRoles::isVpride()) {
+    if (\App\Support\AccessControl::isVpride()) {
         return 'VPRIDE Administrator';
     }
     if (\App\Core\Auth::hasRole('ride_admin')) {
         return 'RIDE Administrator';
     }
-    if (\App\Support\MonitoringRoles::isDirectorResearch()) {
+    if (\App\Support\AccessControl::isDirectorResearch()) {
         return 'RDO Director';
     }
-    if (\App\Support\MonitoringRoles::isDirectorExtension()) {
+    if (\App\Support\AccessControl::isDirectorExtension()) {
         return 'ESO Director';
     }
-    if (\App\Support\MonitoringRoles::isCoordinatorResearch()) {
+    if (\App\Support\AccessControl::isCoordinatorResearch()) {
         return 'Research Coordinator';
     }
-    if (\App\Support\MonitoringRoles::isCoordinatorExtension()) {
+    if (\App\Support\AccessControl::isCoordinatorExtension()) {
         return 'Field Extensionist';
     }
     if (\App\Core\Auth::hasRole('dean')) {
@@ -936,7 +936,7 @@ function proposal_filer_is_coordinator(?array $proposal): bool
         return false;
     }
 
-    $coordinatorRole = \App\Support\MonitoringRoles::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
+    $coordinatorRole = \App\Support\AccessControl::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
 
     return in_array($coordinatorRole, \App\Models\User::roleSlugs((int) ($proposal['user_id'] ?? 0)), true);
 }
@@ -1076,7 +1076,7 @@ function proposal_step_endorsement(int $proposalId, string $step, string $positi
 /** @return array{signature_url: ?string, date: string, name: string, position: string, mobile: string, email: string}|null */
 function proposal_coordinator_endorsement(int $proposalId, string $projectType = 'research'): ?array
 {
-    $step = \App\Support\MonitoringRoles::coordinatorStepForType($projectType);
+    $step = \App\Support\AccessControl::coordinatorStepForType($projectType);
     $label = $projectType === 'extension' ? 'Field Extensionist' : 'Research Coordinator';
 
     return proposal_step_endorsement($proposalId, $step, $label);
@@ -1188,15 +1188,15 @@ function proposal_workflow_steps(?array $proposal): array
     $isCoordinatorSubmittedReport = proposal_is_coordinator_submitted_report($proposal);
     $reviewSteps = $isCoordinatorSubmittedReport
         ? [
-            \App\Support\MonitoringRoles::DEAN,
-            \App\Support\MonitoringRoles::directorStepForType($projectType),
-            \App\Support\MonitoringRoles::VPRIDE,
+            \App\Support\AccessControl::DEAN,
+            \App\Support\AccessControl::directorStepForType($projectType),
+            \App\Support\AccessControl::VPRIDE,
         ]
         : [
-            \App\Support\MonitoringRoles::coordinatorStepForType($projectType),
-            \App\Support\MonitoringRoles::DEAN,
-            \App\Support\MonitoringRoles::directorStepForType($projectType),
-            \App\Support\MonitoringRoles::VPRIDE,
+            \App\Support\AccessControl::coordinatorStepForType($projectType),
+            \App\Support\AccessControl::DEAN,
+            \App\Support\AccessControl::directorStepForType($projectType),
+            \App\Support\AccessControl::VPRIDE,
         ];
 
     $status = is_array($proposal) ? (string) ($proposal['status'] ?? 'draft') : 'draft';
@@ -1244,15 +1244,15 @@ function proposal_workflow_steps(?array $proposal): array
         'acted_at' => $applicantDate,
     ]];
 
-    $coordinatorStep = \App\Support\MonitoringRoles::coordinatorStepForType($projectType);
+    $coordinatorStep = \App\Support\AccessControl::coordinatorStepForType($projectType);
     $reviewDescriptions = [
         $coordinatorStep => 'Endorses and forwards to College Dean',
-        \App\Support\MonitoringRoles::DEAN => $isExtension
+        \App\Support\AccessControl::DEAN => $isExtension
             ? 'Approves and forwards to ESO Director'
             : 'Approves and forwards to RDO Director',
-        \App\Support\MonitoringRoles::DIRECTOR_RESEARCH => 'Approves and forwards to VPRIDE',
-        \App\Support\MonitoringRoles::DIRECTOR_EXTENSION => 'Approves and forwards to VPRIDE',
-        \App\Support\MonitoringRoles::VPRIDE => 'Grants final approval',
+        \App\Support\AccessControl::DIRECTOR_RESEARCH => 'Approves and forwards to VPRIDE',
+        \App\Support\AccessControl::DIRECTOR_EXTENSION => 'Approves and forwards to VPRIDE',
+        \App\Support\AccessControl::VPRIDE => 'Grants final approval',
     ];
 
     foreach ($reviewSteps as $index => $stepKey) {
@@ -1276,7 +1276,7 @@ function proposal_workflow_steps(?array $proposal): array
             $stepStatus = 'upcoming';
         }
 
-        if ($stepStatus === 'completed' && $stepKey === \App\Support\MonitoringRoles::VPRIDE && $approval === null) {
+        if ($stepStatus === 'completed' && $stepKey === \App\Support\AccessControl::VPRIDE && $approval === null) {
             $approvalDate = proposal_format_workflow_date(is_array($proposal) ? ($proposal['approved_at'] ?? null) : null);
         } else {
             $approvalDate = proposal_format_workflow_date(is_array($approval) ? ($approval['created_at'] ?? null) : null);
@@ -1284,7 +1284,7 @@ function proposal_workflow_steps(?array $proposal): array
 
         $steps[] = [
             'key' => $stepKey,
-            'title' => \App\Support\MonitoringRoles::stepLabel($stepKey),
+            'title' => \App\Support\AccessControl::stepLabel($stepKey),
             'description' => $reviewDescriptions[$stepKey] ?? '',
             'status' => $stepStatus,
             'status_label' => match ($stepStatus) {
@@ -1516,7 +1516,7 @@ function eso_extension_signoff(array $proposal, array $summary): array
     $proponentName = $fullName($proposal);
     $proponentDate = $submitted ? proposal_format_workflow_date(isset($proposal['submitted_at']) ? (string) $proposal['submitted_at'] : null) : '';
 
-    $deanApproval = $proposalId > 0 ? \App\Models\Proposal::approvalAtStep($proposalId, \App\Support\MonitoringRoles::DEAN) : null;
+    $deanApproval = $proposalId > 0 ? \App\Models\Proposal::approvalAtStep($proposalId, \App\Support\AccessControl::DEAN) : null;
     $deanName = $fullName($deanApproval);
     $deanDate = proposal_format_workflow_date(is_array($deanApproval) ? (string) ($deanApproval['created_at'] ?? '') : null);
     if ($deanName === '') {
@@ -1535,7 +1535,7 @@ function eso_extension_signoff(array $proposal, array $summary): array
         $deanName = $collegeId > 0 ? $fullName(\App\Models\User::findActiveByRoleAndCollege('dean', $collegeId)) : '';
     }
 
-    $esoApproval = $proposalId > 0 ? \App\Models\Proposal::approvalAtStep($proposalId, \App\Support\MonitoringRoles::DIRECTOR_EXTENSION) : null;
+    $esoApproval = $proposalId > 0 ? \App\Models\Proposal::approvalAtStep($proposalId, \App\Support\AccessControl::DIRECTOR_EXTENSION) : null;
     $receivedName = $fullName($esoApproval);
     $receivedDate = proposal_format_workflow_date(is_array($esoApproval) ? (string) ($esoApproval['created_at'] ?? '') : null);
 

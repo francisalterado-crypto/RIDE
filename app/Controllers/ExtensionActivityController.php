@@ -9,7 +9,7 @@ use App\Models\AuditLog;
 use App\Models\ExtensionActivity;
 use App\Models\ExtensionActivityDocument;
 use App\Support\ExtensionActivityTypes;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 use App\Support\QuarterlyReporting;
 
 /**
@@ -231,8 +231,8 @@ final class ExtensionActivityController
             return true;
         }
         $isResearch = ExtensionActivityTypes::officeOf((string) $entry['activity_type']) === 'rdo';
-        $isDirector = $isResearch ? MonitoringRoles::isDirectorResearch() : MonitoringRoles::isDirectorExtension();
-        if ($isDirector || MonitoringRoles::isVpride() || Auth::hasRole('ride_admin')) {
+        $isDirector = $isResearch ? AccessControl::isDirectorResearch() : AccessControl::isDirectorExtension();
+        if ($isDirector || AccessControl::isVpride() || Auth::hasRole('ride_admin')) {
             return true;
         }
         $collegeId = (int) ($user['college_id'] ?? 0);
@@ -251,7 +251,7 @@ final class ExtensionActivityController
     public static function reportScope(array $user, string $office = 'eso'): array
     {
         $collegeId = (int) ($user['college_id'] ?? 0);
-        $isPreparer = $office === 'rdo' ? MonitoringRoles::isCoordinatorResearch() : MonitoringRoles::isCoordinatorExtension();
+        $isPreparer = $office === 'rdo' ? AccessControl::isCoordinatorResearch() : AccessControl::isCoordinatorExtension();
         if ($collegeId > 0 && $isPreparer) {
             return ['college_id' => $collegeId];
         }
@@ -295,8 +295,8 @@ final class ExtensionActivityController
             'isCollegeScope' => isset($scope['college_id']),
             'currentUserId' => (int) ($user['id'] ?? 0),
             'canGenerateReports' => $office === 'rdo'
-                ? MonitoringRoles::canPrepareResearchQuarterlyReports()
-                : MonitoringRoles::canAccessTrainingsConducted(),
+                ? AccessControl::canPrepareResearchQuarterlyReports()
+                : AccessControl::canAccessTrainingsConducted(),
         ]);
     }
 
@@ -520,8 +520,8 @@ final class ExtensionActivityController
     private function allowAccess(string $office): bool
     {
         $allowed = $office === 'rdo'
-            ? MonitoringRoles::canEnterResearchAccomplishments()
-            : MonitoringRoles::canEnterConductedActivities();
+            ? AccessControl::canEnterResearchAccomplishments()
+            : AccessControl::canEnterConductedActivities();
         if ($allowed) {
             return true;
         }

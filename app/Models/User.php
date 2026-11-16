@@ -556,9 +556,9 @@ final class User
     /** @return list<array<string, mixed>> */
     public static function researchSubmitters(?string $projectType = null): array
     {
-        $types = $projectType !== null && in_array($projectType, \App\Support\MonitoringRoles::MONITORING_TYPES, true)
+        $types = $projectType !== null && in_array($projectType, \App\Support\AccessControl::MONITORING_TYPES, true)
             ? [$projectType]
-            : \App\Support\MonitoringRoles::MONITORING_TYPES;
+            : \App\Support\AccessControl::MONITORING_TYPES;
         $placeholders = implode(',', array_fill(0, count($types), '?'));
 
         $stmt = Database::pdo()->prepare(

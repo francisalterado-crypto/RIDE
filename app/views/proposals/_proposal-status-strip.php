@@ -7,7 +7,7 @@
 $stripIsExtension = (string) ($proposal['project_type'] ?? '') === 'extension';
 $stripLead = trim((string) ($proposal['first_name'] ?? '') . ' ' . (string) ($proposal['last_name'] ?? ''));
 $stripStep = !empty($proposal['current_step'])
-    ? \App\Support\MonitoringRoles::stepLabel((string) $proposal['current_step'])
+    ? \App\Support\AccessControl::stepLabel((string) $proposal['current_step'])
     : (in_array((string) ($proposal['status'] ?? ''), ['draft', 'returned'], true) ? 'Not submitted yet' : '');
 ?>
 <div class="card proposal-status-strip">

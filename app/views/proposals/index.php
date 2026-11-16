@@ -1,11 +1,11 @@
 <?php
 /** @var list<array> $proposals rows from ProposalRegistry::rows() */
 /** @var int $currentUserId */
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 use App\Support\ProposalRegistry;
 use App\Support\ResearchRequestForms;
 
-$isVprideRegistry = MonitoringRoles::isVpride();
+$isVprideRegistry = AccessControl::isVpride();
 $canExport = $isVprideRegistry || \App\Core\Auth::hasRole('ride_reporter');
 $proposalCount = count($proposals);
 $pageTitle = 'Proposals | RIDE Hub';
@@ -20,20 +20,20 @@ if (!$isVprideRegistry) {
     if (proposal_nav_has_dual_menu()) {
         $newForms[] = ['RDO-20 Research Proposal Application', base_url('proposals/create' . proposal_nav_scope_query('research'))];
         $newForms[] = ['ESO-03 Extension Project Proposal', base_url('proposals/create' . proposal_nav_scope_query('extension'))];
-    } elseif (!MonitoringRoles::isCoordinatorExtension()) {
+    } elseif (!AccessControl::isCoordinatorExtension()) {
         $newForms[] = [proposal_nav_scope() === 'extension' ? 'ESO-03 Extension Project Proposal' : 'RDO-20 Research Proposal Application', base_url('proposals/create')];
     }
 }
 $requestForms = [];
-if (MonitoringRoles::canFileResearchRequests()) {
+if (AccessControl::canFileResearchRequests()) {
     foreach (ResearchRequestForms::all() as $definition) {
         $requestForms[] = [str_replace('WPU-QSF-RIDE-', '', (string) $definition['code']) . ' ' . $definition['label'], base_url('research-requests/new/' . $definition['slug'])];
     }
 }
 
 // Tabs with counts; "Needs my action" for approvers, "Requests" when there are any or the user can file them.
-$isApprover = $isVprideRegistry || \App\Core\Auth::hasRole('dean') || MonitoringRoles::isCoordinatorResearch()
-    || MonitoringRoles::isCoordinatorExtension() || MonitoringRoles::isDirectorResearch() || MonitoringRoles::isDirectorExtension();
+$isApprover = $isVprideRegistry || \App\Core\Auth::hasRole('dean') || AccessControl::isCoordinatorResearch()
+    || AccessControl::isCoordinatorExtension() || AccessControl::isDirectorResearch() || AccessControl::isDirectorExtension();
 $tabCounts = [];
 foreach (array_keys(ProposalRegistry::TABS) as $tab) {
     $tabCounts[$tab] = count(array_filter($proposals, static fn (array $row): bool => ProposalRegistry::inTab($row, $tab)));
@@ -173,13 +173,13 @@ rsort($yearOptions);
                         $canDelete = (int) ($p['user_id'] ?? 0) === $currentUserId
                             && in_array((string) ($p['status'] ?? ''), ['draft', 'returned'], true);
                         $canForceManage = \App\Core\Auth::hasRole('ride_admin', 'vpride', 'dean')
-                            && MonitoringRoles::canViewProposal($p);
+                            && AccessControl::canViewProposal($p);
                         $canForceReopen = $canForceManage
                             && in_array((string) ($p['status'] ?? ''), ['submitted', 'under_review'], true);
                         $canForceDelete = $canForceManage
                             && in_array((string) ($p['status'] ?? ''), ['draft', 'returned', 'submitted', 'under_review', 'suspended'], true);
                         $currentStep = !empty($p['current_step'])
-                            ? MonitoringRoles::stepLabel((string) $p['current_step'])
+                            ? AccessControl::stepLabel((string) $p['current_step'])
                             : (in_array((string) ($p['status'] ?? ''), ['draft', 'returned'], true) ? 'Not submitted yet' : '');
                         $note = $r['return_note'];
                         $noteText = $note !== null ? (string) $note['comment'] : '';

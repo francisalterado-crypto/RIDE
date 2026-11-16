@@ -128,7 +128,7 @@ final class ProposalRegistry
             trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? '')),
             (string) ($row['college_name'] ?? ''),
             status_label((string) ($row['status'] ?? '')),
-            !empty($row['current_step']) ? MonitoringRoles::stepLabel((string) $row['current_step']) : '',
+            !empty($row['current_step']) ? AccessControl::stepLabel((string) $row['current_step']) : '',
             $row['registry']['linked_code'],
         ])));
     }
@@ -146,7 +146,7 @@ final class ProposalRegistry
                 (string) ($row['college_name'] ?? ''),
                 trim((string) ($row['first_name'] ?? '') . ' ' . (string) ($row['last_name'] ?? '')),
                 status_label((string) ($row['status'] ?? '')),
-                !empty($row['current_step']) ? MonitoringRoles::stepLabel((string) $row['current_step']) : '',
+                !empty($row['current_step']) ? AccessControl::stepLabel((string) $row['current_step']) : '',
                 $row['registry']['linked_code'],
                 (string) ($row['created_at'] ?? ''),
                 (string) ($row['submitted_at'] ?? ''),

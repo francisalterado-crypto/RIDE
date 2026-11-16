@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\Core\Auth;
 use App\Models\Proposal;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 use App\Support\ProposalCoAuthors;
 
 final class ProjectAccess
@@ -27,10 +27,10 @@ final class ProjectAccess
         if (Auth::hasRole('ride_reporter')) {
             return $proposal;
         }
-        if (MonitoringRoles::isVpride()) {
+        if (AccessControl::isVpride()) {
             return $proposal;
         }
-        if (MonitoringRoles::proposalScopeType() !== null && MonitoringRoles::canViewProposal($proposal)) {
+        if (AccessControl::proposalScopeType() !== null && AccessControl::canViewProposal($proposal)) {
             return $proposal;
         }
         if (Auth::hasRole('dean') && (int) $user['college_id'] === (int) $proposal['college_id']) {
@@ -57,7 +57,7 @@ final class ProjectAccess
             return false;
         }
         $user = Auth::user();
-        if (MonitoringRoles::isVpride()) {
+        if (AccessControl::isVpride()) {
             return true;
         }
         return (int) $proposal['user_id'] === (int) $user['id'];
@@ -73,17 +73,17 @@ final class ProjectAccess
         if ($user === null || !self::isMonitoring($proposal) || (int) $proposal['user_id'] === (int) $user['id']) {
             return false;
         }
-        if (MonitoringRoles::isVpride()) {
+        if (AccessControl::isVpride()) {
             return true;
         }
-        if (MonitoringRoles::isDean() && (int) ($user['college_id'] ?? 0) === (int) $proposal['college_id']) {
+        if (AccessControl::isDean() && (int) ($user['college_id'] ?? 0) === (int) $proposal['college_id']) {
             return true;
         }
 
-        return (MonitoringRoles::isCoordinator()
-                || MonitoringRoles::isDirectorResearch()
-                || MonitoringRoles::isDirectorExtension())
-            && MonitoringRoles::canViewProposal($proposal);
+        return (AccessControl::isCoordinator()
+                || AccessControl::isDirectorResearch()
+                || AccessControl::isDirectorExtension())
+            && AccessControl::canViewProposal($proposal);
     }
 
     /** Beneficiary / MOU / impact records: project owner plus in-scope Extension Services staff. */
@@ -96,10 +96,10 @@ final class ProjectAccess
             return true;
         }
 
-        return (MonitoringRoles::isDirectorExtension()
-                || MonitoringRoles::isCoordinatorExtension()
-                || MonitoringRoles::isExtensionWorker())
-            && MonitoringRoles::canViewProposal($proposal);
+        return (AccessControl::isDirectorExtension()
+                || AccessControl::isCoordinatorExtension()
+                || AccessControl::isExtensionWorker())
+            && AccessControl::canViewProposal($proposal);
     }
 
     public static function isMonitoring(array $proposal): bool

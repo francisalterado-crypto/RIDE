@@ -380,7 +380,7 @@ if ($applicantName === '') {
     <?php
     $proposalId = (int) ($proposal['id'] ?? 0);
     $coordinatorSign = $proposalId > 0 ? proposal_coordinator_endorsement($proposalId, 'research') : null;
-    $deanSign = $proposalId > 0 ? proposal_step_endorsement($proposalId, \App\Support\MonitoringRoles::DEAN, 'College Dean/Immediate Supervisor') : null;
+    $deanSign = $proposalId > 0 ? proposal_step_endorsement($proposalId, \App\Support\AccessControl::DEAN, 'College Dean/Immediate Supervisor') : null;
     $submittedDate = proposal_format_workflow_date($proposal['submitted_at'] ?? null);
     ?>
     <section class="proposal-section research-application-signoff">

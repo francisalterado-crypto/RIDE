@@ -7,7 +7,7 @@ namespace App\Services;
 use App\Models\College;
 use App\Models\Proposal;
 use App\Models\User;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 final class OngoingResearchesConsolidation
 {
@@ -340,7 +340,7 @@ final class OngoingResearchesConsolidation
             return false;
         }
 
-        if (Proposal::approvalAtStep($proposalId, MonitoringRoles::DIRECTOR_RESEARCH) !== null) {
+        if (Proposal::approvalAtStep($proposalId, AccessControl::DIRECTOR_RESEARCH) !== null) {
             return true;
         }
 
@@ -417,29 +417,29 @@ final class OngoingResearchesConsolidation
     {
         if ($preferredUserId !== null && $preferredUserId > 0) {
             $roles = User::roleSlugs($preferredUserId);
-            if (in_array(MonitoringRoles::VPRIDE, $roles, true) || in_array('ride_admin', $roles, true)) {
+            if (in_array(AccessControl::VPRIDE, $roles, true) || in_array('ride_admin', $roles, true)) {
                 return User::findById($preferredUserId);
             }
         }
 
-        $user = User::findActiveByRole(MonitoringRoles::VPRIDE);
+        $user = User::findActiveByRole(AccessControl::VPRIDE);
         if ($user !== null) {
             return $user;
         }
 
-        return User::findActiveByRoleSlugs([MonitoringRoles::VPRIDE, 'ride_admin']);
+        return User::findActiveByRoleSlugs([AccessControl::VPRIDE, 'ride_admin']);
     }
 
     /** @return array<string, mixed> */
     private static function resolveCoordinator(int $collegeId, ?int $preferredUserId = null): ?array
     {
         if ($preferredUserId !== null && $preferredUserId > 0) {
-            if (User::hasActiveRoleForCollege($preferredUserId, MonitoringRoles::COORDINATOR_RESEARCH, $collegeId)) {
+            if (User::hasActiveRoleForCollege($preferredUserId, AccessControl::COORDINATOR_RESEARCH, $collegeId)) {
                 return User::findById($preferredUserId);
             }
         }
 
-        return User::findActiveByRoleAndCollege(MonitoringRoles::COORDINATOR_RESEARCH, $collegeId);
+        return User::findActiveByRoleAndCollege(AccessControl::COORDINATOR_RESEARCH, $collegeId);
     }
 
     /** @return array<string, mixed> */

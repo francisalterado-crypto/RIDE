@@ -177,7 +177,7 @@ $formLabelOf = static fn (string $formType, string $projectType = ''): string =>
                         <td><?= htmlspecialchars((string) (($item['college_name'] ?? '') !== '' ? $item['college_name'] : '-')) ?></td>
                         <td><?= htmlspecialchars((string) (($item['leader_name'] ?? '') !== '' ? $item['leader_name'] : '-')) ?></td>
                         <td><?php if ($status !== ''): ?><span class="badge badge-<?= htmlspecialchars($status) ?>"><?= htmlspecialchars(status_label($status)) ?></span><?php endif; ?></td>
-                        <td class="<?= $stepValue === '' ? 'data-table-muted' : '' ?>"><?= htmlspecialchars($stepValue !== '' ? \App\Support\MonitoringRoles::stepLabel($stepValue) : '-') ?></td>
+                        <td class="<?= $stepValue === '' ? 'data-table-muted' : '' ?>"><?= htmlspecialchars($stepValue !== '' ? \App\Support\AccessControl::stepLabel($stepValue) : '-') ?></td>
                         <td class="data-table-muted"><?= htmlspecialchars((string) (($item['updated_at'] ?? '') !== '' ? substr((string) $item['updated_at'], 0, 10) : '-')) ?></td>
                     </tr>
                 <?php endforeach; ?>

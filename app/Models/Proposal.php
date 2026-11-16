@@ -6,7 +6,7 @@ namespace App\Models;
 
 use App\Core\Database;
 use App\Core\Sql;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 use App\Support\ProposalCoAuthors;
 use PDO;
 
@@ -255,8 +255,8 @@ final class Proposal
         // Coordinator-filed college reports skip the coordinator's own endorsement step.
         $coordinatorFiled = proposal_filer_is_coordinator($proposal);
         $step = $coordinatorFiled
-            ? MonitoringRoles::DEAN
-            : MonitoringRoles::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
+            ? AccessControl::DEAN
+            : AccessControl::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
         $stmt = Database::pdo()->prepare(
             'UPDATE proposals SET status = \'submitted\', current_step = ?, coordinator_filed = ?, submitted_at = NOW() WHERE id = ?'
         );
@@ -278,7 +278,7 @@ final class Proposal
             return false;
         }
 
-        $step = $proposal['current_step'] ?? MonitoringRoles::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
+        $step = $proposal['current_step'] ?? AccessControl::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
 
         if ($action === 'return') {
             Database::pdo()->prepare(
@@ -289,7 +289,7 @@ final class Proposal
                 (int) $proposal['user_id'],
                 'Returned for revision',
                 '"' . $proposal['title'] . '" was returned for revision at '
-                    . MonitoringRoles::stepLabel((string) $step) . '. Comments: ' . $comment,
+                    . AccessControl::stepLabel((string) $step) . '. Comments: ' . $comment,
                 'proposals/' . $id
             );
             return true;
@@ -343,7 +343,7 @@ final class Proposal
         $stmt->execute([$id, $userId, $step, 'approve', $hash]);
         self::addComment($id, $userId, $comment ?: 'Approved.', 'approve', $step);
 
-        if ($step === MonitoringRoles::DIRECTOR_RESEARCH) {
+        if ($step === AccessControl::DIRECTOR_RESEARCH) {
             \App\Services\OngoingResearchesConsolidation::depositOnDirectorApproval($id);
             \App\Services\CompletedResearchesConsolidation::depositOnDirectorApproval($id);
             \App\Services\ResearchOutputPublishedConsolidation::depositOnDirectorApproval($id);
@@ -361,11 +361,11 @@ final class Proposal
         $projectType = (string) ($proposal['project_type'] ?? 'research');
 
         return match ($current) {
-            MonitoringRoles::COORDINATOR_RESEARCH, MonitoringRoles::COORDINATOR_EXTENSION => MonitoringRoles::DEAN,
-            MonitoringRoles::DEAN => MonitoringRoles::directorStepForType($projectType),
-            MonitoringRoles::DIRECTOR_RESEARCH, MonitoringRoles::DIRECTOR_EXTENSION => MonitoringRoles::VPRIDE,
-            MonitoringRoles::VPRIDE => 'approved',
-            default => MonitoringRoles::VPRIDE,
+            AccessControl::COORDINATOR_RESEARCH, AccessControl::COORDINATOR_EXTENSION => AccessControl::DEAN,
+            AccessControl::DEAN => AccessControl::directorStepForType($projectType),
+            AccessControl::DIRECTOR_RESEARCH, AccessControl::DIRECTOR_EXTENSION => AccessControl::VPRIDE,
+            AccessControl::VPRIDE => 'approved',
+            default => AccessControl::VPRIDE,
         };
     }
 
@@ -710,11 +710,11 @@ final class Proposal
     /** @return list<string> */
     private static function monitoringTypes(?string $projectType = null): array
     {
-        if ($projectType !== null && in_array($projectType, MonitoringRoles::MONITORING_TYPES, true)) {
+        if ($projectType !== null && in_array($projectType, AccessControl::MONITORING_TYPES, true)) {
             return [$projectType];
         }
 
-        return MonitoringRoles::MONITORING_TYPES;
+        return AccessControl::MONITORING_TYPES;
     }
 
     /** @return list<array> */
@@ -805,13 +805,13 @@ final class Proposal
         return [
             'by_status' => $byStatus,
             'pending_by_step' => $pendingByStep,
-            'pending_coordinator' => (int) (($pendingByStep[MonitoringRoles::COORDINATOR_RESEARCH] ?? 0) + ($pendingByStep[MonitoringRoles::COORDINATOR_EXTENSION] ?? 0)),
-            'pending_coordinator_research' => (int) ($pendingByStep[MonitoringRoles::COORDINATOR_RESEARCH] ?? 0),
-            'pending_coordinator_extension' => (int) ($pendingByStep[MonitoringRoles::COORDINATOR_EXTENSION] ?? 0),
-            'pending_dean' => (int) ($pendingByStep[MonitoringRoles::DEAN] ?? 0),
-            'pending_director_research' => (int) ($pendingByStep[MonitoringRoles::DIRECTOR_RESEARCH] ?? 0),
-            'pending_director_extension' => (int) ($pendingByStep[MonitoringRoles::DIRECTOR_EXTENSION] ?? 0),
-            'pending_vpride' => (int) ($pendingByStep[MonitoringRoles::VPRIDE] ?? 0),
+            'pending_coordinator' => (int) (($pendingByStep[AccessControl::COORDINATOR_RESEARCH] ?? 0) + ($pendingByStep[AccessControl::COORDINATOR_EXTENSION] ?? 0)),
+            'pending_coordinator_research' => (int) ($pendingByStep[AccessControl::COORDINATOR_RESEARCH] ?? 0),
+            'pending_coordinator_extension' => (int) ($pendingByStep[AccessControl::COORDINATOR_EXTENSION] ?? 0),
+            'pending_dean' => (int) ($pendingByStep[AccessControl::DEAN] ?? 0),
+            'pending_director_research' => (int) ($pendingByStep[AccessControl::DIRECTOR_RESEARCH] ?? 0),
+            'pending_director_extension' => (int) ($pendingByStep[AccessControl::DIRECTOR_EXTENSION] ?? 0),
+            'pending_vpride' => (int) ($pendingByStep[AccessControl::VPRIDE] ?? 0),
         ];
     }
 }

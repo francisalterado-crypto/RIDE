@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\Models\Proposal;
 use App\Models\User;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 use App\Support\ResearchFormOptions;
 use App\Support\ResearchRequestForms;
 use DOMElement;
@@ -171,8 +171,8 @@ final class ResearchFormDocument
         // Sign-off: applicant date, then the R&D Coordinator's and Dean's endorsements from the approvals.
         $doc->fillBlanksAfter('SIGNATURE OF THE APPLICANT', [null, proposal_format_workflow_date($this->proposal['submitted_at'] ?? null)]);
         foreach ([
-            'ENDORSEMENT (R&D COORDINATOR)' => [MonitoringRoles::COORDINATOR_RESEARCH, 'R&D Coordinator'],
-            'APPROVAL (COLLEGE DEAN' => [MonitoringRoles::DEAN, 'College Dean/Immediate Supervisor'],
+            'ENDORSEMENT (R&D COORDINATOR)' => [AccessControl::COORDINATOR_RESEARCH, 'R&D Coordinator'],
+            'APPROVAL (COLLEGE DEAN' => [AccessControl::DEAN, 'College Dean/Immediate Supervisor'],
         ] as $heading => [$step, $position]) {
             $sign = $this->signatory($step, $position);
             if ($sign !== null) {
@@ -273,14 +273,14 @@ final class ResearchFormDocument
         $signers = [
             'submitted by' => [
                 ['name' => $this->researcherName(), 'date' => proposal_format_workflow_date($this->proposal['submitted_at'] ?? null)],
-                $this->signatory(MonitoringRoles::COORDINATOR_RESEARCH, 'R&D Coordinator'),
+                $this->signatory(AccessControl::COORDINATOR_RESEARCH, 'R&D Coordinator'),
             ],
             'recommending approval' => [
-                $this->signatory(MonitoringRoles::DEAN, 'College Dean/Immediate Supervisor'),
-                $this->signatory(MonitoringRoles::DIRECTOR_RESEARCH, 'Director, Research and Development Office'),
+                $this->signatory(AccessControl::DEAN, 'College Dean/Immediate Supervisor'),
+                $this->signatory(AccessControl::DIRECTOR_RESEARCH, 'Director, Research and Development Office'),
             ],
             'approval' => [
-                $this->signatory(MonitoringRoles::VPRIDE, 'Vice President for Research, Innovation, Development, and Extension'),
+                $this->signatory(AccessControl::VPRIDE, 'Vice President for Research, Innovation, Development, and Extension'),
             ],
         ];
         for ($i = 0; ($table = $doc->table($i)) !== null; $i++) {

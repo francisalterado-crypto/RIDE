@@ -11,7 +11,7 @@ use App\Models\College;
 use App\Models\Document;
 use App\Models\Proposal;
 use App\Models\User;
-use App\Support\MonitoringRoles;
+use App\Support\AccessControl;
 
 final class ProposalController
 {
@@ -29,7 +29,7 @@ final class ProposalController
     /** CSV of the registry with the page's current filters (VPRIDE and RIDE reporters). */
     public function exportRegistry(): void
     {
-        if (!MonitoringRoles::isVpride() && !Auth::hasRole('ride_reporter')) {
+        if (!AccessControl::isVpride() && !Auth::hasRole('ride_reporter')) {
             http_response_code(403);
             view('errors.403');
             return;
@@ -67,7 +67,7 @@ final class ProposalController
                     return true;
                 }
 
-                $directorApproval = Proposal::approvalAtStep((int) ($proposal['id'] ?? 0), MonitoringRoles::DIRECTOR_RESEARCH);
+                $directorApproval = Proposal::approvalAtStep((int) ($proposal['id'] ?? 0), AccessControl::DIRECTOR_RESEARCH);
                 return $directorApproval === null;
             }
         ));
@@ -75,7 +75,7 @@ final class ProposalController
 
     public function terminalReportRegistry(): void
     {
-        if (!MonitoringRoles::canAccessTerminalReport()) {
+        if (!AccessControl::canAccessTerminalReport()) {
             http_response_code(403);
             view('errors.403');
             return;
@@ -995,7 +995,7 @@ final class ProposalController
 
         $user = Auth::user();
         $userId = (int) ($user['id'] ?? 0);
-        $isVpride = MonitoringRoles::isVpride();
+        $isVpride = AccessControl::isVpride();
 
         if ($isVpride) {
             \App\Services\OngoingResearchesConsolidation::syncAllDirectorApprovedForVpride($userId);
@@ -1073,7 +1073,7 @@ final class ProposalController
 
     public function createProgressReport(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
+        if (AccessControl::isCoordinatorResearch()) {
             redirect('proposals/terminal-report-registry?form_type=progress_report');
         }
 
@@ -1091,7 +1091,7 @@ final class ProposalController
 
     public function createTerminalReport(): void
     {
-        if (MonitoringRoles::isCoordinatorResearch()) {
+        if (AccessControl::isCoordinatorResearch()) {
             redirect('proposals/terminal-report-registry');
         }
 
@@ -1405,7 +1405,7 @@ final class ProposalController
         $data = $this->validatedConsolidatedOngoingResearchesInput();
         $data['user_id'] = (int) $user['id'];
         $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
-        if ($data['college_id'] === 0 && MonitoringRoles::isVpride()) {
+        if ($data['college_id'] === 0 && AccessControl::isVpride()) {
             $data['college_id'] = \App\Services\OngoingResearchesConsolidation::containerCollegeId();
         }
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
@@ -2063,8 +2063,8 @@ final class ProposalController
                 'comments' => Proposal::comments($id),
                 'canEdit' => $this->canEdit($proposal),
                 'canApprove' => $this->canApprove($proposal),
-                'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-                'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+                'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+                'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             ]);
             return;
         }
@@ -2077,8 +2077,8 @@ final class ProposalController
                 'comments' => Proposal::comments($id),
                 'canEdit' => $this->canEdit($proposal),
                 'canApprove' => $this->canApprove($proposal),
-                'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-                'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+                'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+                'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
                 'documents' => Document::forProposal($id),
             ]);
             return;
@@ -2208,8 +2208,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2220,8 +2220,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'pageTitle' => ((string) ($proposal['title'] ?? 'Extension Project Proposal')) . ' | RIDE Hub',
             'pageHeading' => (string) ($proposal['title'] ?? 'Extension Project Proposal'),
             'pageSubtitle' => 'Review the submitted Extension Project Proposal (WPU-QSF-RIDE-ESO-03).',
@@ -2359,8 +2359,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2371,8 +2371,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2383,8 +2383,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2395,8 +2395,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2407,8 +2407,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2419,8 +2419,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2431,8 +2431,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2443,8 +2443,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2455,8 +2455,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2467,8 +2467,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2479,8 +2479,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'requiredFileList' => $this->trainingsConductedRequiredFileCategories(),
             'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->trainingsConductedRequiredFileCategories()),
         ]);
@@ -2493,8 +2493,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'requiredFileList' => $this->technicalAdvisoryRequiredFileCategories(),
             'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->technicalAdvisoryRequiredFileCategories()),
         ]);
@@ -2507,8 +2507,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'requiredFileList' => $this->extensionLinkagesRequiredFileCategories(),
             'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->extensionLinkagesRequiredFileCategories()),
         ]);
@@ -2521,8 +2521,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'requiredFileList' => $this->outreachActivitiesRequiredFileCategories(),
             'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->outreachActivitiesRequiredFileCategories()),
         ]);
@@ -2535,8 +2535,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'requiredFileList' => $this->technologyAdoptionRequiredFileCategories(),
             'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->technologyAdoptionRequiredFileCategories()),
         ]);
@@ -2549,8 +2549,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'requiredFileList' => $this->accomplishmentReportRequiredFileCategories(),
             'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->accomplishmentReportRequiredFileCategories()),
         ]);
@@ -2563,8 +2563,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'requiredFileList' => $this->technicalAdvisoryArRequiredFileCategories(),
             'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->technicalAdvisoryArRequiredFileCategories()),
         ]);
@@ -2577,8 +2577,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'requiredFileList' => $this->outreachActivitiesArRequiredFileCategories(),
             'requiredDocuments' => $this->requiredDocumentsByKey($id, $this->outreachActivitiesArRequiredFileCategories()),
         ]);
@@ -2591,8 +2591,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'pageTitle' => ((string) ($proposal['title'] ?? 'Ebalwasyon ng Gawain')) . ' | RIDE Hub',
             'pageHeading' => (string) ($proposal['title'] ?? 'Ebalwasyon ng Gawain'),
             'pageSubtitle' => 'Review the submitted activity evaluation (WPU-QSF-RIDE-ESO-16).',
@@ -2606,8 +2606,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
             'pageTitle' => ((string) ($proposal['title'] ?? 'Attendance Sheet')) . ' | RIDE Hub',
             'pageHeading' => (string) ($proposal['title'] ?? 'Attendance Sheet'),
             'pageSubtitle' => 'Review the submitted attendance form (WPU-QSF-RIDE-ESO-17).',
@@ -2629,8 +2629,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2649,8 +2649,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2669,8 +2669,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2689,8 +2689,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2701,8 +2701,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2713,8 +2713,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2725,8 +2725,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -2737,8 +2737,8 @@ final class ProposalController
             'comments' => Proposal::comments($id),
             'canEdit' => $this->canEdit($proposal),
             'canApprove' => $this->canApprove($proposal),
-            'approveLabel' => MonitoringRoles::actionLabel((string) ($proposal['current_step'] ?? '')),
-            'stepLabel' => MonitoringRoles::stepLabel((string) ($proposal['current_step'] ?? '')),
+            'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
+            'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
         ]);
     }
 
@@ -4274,7 +4274,7 @@ final class ProposalController
         $structuredSummary['version'] = 1;
         $structuredSummary['reporting_period'] = $reportingPeriod;
         $structuredSummary['report_as_of'] = $reportAsOf;
-        $isVpride = MonitoringRoles::isVpride();
+        $isVpride = AccessControl::isVpride();
         $structuredSummary['consolidation_scope'] = $isVpride
             ? \App\Services\OngoingResearchesConsolidation::SCOPE_VPRIDE
             : \App\Services\OngoingResearchesConsolidation::SCOPE_COLLEGE;
@@ -5734,7 +5734,7 @@ final class ProposalController
             return null;
         }
         $user = Auth::user();
-        if (MonitoringRoles::isVpride() || Auth::hasRole('ride_admin')) {
+        if (AccessControl::isVpride() || Auth::hasRole('ride_admin')) {
             return $proposal;
         }
         if (Auth::hasRole('ride_reporter')) {
@@ -5751,8 +5751,8 @@ final class ProposalController
             )) {
             return $proposal;
         }
-        if (MonitoringRoles::proposalScopeType() !== null) {
-            if (MonitoringRoles::canViewProposal($proposal)) {
+        if (AccessControl::proposalScopeType() !== null) {
+            if (AccessControl::canViewProposal($proposal)) {
                 return $proposal;
             }
             http_response_code(403);
@@ -5780,7 +5780,7 @@ final class ProposalController
             return false;
         }
 
-        return MonitoringRoles::canViewProposal($proposal);
+        return AccessControl::canViewProposal($proposal);
     }
 
     private function canApprove(array $proposal): bool
@@ -5788,24 +5788,24 @@ final class ProposalController
         if (!in_array($proposal['status'], ['submitted', 'under_review'], true)) {
             return false;
         }
-        if (!MonitoringRoles::canViewProposal($proposal)) {
+        if (!AccessControl::canViewProposal($proposal)) {
             return false;
         }
         $step = $proposal['current_step'] ?? '';
         return match ($step) {
-            MonitoringRoles::COORDINATOR_RESEARCH => MonitoringRoles::isCoordinatorResearch(),
-            MonitoringRoles::COORDINATOR_EXTENSION => MonitoringRoles::isCoordinatorExtension(),
-            MonitoringRoles::DEAN => Auth::hasRole('dean'),
-            MonitoringRoles::DIRECTOR_RESEARCH => MonitoringRoles::isDirectorResearch(),
-            MonitoringRoles::DIRECTOR_EXTENSION => MonitoringRoles::isDirectorExtension(),
-            MonitoringRoles::VPRIDE => MonitoringRoles::isVpride(),
+            AccessControl::COORDINATOR_RESEARCH => AccessControl::isCoordinatorResearch(),
+            AccessControl::COORDINATOR_EXTENSION => AccessControl::isCoordinatorExtension(),
+            AccessControl::DEAN => Auth::hasRole('dean'),
+            AccessControl::DIRECTOR_RESEARCH => AccessControl::isDirectorResearch(),
+            AccessControl::DIRECTOR_EXTENSION => AccessControl::isDirectorExtension(),
+            AccessControl::VPRIDE => AccessControl::isVpride(),
             default => false,
         };
     }
 
     private function allowCompletedResearchesAccess(): bool
     {
-        if (MonitoringRoles::canAccessCompletedResearches()) {
+        if (AccessControl::canAccessCompletedResearches()) {
             return true;
         }
 
@@ -5816,7 +5816,7 @@ final class ProposalController
 
     private function allowOngoingResearchesAccess(): bool
     {
-        if (MonitoringRoles::canAccessOngoingResearches()) {
+        if (AccessControl::canAccessOngoingResearches()) {
             return true;
         }
 
@@ -5827,7 +5827,7 @@ final class ProposalController
 
     private function allowResearchOutputPublishedAccess(): bool
     {
-        if (MonitoringRoles::canAccessResearchOutputPublished()) {
+        if (AccessControl::canAccessResearchOutputPublished()) {
             return true;
         }
 
@@ -5838,7 +5838,7 @@ final class ProposalController
 
     private function allowResearchOutputPresentedAccess(): bool
     {
-        if (MonitoringRoles::canAccessResearchOutputPresented()) {
+        if (AccessControl::canAccessResearchOutputPresented()) {
             return true;
         }
 
@@ -5849,7 +5849,7 @@ final class ProposalController
 
     private function allowCommercializedAccess(): bool
     {
-        if (MonitoringRoles::canAccessCommercialized()) {
+        if (AccessControl::canAccessCommercialized()) {
             return true;
         }
 
@@ -5860,7 +5860,7 @@ final class ProposalController
 
     private function allowResultedInExtensionAccess(): bool
     {
-        if (MonitoringRoles::canAccessResultedInExtension()) {
+        if (AccessControl::canAccessResultedInExtension()) {
             return true;
         }
 
@@ -5871,7 +5871,7 @@ final class ProposalController
 
     private function allowJournalCitationAccess(): bool
     {
-        if (MonitoringRoles::canAccessJournalCitation()) {
+        if (AccessControl::canAccessJournalCitation()) {
             return true;
         }
 
@@ -5882,7 +5882,7 @@ final class ProposalController
 
     private function allowBookCitationAccess(): bool
     {
-        if (MonitoringRoles::canAccessBookCitation()) {
+        if (AccessControl::canAccessBookCitation()) {
             return true;
         }
 
@@ -5893,7 +5893,7 @@ final class ProposalController
 
     private function allowInventionsUmCopyrightsAccess(): bool
     {
-        if (MonitoringRoles::canAccessInventionsUmCopyrights()) {
+        if (AccessControl::canAccessInventionsUmCopyrights()) {
             return true;
         }
 
@@ -5904,7 +5904,7 @@ final class ProposalController
 
     private function allowLinkagesAccess(): bool
     {
-        if (MonitoringRoles::canAccessLinkages()) {
+        if (AccessControl::canAccessLinkages()) {
             return true;
         }
 
@@ -5915,7 +5915,7 @@ final class ProposalController
 
     private function allowTrainingsConductedAccess(): bool
     {
-        if (MonitoringRoles::canAccessTrainingsConducted()) {
+        if (AccessControl::canAccessTrainingsConducted()) {
             return true;
         }
 
@@ -5926,7 +5926,7 @@ final class ProposalController
 
     private function allowTechnicalAdvisoryAccess(): bool
     {
-        if (MonitoringRoles::canAccessTechnicalAdvisory()) {
+        if (AccessControl::canAccessTechnicalAdvisory()) {
             return true;
         }
 
@@ -5937,7 +5937,7 @@ final class ProposalController
 
     private function allowExtensionLinkagesAccess(): bool
     {
-        if (MonitoringRoles::canAccessExtensionLinkages()) {
+        if (AccessControl::canAccessExtensionLinkages()) {
             return true;
         }
 
@@ -5948,7 +5948,7 @@ final class ProposalController
 
     private function allowOutreachActivitiesAccess(): bool
     {
-        if (MonitoringRoles::canAccessOutreachActivities()) {
+        if (AccessControl::canAccessOutreachActivities()) {
             return true;
         }
 
@@ -5959,7 +5959,7 @@ final class ProposalController
 
     private function allowTechnologyAdoptionAccess(): bool
     {
-        if (MonitoringRoles::canAccessTechnologyAdoption()) {
+        if (AccessControl::canAccessTechnologyAdoption()) {
             return true;
         }
 
@@ -5970,7 +5970,7 @@ final class ProposalController
 
     private function allowConsolidatedCompletedResearchesAccess(): bool
     {
-        if (MonitoringRoles::canAccessConsolidatedCompletedResearches()) {
+        if (AccessControl::canAccessConsolidatedCompletedResearches()) {
             return true;
         }
 
@@ -5981,7 +5981,7 @@ final class ProposalController
 
     private function allowConsolidatedOngoingResearchesAccess(): bool
     {
-        if (MonitoringRoles::canAccessConsolidatedOngoingResearches()) {
+        if (AccessControl::canAccessConsolidatedOngoingResearches()) {
             return true;
         }
 
@@ -5992,7 +5992,7 @@ final class ProposalController
 
     private function allowConsolidatedResearchOutputPublishedAccess(): bool
     {
-        if (MonitoringRoles::canAccessConsolidatedResearchOutputPublished()) {
+        if (AccessControl::canAccessConsolidatedResearchOutputPublished()) {
             return true;
         }
 
@@ -6003,7 +6003,7 @@ final class ProposalController
 
     private function allowConsolidatedResearchOutputPresentedAccess(): bool
     {
-        if (MonitoringRoles::canAccessConsolidatedResearchOutputPresented()) {
+        if (AccessControl::canAccessConsolidatedResearchOutputPresented()) {
             return true;
         }
 
@@ -6014,7 +6014,7 @@ final class ProposalController
 
     private function allowProgressReportAccess(): bool
     {
-        if (MonitoringRoles::canAccessProgressReport()) {
+        if (AccessControl::canAccessProgressReport()) {
             return true;
         }
 
@@ -6025,7 +6025,7 @@ final class ProposalController
 
     private function allowTerminalReportAccess(): bool
     {
-        if (MonitoringRoles::canAccessTerminalReport()) {
+        if (AccessControl::canAccessTerminalReport()) {
             return true;
         }
 
@@ -6037,11 +6037,11 @@ final class ProposalController
     /** @param array<string, mixed> $user */
     private function visibleProposalsForCurrentUser(array $user): array
     {
-        $scopeType = MonitoringRoles::proposalScopeType();
-        if (MonitoringRoles::isVpride() || Auth::hasRole('ride_reporter')) {
+        $scopeType = AccessControl::proposalScopeType();
+        if (AccessControl::isVpride() || Auth::hasRole('ride_reporter')) {
             return $scopeType !== null ? Proposal::all(null, $scopeType) : Proposal::all();
         }
-        if (MonitoringRoles::isCoordinatorResearch() || MonitoringRoles::isCoordinatorExtension() || MonitoringRoles::isExtensionWorker()) {
+        if (AccessControl::isCoordinatorResearch() || AccessControl::isCoordinatorExtension() || AccessControl::isExtensionWorker()) {
             if (!($user['college_id'] ?? null)) {
                 return [];
             }
@@ -6063,7 +6063,7 @@ final class ProposalController
 
     private function allowObrMatrixAccess(): bool
     {
-        if (MonitoringRoles::canAccessObrMatrix()) {
+        if (AccessControl::canAccessObrMatrix()) {
             return true;
         }
 
