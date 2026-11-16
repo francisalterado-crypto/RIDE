@@ -70,10 +70,10 @@ final class FacultyFormDeadlines
             || AccessControl::isDirectorExtension();
     }
 
-    /** Submitters bound by declared deadlines: faculty and extension workers (who file the ESO quarterly forms). */
+    /** Submitters bound by declared deadlines: faculty and the RIDE coordinators (who prepare the quarterly reports). */
     public static function appliesToCurrentUser(): bool
     {
-        return Auth::hasRole('faculty', AccessControl::EXTENSION_WORKER);
+        return Auth::hasRole('faculty') || AccessControl::isRideCoordinator();
     }
 
     public static function isDeclared(): bool

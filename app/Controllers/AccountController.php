@@ -26,6 +26,7 @@ final class AccountController
             'roles' => Role::all(),
             'colleges' => College::all(),
             'clusters' => Cluster::all(),
+            'clusterScopedTracks' => Role::clusterScopedTracks(),
             'collegeScopedSlugs' => array_flip(Role::collegeScopedSlugs()),
             'defaultFacultyRoleId' => $facultyRole !== null ? (int) $facultyRole['id'] : 0,
             'currentUserId' => (int) ($_SESSION['user_id'] ?? 0),
@@ -97,9 +98,15 @@ final class AccountController
             set_flash('error', 'Selected role requires a college assignment.');
             redirect('admin/accounts');
         }
+        $clusterIds = self::postedClusterIds($roleSlug);
+        if ($clusterIds === null) {
+            set_flash('error', 'Select at least one cluster of the role\'s track for a RIDE coordinator.');
+            redirect('admin/accounts');
+        }
 
         $userId = User::create($data);
         User::assignRole($userId, $roleId, $data['college_id']);
+        User::setClusters($userId, $clusterIds);
 
         AuditLog::record('user', $userId, 'create', [
             'email' => $data['email'],
@@ -125,6 +132,9 @@ final class AccountController
             'account' => $account,
             'roles' => Role::all(),
             'colleges' => College::all(),
+            'clusters' => Cluster::all(),
+            'accountClusterIds' => User::clusterIds($id),
+            'clusterScopedTracks' => Role::clusterScopedTracks(),
             'collegeScopedSlugs' => array_flip(Role::collegeScopedSlugs()),
             'currentUserId' => (int) ($_SESSION['user_id'] ?? 0),
         ]);
@@ -193,6 +203,11 @@ final class AccountController
             set_flash('error', 'Selected role requires a college assignment.');
             redirect('admin/accounts/' . $id . '/edit');
         }
+        $clusterIds = self::postedClusterIds($nextRoleSlug);
+        if ($clusterIds === null) {
+            set_flash('error', 'Select at least one cluster of the role\'s track for a RIDE coordinator.');
+            redirect('admin/accounts/' . $id . '/edit');
+        }
 
         if ($currentUserId === $id && $nextRoleSlug !== 'ride_admin') {
             set_flash('error', 'You cannot remove admin access from the account you are currently using.');
@@ -210,6 +225,7 @@ final class AccountController
 
         User::updateProfile($id, $data);
         User::replaceRoles($id, $roleId, $data['college_id']);
+        User::setClusters($id, $clusterIds);
 
         if ($currentUserId === $id) {
             $this->refreshCurrentSessionRoles();
@@ -782,6 +798,24 @@ final class AccountController
 
         set_flash('success', $added . ' center(s) added to College Settings.');
         redirect('admin/accounts');
+    }
+
+    /**
+     * Clusters posted for a RIDE coordinator role, limited to the role's track: [] for other roles, null when a
+     * RIDE coordinator has none.
+     *
+     * @return list<int>|null
+     */
+    private static function postedClusterIds(string $roleSlug): ?array
+    {
+        $track = Role::clusterScopedTracks()[$roleSlug] ?? null;
+        if ($track === null) {
+            return [];
+        }
+        $allowed = array_map(static fn (array $cluster): int => (int) $cluster['id'], Cluster::all($track));
+        $ids = array_values(array_intersect(array_map('intval', (array) ($_POST['cluster_ids'] ?? [])), $allowed));
+
+        return $ids === [] ? null : $ids;
     }
 
     private function assertAdmin(): void

@@ -31,7 +31,7 @@ final class QuarterlyReportController
         $office = ExtensionActivityTypes::officeOf($type);
         $canPrepare = $office === 'rdo'
             ? AccessControl::canPrepareResearchQuarterlyReports()
-            : AccessControl::isCoordinatorExtension();
+            : AccessControl::canPrepareExtensionQuarterlyReports();
         if (!$canPrepare) {
             http_response_code(403);
             view('errors.403');
@@ -41,11 +41,19 @@ final class QuarterlyReportController
         $user = Auth::user() ?? [];
         $requested = trim((string) ($_GET['period'] ?? ''));
         $period = QuarterlyReporting::isPeriodKeyValid($requested) ? $requested : (QuarterlyReporting::currentPeriodKey() ?? '');
-        $scope = ExtensionActivityController::reportScope($user, $office);
+        // One report per college of the coordinator's clusters; the college is picked on the page.
+        $collegeId = quarterly_report_college_id($user);
+        $collegeOptions = [];
+        $clusterColleges = AccessControl::rideCoordinatorCollegeIds();
+        foreach (\App\Models\College::all() as $college) {
+            if (in_array((int) $college['id'], $clusterColleges, true)) {
+                $collegeOptions[(int) $college['id']] = (string) $college['name'];
+            }
+        }
+        $scope = ExtensionActivityController::reportScope($user, $office, $collegeId);
         $entryCount = $period !== '' ? (int) ExtensionActivity::reportSummary($type, $period, $scope)['count'] : 0;
 
         // Reports of this type already generated for the college (or by the user, outside a college).
-        $collegeId = (int) ($user['college_id'] ?? 0);
         $candidates = $collegeId > 0 ? Proposal::forCollege($collegeId) : Proposal::forUser((int) ($user['id'] ?? 0));
         $reports = [];
         foreach ($candidates as $row) {
@@ -73,6 +81,8 @@ final class QuarterlyReportController
             'office' => $office,
             'period' => $period,
             'periodOptions' => QuarterlyReporting::periodOptions(1, 1, $type),
+            'collegeId' => $collegeId,
+            'collegeOptions' => $collegeOptions,
             'entryCount' => $entryCount,
             'existing' => $existing,
             'reports' => $reports,

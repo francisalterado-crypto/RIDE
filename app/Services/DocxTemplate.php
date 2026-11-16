@@ -248,6 +248,29 @@ final class DocxTemplate
         }
     }
 
+    /**
+     * Ticks a box that sits in its own cell, before the cell holding its label (rows like "Type of
+     * Presentation | [box] | Oral Presentation | [box] | Poster Presentation").
+     */
+    public function tickCellBefore(string $label, ?DOMElement $row): void
+    {
+        if ($row === null) {
+            return;
+        }
+        $cells = $this->cells($row);
+        foreach ($cells as $i => $cell) {
+            if ($i === 0 || strcasecmp(trim($this->text($cell)), trim($label)) !== 0) {
+                continue;
+            }
+            foreach ($this->elements($this->xpath->query('.//w:t', $cells[$i - 1])) as $t) {
+                if (str_contains($t->textContent, self::UNCHECKED)) {
+                    $t->textContent = str_replace(self::UNCHECKED, self::CHECKED, $t->textContent);
+                    return;
+                }
+            }
+        }
+    }
+
     /** Replaces each "20__" in a node's text, in order, with the given years (missing years stay blank). */
     public function fillYears(?DOMNode $scope, string ...$years): void
     {
@@ -469,6 +492,112 @@ final class DocxTemplate
         $after->parentNode->insertBefore($tableCopy, $insertBefore);
 
         return $tableCopy instanceof DOMElement ? $tableCopy : null;
+    }
+
+    /**
+     * Removes the instruction in parentheses that follows a heading, e.g. "RATIONALE (The explanation of ...)"
+     * becomes "RATIONALE". The instruction may run on into the next paragraphs; those are removed up to the
+     * closing parenthesis. Call this on the template before filling it, so filled-in text is never touched.
+     */
+    public function stripGuidance(string $headingPrefix): bool
+    {
+        $paragraph = $this->anyParagraphStarting($headingPrefix);
+        if ($paragraph === null) {
+            return false;
+        }
+        $texts = $this->elements($this->xpath->query('.//w:t', $paragraph));
+        $full = implode('', array_map(static fn (DOMElement $t): string => $t->textContent, $texts));
+        $prefixAt = stripos($full, trim($headingPrefix));
+        $open = strpos($full, '(', $prefixAt === false ? 0 : $prefixAt + strlen(trim($headingPrefix)));
+        if ($open === false) {
+            return false;
+        }
+        $close = strpos($full, ')', $open);
+        $keepUntil = $open;
+        $resumeAt = $close === false ? strlen($full) : $close + 1;
+        // Rewrite the text nodes: keep [0, open) and (close, end), drop the instruction between.
+        $offset = 0;
+        foreach ($texts as $t) {
+            $text = $t->textContent;
+            $start = $offset;
+            $end = $offset + strlen($text);
+            $kept = '';
+            if ($start < $keepUntil) {
+                $kept .= substr($text, 0, min(strlen($text), $keepUntil - $start));
+            }
+            if ($end > $resumeAt) {
+                $kept .= substr($text, max(0, $resumeAt - $start));
+            }
+            $t->textContent = $kept;
+            $offset = $end;
+        }
+        // Tidy the end of the heading ("Partnership: " -> "Partnership:").
+        for ($i = count($texts) - 1; $i >= 0; $i--) {
+            $trimmed = rtrim($texts[$i]->textContent);
+            $texts[$i]->textContent = $trimmed;
+            if ($trimmed !== '') {
+                break;
+            }
+        }
+        if ($close === false) {
+            // The instruction continues in the following paragraphs.
+            for ($node = $this->nextParagraph($paragraph); $node !== null;) {
+                $next = $this->nextParagraph($node);
+                $text = $this->text($node);
+                $pos = strpos($text, ')');
+                if ($pos === false) {
+                    $node->parentNode?->removeChild($node);
+                    $node = $next;
+                    continue;
+                }
+                if (trim(substr($text, $pos + 1)) === '') {
+                    $node->parentNode?->removeChild($node);
+                }
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Removes the template's instruction paragraphs that start with any of $prefixes (in the body or in table
+     * cells). A cell keeps an empty paragraph, as Word requires one.
+     *
+     * @param list<string> $prefixes
+     */
+    public function removeInstructions(array $prefixes): void
+    {
+        foreach ($prefixes as $prefix) {
+            foreach ($this->elements($this->xpath->query('//w:body//w:p')) as $paragraph) {
+                if (!$this->startsWith($this->text($paragraph), $prefix)) {
+                    continue;
+                }
+                $parent = $paragraph->parentNode;
+                $isOnlyInCell = $parent instanceof DOMElement && $parent->localName === 'tc'
+                    && $this->xpath->query('w:p', $parent)->length === 1;
+                if ($isOnlyInCell) {
+                    foreach ($this->elements($this->xpath->query('.//w:t', $paragraph)) as $t) {
+                        $t->textContent = '';
+                    }
+                } else {
+                    $parent?->removeChild($paragraph);
+                }
+            }
+        }
+    }
+
+    /** First paragraph anywhere in the body (including table cells) whose text starts with $prefix. */
+    private function anyParagraphStarting(string $prefix): ?DOMElement
+    {
+        foreach ($this->elements($this->xpath->query('//w:body//w:p')) as $paragraph) {
+            $text = trim($this->text($paragraph));
+            if ($text !== '' && $this->startsWith($text, $prefix)) {
+                return $paragraph;
+            }
+        }
+
+        return null;
     }
 
     public function paragraphStarting(string $prefix): ?DOMElement

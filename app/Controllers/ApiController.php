@@ -94,23 +94,7 @@ final class ApiController
     {
         $this->requireApiAuth();
         $user = Auth::user();
-        $scopeType = AccessControl::proposalScopeType();
-        if (AccessControl::isVpride() || Auth::hasRole('ride_reporter')) {
-            $data = $scopeType !== null ? Proposal::all(null, $scopeType) : Proposal::all();
-        } elseif (AccessControl::isCoordinatorResearch() || AccessControl::isCoordinatorExtension() || AccessControl::isExtensionWorker()) {
-            $data = $user['college_id']
-                ? array_values(array_filter(
-                    Proposal::forCollege((int) $user['college_id']),
-                    static fn (array $proposal): bool => (string) ($proposal['project_type'] ?? '') === $scopeType
-                ))
-                : [];
-        } elseif ($scopeType !== null) {
-            $data = Proposal::all(null, $scopeType);
-        } elseif ($user['college_id']) {
-            $data = Proposal::forCollege((int) $user['college_id']);
-        } else {
-            $data = Proposal::forUser((int) $user['id']);
-        }
+        $data = AccessControl::visibleProposals();
         json_response(['data' => $data]);
     }
 
@@ -124,25 +108,14 @@ final class ApiController
     {
         $this->requireApiAuth();
         $user = Auth::user();
-        $scopeType = AccessControl::proposalScopeType();
-        if (AccessControl::isVpride() || Auth::hasRole('ride_reporter')) {
-            $data = $scopeType !== null ? Proposal::ongoing(null, null, $scopeType) : Proposal::ongoing();
-        } elseif (AccessControl::isCoordinatorResearch() || AccessControl::isCoordinatorExtension() || AccessControl::isExtensionWorker()) {
-            $data = $user['college_id'] ? Proposal::ongoing((int) $user['college_id'], null, $scopeType) : [];
-        } elseif ($scopeType !== null) {
-            $data = Proposal::ongoing(null, null, $scopeType);
-        } elseif ($user['college_id']) {
-            $data = Proposal::ongoing((int) $user['college_id']);
-        } else {
-            $data = Proposal::ongoing(null, (int) $user['id']);
-        }
+        $data = AccessControl::visibleProjects();
         json_response(['data' => $data]);
     }
 
     public function extensionBeneficiaries(): void
     {
         $this->requireApiAuth();
-        if (!AccessControl::isVpride() && !Auth::hasRole('ride_reporter') && !AccessControl::isDirectorExtension()) {
+        if (!AccessControl::isVpride() && !AccessControl::isDirectorExtension()) {
             json_response(['error' => 'Forbidden'], 403);
         }
         $years = (int) ($_GET['years'] ?? 3);

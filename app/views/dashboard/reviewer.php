@@ -46,44 +46,36 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
     <?php require APP_PATH . '/views/dashboard/_coauthor-invitations.php'; ?>
 
     <div class="fd-actions">
-        <a class="fd-action" href="#rd-queue">
-            <strong>Review queue</strong><span><?= count($queue) ?> waiting for your <?= $actionWord ?></span>
-        </a>
-        <a class="fd-action" href="<?= base_url('proposals') ?>">
-            <strong>All proposals</strong><span><?= $e($scopeLabel) ?></span>
-        </a>
-        <a class="fd-action" href="<?= base_url('projects') ?>">
-            <strong>Projects</strong><span>Milestones and reports</span>
-        </a>
+        <?= dashboard_action('#rd-queue', 'fa-inbox', 'Review queue', count($queue) . ' waiting for your ' . $actionWord) ?>
+        <?= dashboard_action(base_url('proposals'), 'fa-file-lines', 'All proposals', (string) $scopeLabel) ?>
+        <?= dashboard_action(base_url('projects'), 'fa-diagram-project', 'Projects', 'Milestones and reports') ?>
         <?php if ($role === 'coordinator' && $singleType === 'extension'): ?>
-            <a class="fd-action" href="<?= base_url('proposals/create') ?>">
-                <strong>New extension proposal</strong><span>Extension Project Proposal</span>
-            </a>
+            <?= dashboard_action(base_url('proposals/create'), 'fa-handshake-angle', 'New extension proposal', 'Extension Project Proposal') ?>
         <?php elseif (in_array('extension', $types, true) && in_array($role, ['director', 'vpride'], true)): ?>
-            <a class="fd-action" href="<?= base_url('reports/extension-beneficiaries') ?>">
-                <strong>Beneficiaries report</strong><span>Extension accreditation data</span>
-            </a>
+            <?= dashboard_action(base_url('reports/extension-beneficiaries'), 'fa-chart-pie', 'Beneficiaries report', 'Extension accreditation data') ?>
         <?php else: ?>
-            <a class="fd-action" href="<?= base_url('forms') ?>">
-                <strong>Downloadable forms</strong><span>Templates to fill out</span>
-            </a>
+            <?= dashboard_action(base_url('forms'), 'fa-file-arrow-down', 'Downloadable forms', 'Templates to fill out') ?>
         <?php endif; ?>
     </div>
 
     <div class="fd-stats">
         <a class="fd-stat<?= count($queue) > 0 ? ' fd-stat--alert' : '' ?>" href="#rd-queue">
+            <?= dashboard_stat_icon('fa-inbox') ?>
             <span class="fd-stat-value"><?= count($queue) ?></span>
             <span class="fd-stat-label">Waiting for your <?= $actionWord ?></span>
         </a>
         <a class="fd-stat" href="#rd-pipeline">
+            <?= dashboard_stat_icon('fa-arrows-spin') ?>
             <span class="fd-stat-value"><?= (int) $inReviewCount ?></span>
             <span class="fd-stat-label">In review across all steps</span>
         </a>
         <a class="fd-stat" href="<?= base_url('projects') ?>">
+            <?= dashboard_stat_icon('fa-diagram-project') ?>
             <span class="fd-stat-value"><?= (int) $ongoingCount ?></span>
             <span class="fd-stat-label">Ongoing projects</span>
         </a>
         <a class="fd-stat<?= (int) $overdueCount > 0 ? ' fd-stat--alert' : '' ?>" href="#rd-followups">
+            <?= dashboard_stat_icon('fa-triangle-exclamation') ?>
             <span class="fd-stat-value"><?= (int) $overdueCount ?></span>
             <span class="fd-stat-label">Overdue milestones and reports</span>
         </a>
@@ -235,7 +227,7 @@ $breakdownTitle = $context['collegeId'] === null ? 'Proposals by college' : 'Res
     <?php if (!empty($submitters)): ?>
         <section class="fd-panel">
             <div class="fd-panel-head"><h2>Submitters</h2></div>
-            <p class="fd-panel-note">Faculty and extension workers with submissions, university-wide.</p>
+            <p class="fd-panel-note">Faculty with submissions, university-wide.</p>
             <div class="data-table-wrap">
                 <table class="data-table">
                     <thead>

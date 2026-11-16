@@ -37,26 +37,27 @@ c:\xampp\php\php.exe scripts\install.php
 
 | Name | Email | Role | College / scope |
 |------|-------|------|-----------------|
-| Ana Reyes | admin@ride.local | RIDE Admin (system) | University-wide |
-| Ramon Villanueva | vpride@ride.local | Admin / VPRIDE | University-wide |
+| Ana Reyes | admin@ride.local | Administrator | University-wide |
+| Ramon Villanueva | vpride@ride.local | OVPRIDE | University-wide |
 | Liza Mendoza | director.research@ride.local | RDO Director | University-wide |
 | Carlos Javier | director.extension@ride.local | ESO Director | University-wide |
 | Liza Mendoza | director@ride.local | RDO Director (alias) | University-wide |
-| Mark Santos | coord.research.cet@ride.local | Research Coordinator | CET |
-| Grace Lim | coord.extension.cet@ride.local | Field Extensionist | CET |
+| Teresa Aquino | coord.research.cluster1@ride.local | Research Coordinator (RIDE-RDO) | Research Cluster I: CET, CCAS |
+| Victor Santiago | coord.research.cluster2@ride.local | Research Coordinator (RIDE-RDO) | Research Cluster II: CBEHM |
+| Rafael Ilagan | coord.extension.group1@ride.local | Field Extensionist (RIDE-ESO) | ESO Group 1: CET |
+| Bianca Ferrer | coord.extension.group2@ride.local | Field Extensionist (RIDE-ESO) | ESO Group 2: CCAS, CBEHM |
+| Mark Santos | coord.research.cet@ride.local | College Coordinator - Research | CET |
+| Grace Lim | coord.extension.cet@ride.local | College Coordinator - Extension | CET |
 | Patricia Ong | dean.cet@ride.local | College Dean | CET |
-| John Cruz | faculty.research.cet@ride.local | Faculty (Research) | CET |
-| Nina Bautista | faculty.extension.cet@ride.local | Faculty (Extension) | CET |
-| Elena Ramos | coord.research.cas@ride.local | Research Coordinator | CAS |
-| Paolo Garcia | coord.extension.cas@ride.local | Field Extensionist | CAS |
-| Isabel Torres | dean.cas@ride.local | College Dean | CAS |
-| Miguel Lopez | faculty.research.cas@ride.local | Faculty (Research) | CAS |
-| Sara Dela Cruz | faculty.extension.cas@ride.local | Faculty (Extension) | CAS |
-| Daniel Tan | coord.research.cbm@ride.local | Research Coordinator | CBM |
-| Monica Reyes | coord.extension.cbm@ride.local | Field Extensionist | CBM |
-| Antonio Flores | dean.cbm@ride.local | College Dean | CBM |
-| Rachel Gomez | faculty.research.cbm@ride.local | Faculty (Research) | CBM |
-| Kevin Navarro | faculty.extension.cbm@ride.local | Faculty (Extension) | CBM |
+| John Cruz | faculty.cet@ride.local | Faculty | CET |
+| Elena Ramos | coord.research.cas@ride.local | College Coordinator - Research | CCAS |
+| Paolo Garcia | coord.extension.cas@ride.local | College Coordinator - Extension | CCAS |
+| Isabel Torres | dean.cas@ride.local | College Dean | CCAS |
+| Miguel Lopez | faculty.cas@ride.local | Faculty | CCAS |
+| Daniel Tan | coord.research.cbm@ride.local | College Coordinator - Research | CBEHM |
+| Monica Reyes | coord.extension.cbm@ride.local | College Coordinator - Extension | CBEHM |
+| Antonio Flores | dean.cbm@ride.local | College Dean | CBEHM |
+| Rachel Gomez | faculty.cbm@ride.local | Faculty | CBEHM |
 
 **Already installed?** Create or refresh all demo accounts:
 
@@ -70,13 +71,20 @@ c:\xampp\php\php.exe scripts\seed-demo-accounts.php
 c:\xampp\php\php.exe scripts\clean-sample-data.php
 ```
 
-## Workflow (Phase 1)
+## Approval workflow
 
-1. **Project Leader** creates a proposal (draft) and submits.
-2. **College Coordinator** approves → routes to ethics (if required) or DEAN.
-3. **Ethics Reviewer** (assign role manually) approves when applicable.
-4. **DEAN** approves → **RIDE Director** final approval.
-5. On final approval, a **project code** is generated (e.g. `RIDE-2026-CET-001`).
+Proposals, requests, progress and terminal reports:
+
+1. **Faculty** creates the record (draft) and submits.
+2. **College Coordinator** (Research or Extension, of the college) endorses. A College Coordinator's own record skips this step.
+3. **College Dean** approves.
+4. **RIDE Coordinator** of the college's cluster (Research Coordinator for RDO, Field Extensionist for ESO) reviews.
+5. **RDO or ESO Director** approves.
+6. **OVPRIDE** grants final approval. Proposals get a project code (e.g. `RIDE-2026-CET-001`); requests get a `REQ-` code.
+
+Quarterly reports (ESO-06 to 10, RDO-05 to 14) are prepared by the RIDE Coordinator, one per college of their cluster, then go to the College Dean (attests), the Director and OVPRIDE.
+
+The Administrator sees everything and manages the configuration, but is not part of the approval chain.
 
 ## REST API (for Java / external systems)
 
@@ -121,7 +129,7 @@ RIDE/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/projects` | Ongoing approved projects |
-| GET | `/api/reports/extension-beneficiaries?years=3` | Beneficiary report (reporter roles) |
+| GET | `/api/reports/extension-beneficiaries?years=3` | Beneficiary report (ESO Director, OVPRIDE, Administrator) |
 
 Existing databases auto-migrate on first request after update (`database/migrations/phase2.sql`).
 

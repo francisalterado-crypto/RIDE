@@ -1,90 +1,95 @@
 <?php
 
 /**
- * Add or update all sample accounts (safe for existing databases).
+ * Add or update all demo accounts (safe for existing databases).
  * Run: c:\xampp\php\php.exe scripts\seed-demo-accounts.php
+ *
+ * Accounts and roles come from app/config/demo_accounts.php. College Coordinators also get the Faculty role.
+ * RIDE coordinators are linked to their clusters. For the demo, the demo colleges are placed in research clusters
+ * when they have none yet (CET and CCAS in Research Cluster I, CBEHM in Research Cluster II).
  */
 
 declare(strict_types=1);
 
 require dirname(__DIR__) . '/app/bootstrap.php';
 
-$hash = '$2y$10$1UFSLUmOVn4oH5uXD3thxOOGUJ68FZadbLaN18VrdfvrR1u1.RjNi';
-$pdo = \App\Core\Database::pdo();
+use App\Models\User;
 
+$hash = password_hash('password123', PASSWORD_DEFAULT);
+$pdo = \App\Core\Database::pdo();
 $accounts = require dirname(__DIR__) . '/app/config/demo_accounts.php';
 
-$roleMap = [
-    'RIDE Admin (system)' => 'ride_admin',
-    'Admin / VPRIDE' => 'vpride',
-    'Director of Research' => 'director_research',
-    'Director of Extension' => 'director_extension',
-    'Coordinator of Research' => 'coordinator_research',
-    'Coordinator of Extension' => 'coordinator_extension',
-    'College Dean' => 'dean',
-    'Faculty (Research)' => 'faculty',
-    'Faculty (Extension)' => 'faculty',
-    'Extension Worker' => 'extension_worker',
-];
+$collegeId = static function (string $code) use ($pdo): ?int {
+    $stmt = $pdo->prepare('SELECT id FROM colleges WHERE code = ?');
+    $stmt->execute([$code]);
+    $id = $stmt->fetchColumn();
 
-$collegeMap = ['CET' => 1, 'CAS' => 2, 'CBM' => 3];
-$campusMap = ['CET' => 1, 'CAS' => 3, 'CBM' => 4];
+    return $id !== false ? (int) $id : null;
+};
+$clusterId = static function (string $name) use ($pdo): ?int {
+    $stmt = $pdo->prepare('SELECT id FROM clusters WHERE name = ?');
+    $stmt->execute([$name]);
+    $id = $stmt->fetchColumn();
 
-$userStmt = $pdo->prepare(
-    'INSERT INTO users (email, password_hash, first_name, last_name, college_id, program, campus_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       password_hash = VALUES(password_hash),
-       first_name = VALUES(first_name),
-       last_name = VALUES(last_name),
-       college_id = VALUES(college_id),
-       program = VALUES(program),
-       campus_id = VALUES(campus_id),
-       is_active = 1'
-);
+    return $id !== false ? (int) $id : null;
+};
 
-$findUser = $pdo->prepare('SELECT id FROM users WHERE email = ?');
-$roleStmt = $pdo->prepare('SELECT id FROM roles WHERE slug = ?');
-$clearRoles = $pdo->prepare('DELETE FROM user_roles WHERE user_id = ?');
-$assignStmt = $pdo->prepare('INSERT IGNORE INTO user_roles (user_id, role_id, college_id) VALUES (?, ?, ?)');
+// Demo research-cluster links for the demo colleges (kept if the admin already set one).
+foreach (['CET' => 'Research Cluster I', 'CCAS' => 'Research Cluster I', 'CBEHM' => 'Research Cluster II'] as $code => $cluster) {
+    $pdo->prepare('UPDATE colleges SET research_cluster_id = ? WHERE code = ? AND research_cluster_id IS NULL')
+        ->execute([$clusterId($cluster), $code]);
+}
 
-foreach ($accounts as $acc) {
-    $parts = explode(' ', $acc['name'], 2);
-    $first = $parts[0];
-    $last = $parts[1] ?? '';
-
-    $collegeKey = $acc['college'];
-    if (preg_match('/\b(CET|CAS|CBM)\b/', $collegeKey, $match)) {
-        $collegeKey = $match[1];
+// Old demo extension-worker accounts became the Field Extensionists under new emails.
+foreach (['extensionworker.cet@ride.local' => 'coord.extension.group1@ride.local', 'extensionworker.cas@ride.local' => 'coord.extension.group2@ride.local'] as $old => $new) {
+    $exists = $pdo->prepare('SELECT 1 FROM users WHERE email = ?');
+    $exists->execute([$new]);
+    if (!$exists->fetchColumn()) {
+        $pdo->prepare('UPDATE users SET email = ? WHERE email = ?')->execute([$new, $old]);
     }
-    $collegeId = $collegeMap[$collegeKey] ?? null;
-    $campusId = $collegeId ? ($campusMap[$collegeKey] ?? null) : null;
+}
 
-    $program = trim((string) ($acc['program'] ?? '')) ?: null;
+// Any other old demo extension-worker account is retired.
+$pdo->exec("UPDATE users SET is_active = 0 WHERE email LIKE 'extensionworker.%@ride.local'");
 
-    $userStmt->execute([$acc['email'], $hash, $first, $last, $collegeId, $program, $campusId]);
-    $findUser->execute([$acc['email']]);
+// Faculty demo accounts are no longer tagged by track: one Faculty account per college.
+foreach (['cet', 'cas', 'cbm'] as $code) {
+    $exists = $pdo->prepare('SELECT 1 FROM users WHERE email = ?');
+    $exists->execute(["faculty.{$code}@ride.local"]);
+    if (!$exists->fetchColumn()) {
+        $pdo->prepare('UPDATE users SET email = ? WHERE email = ?')
+            ->execute(["faculty.{$code}@ride.local", "faculty.research.{$code}@ride.local"]);
+    }
+}
+// Old track-tagged faculty accounts are removed when they own no records, otherwise deactivated.
+$pdo->exec("DELETE FROM users WHERE (email LIKE 'faculty.research.%@ride.local' OR email LIKE 'faculty.extension.%@ride.local')
+    AND id NOT IN (SELECT user_id FROM proposals)");
+$pdo->exec("UPDATE users SET is_active = 0 WHERE (email LIKE 'faculty.research.%@ride.local' OR email LIKE 'faculty.extension.%@ride.local')");
+
+$upsert = $pdo->prepare(
+    'INSERT INTO users (email, password_hash, first_name, last_name, college_id, program, is_active)
+     VALUES (?, ?, ?, ?, ?, ?, 1)
+     ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), first_name = VALUES(first_name),
+       last_name = VALUES(last_name), college_id = VALUES(college_id), program = VALUES(program), is_active = 1'
+);
+$findUser = $pdo->prepare('SELECT id FROM users WHERE email = ?');
+$findRole = $pdo->prepare('SELECT id FROM roles WHERE slug = ?');
+
+foreach ($accounts as $account) {
+    [$first, $last] = array_pad(explode(' ', $account['name'], 2), 2, '');
+    $college = isset($account['college']) ? $collegeId($account['college']) : null;
+    $upsert->execute([$account['email'], $hash, $first, $last, $college, $account['program'] ?? null]);
+    $findUser->execute([$account['email']]);
     $userId = (int) $findUser->fetchColumn();
-
-    $roleSlug = $roleMap[$acc['role']] ?? null;
-    if (!$roleSlug || !$userId) {
-        echo "SKIP: {$acc['email']}\n";
+    $findRole->execute([$account['role']]);
+    $roleId = (int) $findRole->fetchColumn();
+    if ($userId === 0 || $roleId === 0) {
+        echo "SKIP: {$account['email']} (role {$account['role']} missing)\n";
         continue;
     }
-
-    $roleStmt->execute([$roleSlug]);
-    $roleId = (int) $roleStmt->fetchColumn();
-    $roleCollege = str_contains($collegeKey, 'University') || str_contains($collegeKey, 'View-only')
-        ? ($collegeMap['CET'] ?? null)
-        : $collegeId;
-
-    if (in_array($roleSlug, ['ride_admin', 'vpride', 'director_research', 'director_extension'], true)) {
-        $roleCollege = null;
-    }
-
-    $clearRoles->execute([$userId]);
-    $assignStmt->execute([$userId, $roleId, $roleCollege]);
-    echo "OK: {$acc['email']} → {$roleSlug}\n";
+    User::replaceRoles($userId, $roleId, $college);
+    User::setClusters($userId, array_values(array_filter(array_map($clusterId, $account['clusters'] ?? []))));
+    echo "OK: {$account['email']} -> {$account['role']}\n";
 }
 
 echo "\nDone. Password for all: password123\n";

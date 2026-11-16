@@ -12,6 +12,8 @@
  * @var array<string, mixed>|null $existing report already generated for the selected period
  * @var list<array<string, mixed>> $reports
  * @var bool $canPrint
+ * @var int $collegeId college the report is for
+ * @var array<int, string> $collegeOptions colleges of the RIDE coordinator's clusters
  */
 use App\Support\ExtensionActivityTypes;
 use App\Support\QuarterlyReporting;
@@ -22,11 +24,24 @@ $terms = ExtensionActivityTypes::officeTerms($office);
 $entriesPath = ExtensionActivityTypes::basePath($office);
 $plainPeriod = static fn (string $key): string => (string) preg_replace('/\s*\(due [^)]*\)$/', '', QuarterlyReporting::periodLabel($key));
 $pageHeading = $label;
-$pageSubtitle = 'Quarterly report. Generate it for a reporting period from the ' . strtolower($terms['entries']) . ' recorded under ' . $terms['page'] . '.';
+$pageSubtitle = 'Quarterly report, one per college. Generate it for a reporting period from the ' . strtolower($terms['entries']) . ' recorded under ' . $terms['page'] . '.';
+$collegeQuery = $collegeId > 0 ? '&college=' . $collegeId : '';
 ?>
 
 <div class="card quarterly-report-toolbar">
     <form method="get" action="<?= base_url('quarterly-reports/' . $slug) ?>" class="inline-form">
+        <?php if ($collegeOptions !== []): ?>
+        <div>
+            <label for="qr-college">College</label>
+            <select id="qr-college" name="college" onchange="this.form.submit()">
+                <?php foreach ($collegeOptions as $optionId => $optionName): ?>
+                    <option value="<?= (int) $optionId ?>"<?= (int) $optionId === $collegeId ? ' selected' : '' ?>><?= htmlspecialchars($optionName) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php elseif (\App\Support\AccessControl::isRideCoordinator()): ?>
+        <p class="muted">No colleges are linked to your cluster yet. Ask the Administrator to assign your cluster.</p>
+        <?php endif; ?>
         <div>
             <label for="qr-period">Reporting period</label>
             <select id="qr-period" name="period" onchange="this.form.submit()">
@@ -65,7 +80,7 @@ require APP_PATH . '/views/partials/quarterly-deadline-notice.php';
         <?php if ($existing !== null): ?>
             <a class="btn btn-accent" href="<?= base_url('proposals/' . (int) $existing['id']) ?>"><i class="fas fa-folder-open" aria-hidden="true"></i> Open Report</a>
         <?php else: ?>
-            <a class="btn btn-accent" href="<?= base_url('proposals/create/' . $slug . '?period=' . rawurlencode($period)) ?>"><i class="fas fa-file-alt" aria-hidden="true"></i> Generate Report</a>
+            <a class="btn btn-accent" href="<?= base_url('proposals/create/' . $slug . '?period=' . rawurlencode($period) . $collegeQuery) ?>"><i class="fas fa-file-alt" aria-hidden="true"></i> Generate Report</a>
         <?php endif; ?>
     </div>
 </div>

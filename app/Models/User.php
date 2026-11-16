@@ -371,6 +371,44 @@ final class User
             Sql::insertIgnore('INSERT INTO user_roles (user_id, role_id, college_id) VALUES (?, ?, ?)', 'user_id, role_id')
         );
         $stmt->execute([$userId, $roleId, $collegeId]);
+        self::addFacultyRoleForCoordinator($userId, $roleId, $collegeId);
+    }
+
+    /** College Coordinators are faculty members: they also get the Faculty role for their college. */
+    private static function addFacultyRoleForCoordinator(int $userId, int $roleId, ?int $collegeId): void
+    {
+        $role = Role::findById($roleId);
+        if ($role === null || !in_array((string) $role['slug'], \App\Support\AccessControl::COORDINATOR_STEPS, true)) {
+            return;
+        }
+        $faculty = Role::findBySlug('faculty');
+        if ($faculty === null) {
+            return;
+        }
+        $stmt = Database::pdo()->prepare(
+            Sql::insertIgnore('INSERT INTO user_roles (user_id, role_id, college_id) VALUES (?, ?, ?)', 'user_id, role_id')
+        );
+        $stmt->execute([$userId, (int) $faculty['id'], $collegeId]);
+    }
+
+    /** Clusters a RIDE coordinator covers. @return list<int> */
+    public static function clusterIds(int $userId): array
+    {
+        $stmt = Database::pdo()->prepare('SELECT cluster_id FROM user_clusters WHERE user_id = ? ORDER BY cluster_id');
+        $stmt->execute([$userId]);
+
+        return array_map('intval', $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: []);
+    }
+
+    /** @param list<int> $clusterIds */
+    public static function setClusters(int $userId, array $clusterIds): void
+    {
+        $pdo = Database::pdo();
+        $pdo->prepare('DELETE FROM user_clusters WHERE user_id = ?')->execute([$userId]);
+        $insert = $pdo->prepare('INSERT INTO user_clusters (user_id, cluster_id) VALUES (?, ?)');
+        foreach (array_unique(array_filter(array_map('intval', $clusterIds))) as $clusterId) {
+            $insert->execute([$userId, $clusterId]);
+        }
     }
 
     public static function replaceRoles(int $userId, int $roleId, ?int $collegeId = null): void
@@ -388,6 +426,7 @@ final class User
             $insert->execute([$userId, $roleId, $collegeId]);
 
             $pdo->commit();
+            self::addFacultyRoleForCoordinator($userId, $roleId, $collegeId);
         } catch (\Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();

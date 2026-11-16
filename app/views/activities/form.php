@@ -207,6 +207,17 @@ $renderRatings = static function () use ($ratingScales, $ratingLevels, $values, 
     <?php endif; ?>
 
     <div class="webform-grid">
+    <?php if (!empty($entryColleges)): ?>
+        <div class="webform-field">
+            <label for="activity-college">College <span class="webform-req">*</span></label>
+            <select id="activity-college" name="report_college" required>
+                <?php foreach ($entryColleges as $entryCollegeId => $entryCollegeName): ?>
+                    <option value="<?= (int) $entryCollegeId ?>"<?= (int) $entryCollegeId === (int) ($entryCollege ?? 0) ? ' selected' : '' ?>><?= htmlspecialchars($entryCollegeName) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <p class="webform-hint">The college of your cluster this entry belongs to.</p>
+        </div>
+    <?php endif; ?>
     <?php if (!$hasProgramField) {
         $renderCatalogPick();
     } ?>

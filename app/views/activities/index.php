@@ -22,11 +22,11 @@ $docCounts = \App\Models\ExtensionActivityDocument::filledCategoryCounts(
 $pageHeading = $terms['page'];
 if ($isResearch) {
     $pageSubtitle = $isCollegeScope
-        ? 'Research accomplishments reported by the researchers of your college, with their documentary evidence. The quarterly reports are generated from these.'
-        : 'Report each research accomplishment with its documentary evidence. Your R&D Coordinator generates the quarterly reports from these.';
+        ? 'Research accomplishments reported by the researchers of the colleges in your clusters, with their documentary evidence. The quarterly reports are generated from these.'
+        : 'Report each research accomplishment with its documentary evidence. The Research Coordinator (RDO) generates the quarterly reports from these.';
 } else {
     $pageSubtitle = $isCollegeScope
-        ? 'Extension activities conducted by everyone in your college. The quarterly reports are generated from these.'
+        ? 'Extension activities conducted in the colleges of your clusters. The quarterly reports are generated from these.'
         : 'Record each extension activity you conduct. The quarterly reports are generated from these.';
 }
 

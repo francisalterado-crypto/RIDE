@@ -1,22 +1,52 @@
 <?php
 /** @var list<array> $proposals rows from ProposalRegistry::rows() */
 /** @var int $currentUserId */
+/** @var string $registryKind 'proposal', 'request' or 'report' */
 use App\Support\AccessControl;
 use App\Support\ProposalRegistry;
 use App\Support\ResearchRequestForms;
 
+$registryKind = in_array($registryKind ?? 'proposal', ['proposal', 'request', 'report'], true) ? ($registryKind ?? 'proposal') : 'proposal';
+$isReportRegistry = $registryKind === 'report';
 $isVprideRegistry = AccessControl::isVpride();
-$canExport = $isVprideRegistry || \App\Core\Auth::hasRole('ride_reporter');
+$canExport = $isVprideRegistry;
 $proposalCount = count($proposals);
-$pageTitle = 'Proposals | RIDE Hub';
-$pageHeading = 'Proposals';
-$pageSubtitle = $isVprideRegistry
-    ? 'University-wide proposal registry: search, review, and manage submissions.'
-    : 'Your draft, submitted, and approved proposals and requests in one place.';
+$registryText = [
+    'proposal' => [
+        'heading' => 'Proposals',
+        'registry' => 'Proposal Registry',
+        'noun' => 'proposal',
+        'subtitle' => $isVprideRegistry
+            ? 'University-wide registry of Research Proposal Applications and Extension Project Proposals.'
+            : 'Your Research Proposal Applications and Extension Project Proposals, from draft to approval.',
+        'empty' => 'No proposals found.',
+    ],
+    'request' => [
+        'heading' => 'Requests',
+        'registry' => 'Request Registry',
+        'noun' => 'request',
+        'subtitle' => $isVprideRegistry
+            ? 'University-wide registry of filed RDO requests.'
+            : 'Your filed RDO requests: critical activities, external funding, paper presentation, and publication.',
+        'empty' => 'No requests found.',
+    ],
+    'report' => [
+        'heading' => 'Reports',
+        'registry' => 'Report Registry',
+        'noun' => 'report',
+        'subtitle' => $isVprideRegistry
+            ? 'University-wide registry of submitted quarterly, progress, and terminal reports.'
+            : 'Your quarterly, progress, and terminal reports, from draft to approval.',
+        'empty' => 'No reports found.',
+    ],
+][$registryKind];
+$pageTitle = $registryText['heading'] . ' | RIDE Hub';
+$pageHeading = $registryText['heading'];
+$pageSubtitle = $registryText['subtitle'];
 
 // "New form" menu: the proposal forms this user can start, then the RDO request forms.
 $newForms = [];
-if (!$isVprideRegistry) {
+if (!$isVprideRegistry && $registryKind === 'proposal') {
     if (proposal_nav_has_dual_menu()) {
         $newForms[] = ['RDO-20 Research Proposal Application', base_url('proposals/create' . proposal_nav_scope_query('research'))];
         $newForms[] = ['ESO-03 Extension Project Proposal', base_url('proposals/create' . proposal_nav_scope_query('extension'))];
@@ -25,25 +55,21 @@ if (!$isVprideRegistry) {
     }
 }
 $requestForms = [];
-if (AccessControl::canFileResearchRequests()) {
+if ($registryKind === 'request' && AccessControl::canFileResearchRequests()) {
     foreach (ResearchRequestForms::all() as $definition) {
         $requestForms[] = [str_replace('WPU-QSF-RIDE-', '', (string) $definition['code']) . ' ' . $definition['label'], base_url('research-requests/new/' . $definition['slug'])];
     }
 }
 
-// Tabs with counts; "Needs my action" for approvers, "Requests" when there are any or the user can file them.
+// Tabs with counts; "Needs my action" for approvers or when something waits on the user.
 $isApprover = $isVprideRegistry || \App\Core\Auth::hasRole('dean') || AccessControl::isCoordinatorResearch()
-    || AccessControl::isCoordinatorExtension() || AccessControl::isDirectorResearch() || AccessControl::isDirectorExtension();
+    || AccessControl::isCoordinatorExtension() || AccessControl::isRideCoordinator() || AccessControl::isDirectorResearch() || AccessControl::isDirectorExtension();
 $tabCounts = [];
 foreach (array_keys(ProposalRegistry::TABS) as $tab) {
     $tabCounts[$tab] = count(array_filter($proposals, static fn (array $row): bool => ProposalRegistry::inTab($row, $tab)));
 }
-$visibleTabs = array_filter(ProposalRegistry::TABS, static function (string $label, string $tab) use ($tabCounts, $isApprover, $requestForms): bool {
-    return match ($tab) {
-        'action' => $isApprover || $tabCounts['action'] > 0,
-        'requests' => $requestForms !== [] || $tabCounts['requests'] > 0,
-        default => true,
-    };
+$visibleTabs = array_filter(ProposalRegistry::TABS, static function (string $label, string $tab) use ($tabCounts, $isApprover): bool {
+    return $tab !== 'action' || $isApprover || $tabCounts['action'] > 0;
 }, ARRAY_FILTER_USE_BOTH);
 $defaultTab = ($tabCounts['action'] ?? 0) > 0 ? 'action' : 'all';
 
@@ -79,7 +105,7 @@ rsort($yearOptions);
     <section>
         <div class="list-card-head">
             <div>
-                <h2>Proposal Registry</h2>
+                <h2><?= htmlspecialchars($registryText['registry']) ?></h2>
                 <p id="proposal-registry-count">
                     <?= $proposalCount ?> record<?= $proposalCount === 1 ? '' : 's' ?>
                 </p>
@@ -88,14 +114,14 @@ rsort($yearOptions);
             <div class="proposal-registry-toolbar list-search">
                 <label class="proposal-registry-search-label" for="proposal-registry-search">
                     <i class="fas fa-search" aria-hidden="true"></i>
-                    <span class="sr-only">Search proposals</span>
+                    <span class="sr-only">Search <?= $registryText['noun'] ?>s</span>
                 </label>
                 <input
                     type="search"
                     id="proposal-registry-search"
                     class="proposal-registry-search no-capitalize"
-                    placeholder="<?= $isVprideRegistry ? 'Search code, title, college, researcher...' : 'Search code, title, researcher...' ?>"
-                    aria-label="Search proposals in registry"
+                    placeholder="<?= $isVprideRegistry ? 'Search title, form, college, or name' : 'Search title, form, or name' ?>"
+                    aria-label="Search the <?= $registryText['noun'] ?> registry"
                 >
             </div>
             <?php endif; ?>
@@ -129,7 +155,7 @@ rsort($yearOptions);
                     </select>
                 </label>
                 <?php if ($canExport): ?>
-                    <a class="btn btn-outline btn-sm" id="proposal-registry-export" href="<?= base_url('proposals/export') ?>" data-base="<?= base_url('proposals/export') ?>">
+                    <a class="btn btn-outline btn-sm" id="proposal-registry-export" href="<?= base_url('proposals/export?kind=' . $registryKind) ?>" data-base="<?= base_url('proposals/export?kind=' . $registryKind) ?>">
                         <i class="fas fa-file-csv" aria-hidden="true"></i> Export CSV
                     </a>
                 <?php endif; ?>
@@ -139,7 +165,7 @@ rsort($yearOptions);
         <?php if ($proposalCount === 0): ?>
             <div class="empty-state">
                 <i class="fas fa-folder-open empty-icon" aria-hidden="true"></i>
-                <p>No proposals found.<?= ($newForms !== [] || $requestForms !== []) ? ' Use New form above to start one.' : '' ?></p>
+                <p><?= htmlspecialchars($registryText['empty']) ?><?= ($newForms !== [] || $requestForms !== []) ? ' Use New form above to start one.' : '' ?><?= $isReportRegistry ? ' Reports are prepared from their pages under RIDE in the sidebar.' : '' ?></p>
             </div>
         <?php else: ?>
             <div class="empty-state" id="proposal-registry-empty" hidden><p>No records match the selected filters.</p></div>
@@ -147,20 +173,22 @@ rsort($yearOptions);
                 <table class="data-table proposal-registry-table" id="proposal-registry-table">
                     <thead>
                         <tr>
-                            <th class="col-code">Code</th>
+                            <th class="col-code"><?= $isReportRegistry ? 'Period' : 'Code' ?></th>
                             <th class="col-type">Type</th>
                             <th class="col-title">Title</th>
                             <th class="col-form">Form</th>
                             <?php if ($isVprideRegistry): ?>
                             <th class="col-college">College</th>
                             <?php endif; ?>
-                            <th class="col-researcher">Lead</th>
+                            <th class="col-researcher"><?= $isReportRegistry ? 'Prepared by' : 'Lead' ?></th>
                             <?php if (!$isVprideRegistry): ?>
                             <th class="col-role">Your Role</th>
                             <?php endif; ?>
                             <th class="col-status">Status</th>
                             <th class="col-step">Step</th>
+                            <?php if (!$isReportRegistry): ?>
                             <th class="col-progress">Form filled</th>
+                            <?php endif; ?>
                             <th class="col-actions">Actions</th>
                         </tr>
                     </thead>
@@ -191,7 +219,11 @@ rsort($yearOptions);
                             data-year="<?= htmlspecialchars($r['year']) ?>"
                             <?= $r['needs_action'] ? 'class="is-needs-action"' : '' ?>
                         >
+                            <?php if ($isReportRegistry): ?>
+                            <td class="col-code"><?= $r['period'] !== '' ? htmlspecialchars($r['period']) : '<span class="data-table-muted">-</span>' ?></td>
+                            <?php else: ?>
                             <td class="col-code"><?php if (!empty($p['project_code'])): ?><code class="proposal-registry-code"><?= htmlspecialchars((string) $p['project_code']) ?></code><?php else: ?><span class="data-table-muted">Not assigned</span><?php endif; ?></td>
+                            <?php endif; ?>
                             <?php $isExtensionRow = (string) ($p['project_type'] ?? '') === 'extension'; ?>
                             <td class="col-type"><span class="proposal-kind proposal-kind--<?= $isExtensionRow ? 'extension' : 'research' ?>"><?= $isExtensionRow ? 'Extension' : 'Research' ?></span></td>
                             <td class="col-title">
@@ -238,6 +270,7 @@ rsort($yearOptions);
                                 <?php endif; ?>
                             </td>
                             <td class="col-step<?= empty($p['current_step']) ? ' data-table-muted' : '' ?>"><?= htmlspecialchars($currentStep) ?></td>
+                            <?php if (!$isReportRegistry): ?>
                             <td class="col-progress">
                                 <?php if ($r['progress'] === null): ?>
                                     <span class="data-table-muted">-</span>
@@ -249,13 +282,14 @@ rsort($yearOptions);
                                     </div>
                                 <?php endif; ?>
                             </td>
+                            <?php endif; ?>
                             <td class="col-actions">
                                 <div class="proposal-registry-actions" role="group" aria-label="Proposal actions">
                                     <a
                                         class="btn btn-sm btn-outline icon-btn proposal-icon-btn"
                                         href="<?= base_url('proposals/' . $p['id']) ?>"
-                                        title="Open proposal"
-                                        aria-label="Open proposal"
+                                        title="Open <?= $registryText['noun'] ?>"
+                                        aria-label="Open <?= $registryText['noun'] ?>"
                                     >
                                         <i class="fas fa-folder-open" aria-hidden="true"></i>
                                     </a>

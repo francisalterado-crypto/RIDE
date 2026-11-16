@@ -51,6 +51,10 @@ final class ExtensionFormDocument
     private function fill(): void
     {
         $doc = $this->doc;
+        // The template's instructions under each heading are not part of the filled form.
+        foreach (['RATIONALE', 'OBJECTIVES', 'Community Analysis:', 'Problem Analysis:', 'Description of the Target Group:', 'Partnership:', 'Duties and Responsibilities', 'VI. METHODOLOGY'] as $heading) {
+            $doc->stripGuidance($heading);
+        }
 
         // I. Identifying information: one value per row, in the template's row order.
         $leader = $this->text('project_team_leader');

@@ -28,7 +28,7 @@ if ($collegeName === '' && $collegeId > 0) {
 }
 
 $coordinatorStep = AccessControl::coordinatorStepForType($projectType);
-$coordinatorLabel = $isExtension ? 'Field Extensionist' : 'Research Coordinator';
+$coordinatorLabel = $isExtension ? 'College Coordinator - Extension' : 'College Coordinator - Research';
 $coordinatorEndorsement = $proposalId > 0 ? proposal_step_endorsement($proposalId, $coordinatorStep, $coordinatorLabel) : null;
 $deanEndorsement = $proposalId > 0 ? proposal_step_endorsement($proposalId, AccessControl::DEAN, 'College Dean') : null;
 

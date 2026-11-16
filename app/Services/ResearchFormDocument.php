@@ -27,6 +27,9 @@ final class ResearchFormDocument
         'external_funding_proposal' => 'rdo-30.docx',
         'paper_presentation' => 'rdo-31.docx',
         'manuscript' => 'rdo-32.docx',
+        'presentation_incentive' => 'rdo-02.docx',
+        'ipr_incentive' => 'rdo-03.docx',
+        'publication_incentive' => 'rdo-04.docx',
     ];
 
     private const SIX_PS = [
@@ -69,7 +72,11 @@ final class ResearchFormDocument
             return null;
         }
         $self = new self($proposal, DocxTemplate::open(BASE_PATH . '/resources/form-templates/rdo/' . self::TEMPLATES[$key]));
-        $key === 'research' ? $self->fillApplication() : $self->fillRequest($key);
+        match (true) {
+            $key === 'research' => $self->fillApplication(),
+            (ResearchRequestForms::get($key)['group'] ?? '') === 'incentive' => $self->fillIncentive($key),
+            default => $self->fillRequest($key),
+        };
 
         return $self->doc->render();
     }
@@ -89,18 +96,35 @@ final class ResearchFormDocument
     private function fillApplication(): void
     {
         $doc = $this->doc;
+        // The template's instructions to the applicant are not part of the filled form.
+        foreach (['Abstract', 'Graphical Abstract', 'Introduction', 'Research Gaps', 'Significance of the Study', 'Gender and Development', 'Expected 6Ps'] as $heading) {
+            $doc->stripGuidance($heading);
+        }
+        $doc->removeInstructions([
+            'All information (excluding co-author/s)',
+            'For External Funding/Support, indicate',
+            '(For descriptive research',
+            '(The expected results are',
+            'Include only costs which directly relate',
+            'The budget should be realistic',
+            'The budget should include all costs',
+            '"Indirect costs"',
+            'Input this section for in-house',
+            'Shade the corresponding cells',
+        ]);
         $doc->appendToCell($doc->cell(0, 1, 0), (string) ($this->proposal['project_code'] ?? ''));
 
-        // I. The Proponent (from the applicant's profile, frozen into the summary).
+        // I. The Proponent (from the applicant's profile, frozen into the summary). The template's option lists
+        // ("Dr. / Prof. / ...", "Male / Female", "Select Campus...") are cleared when the profile has no value.
         $doc->setCell($doc->cell(1, 0, 1), $this->text('applicant_last_name'));
         $doc->setCell($doc->cell(1, 0, 2), $this->text('applicant_first_name'));
         $doc->setCell($doc->cell(1, 0, 3), $this->text('applicant_middle_name'));
-        $doc->setCell($doc->cell(1, 2, 1), $this->text('applicant_title_prefix'));
-        $doc->setCell($doc->cell(1, 2, 3), $this->text('applicant_sex'));
+        $doc->setCell($doc->cell(1, 2, 1), $this->text('applicant_title_prefix'), true);
+        $doc->setCell($doc->cell(1, 2, 3), $this->text('applicant_sex'), true);
         $doc->setCell($doc->cell(1, 3, 1), $this->text('applicant_email'));
         $doc->setCell($doc->cell(1, 3, 3), $this->text('applicant_contact_number'));
         $doc->setCell($doc->cell(1, 4, 1), $this->text('applicant_college_department') !== '' ? $this->text('applicant_college_department') : (string) ($this->proposal['college_name'] ?? ''));
-        $doc->setCell($doc->cell(1, 4, 3), $this->text('applicant_campus'));
+        $doc->setCell($doc->cell(1, 4, 3), $this->text('applicant_campus'), true);
         $doc->setCell($doc->cell(1, 5, 1), $this->text('applicant_google_scholar_link'));
         $doc->setCell($doc->cell(1, 6, 1), $this->text('applicant_researchgate_link'));
         $coAuthors = array_values(array_filter(
@@ -298,6 +322,179 @@ final class ResearchFormDocument
                 }
                 break;
             }
+        }
+    }
+
+    // ---- Requests for incentive (RDO-02 to -04) ---------------------------------------------------------------
+
+    private function fillIncentive(string $type): void
+    {
+        $doc = $this->doc;
+        $definition = ResearchRequestForms::get($type) ?? [];
+        $labels = (array) ($definition['template_labels'] ?? []);
+        $main = $doc->table(0);
+        if ($main === null) {
+            return;
+        }
+        $doc->appendToCell($doc->cell(0, 1, 1), (string) ($this->proposal['project_code'] ?? ''));
+
+        // (1) Applicant's information and (2) details, by row label.
+        $byLabel = [
+            'full name' => $this->text('applicant_name') !== '' ? $this->text('applicant_name') : $this->researcherName(),
+            'college/unit/center' => $this->text('applicant_college_department'),
+            'contact number' => $this->text('applicant_contact_number'),
+            'e-mail address' => $this->text('applicant_email'),
+            'researchgate account link' => $this->text('applicant_researchgate_link'),
+            'google scholar account link' => $this->text('applicant_google_scholar_link'),
+            'name of wpu co-author' => $this->text('wpu_coauthors'),
+            'title' => (string) ($this->proposal['title'] ?? ''),
+            'title of conference' => $this->text('conference_title'),
+            'title of journal' => $this->text('journal_title'),
+            'sponsoring agency' => $this->text('sponsoring_agency'),
+            'partner college' => $this->text('partner_institution'),
+            'date presented' => $this->date($this->text('date_presented')),
+            'venue' => $this->text('venue'),
+            'registration no' => $this->text('registration_no'),
+            'date filed' => $this->date($this->text('date_filed')),
+            'date of issue' => $this->date($this->text('date_issued')),
+            'volume/issue' => $this->text('volume_issue_pages'),
+            'publisher' => $this->text('publisher_editor'),
+            'issn/isbn' => $this->text('issn_isbn'),
+            'date published' => $this->date($this->text('date_published')),
+            'indexing' => $this->text('indexing'),
+        ];
+        foreach ($doc->rows($main) as $row) {
+            $cells = $doc->cells($row);
+            if (count($cells) !== 2) {
+                continue;
+            }
+            $label = strtolower(trim($doc->text($cells[0])));
+            // Longest matching label first ("title of conference" before "title").
+            $match = null;
+            foreach (array_keys($byLabel) as $prefix) {
+                if (str_starts_with($label, $prefix) && ($match === null || strlen($prefix) > strlen($match))) {
+                    $match = $prefix;
+                }
+            }
+            if ($match !== null) {
+                $doc->setCell($cells[1], $byLabel[$match]);
+            }
+        }
+        foreach (['presentation_type', 'ip_type', 'publication_type'] as $key) {
+            $picked = $labels[$key][$this->text($key)] ?? null;
+            if ($picked !== null) {
+                $doc->tickCellBefore((string) $picked, $doc->rowByLabel($main, (string) ($definition['fields'][$key]['label'] ?? '')));
+            }
+        }
+        // (3) Attachments submitted.
+        foreach (is_array($this->summary['attachments'] ?? null) ? $this->summary['attachments'] : [] as $attachment) {
+            if (isset($labels['attachments'][$attachment])) {
+                $doc->tick((string) $labels['attachments'][$attachment], $main);
+            }
+        }
+
+        // (4) Certification: the researcher, dated at submission.
+        $submitted = strtotime((string) ($this->proposal['submitted_at'] ?? ''));
+        $this->signAbove(1, 'RESEARCHER', $this->researcherName(), $submitted !== false ? date('F j, Y', $submitted) : '');
+
+        // (5) College R&D Coordinator's evaluation.
+        $coordinator = $this->reviewValues(AccessControl::COORDINATOR_RESEARCH);
+        $table = $doc->table(2);
+        if ($table !== null && $coordinator !== []) {
+            $this->tickReported($table, (string) ($coordinator['reported'] ?? ''));
+            $quarterRow = $doc->rowByLabel($table, 'If reported');
+            $doc->setCell($quarterRow !== null ? ($doc->cells($quarterRow)[1] ?? null) : null, (string) ($coordinator['reported_quarter'] ?? ''));
+            $this->tickLevel($table, (string) ($coordinator['level'] ?? ''));
+        }
+        $this->signStep(2, 'R&D COORDINATOR', AccessControl::COORDINATOR_RESEARCH, 'R&D Coordinator');
+        // (6) Dean's endorsement.
+        $this->signStep(3, 'COLLEGE DEAN', AccessControl::DEAN, 'College Dean/Immediate Supervisor');
+        // (7) RDO M&E verification: the Research Coordinator (RIDE-RDO).
+        $verification = $this->reviewValues(AccessControl::RIDE_COORDINATOR_RESEARCH);
+        $table = $doc->table(4);
+        if ($table !== null && $verification !== []) {
+            $this->tickReported($table, (string) ($verification['reported'] ?? ''));
+            $this->tickLevel($table, (string) ($verification['level'] ?? ''));
+            $schemes = ['acceptance' => 'Upon Acceptance', 'publication' => 'Upon Publication', 'issuance' => 'Upon Issuance of Registration'];
+            $scheme = $schemes[(string) ($verification['scheme'] ?? '')] ?? null;
+            if ($scheme !== null) {
+                $doc->tickCellBefore($scheme, $doc->rowByLabel($table, 'Incentive Scheme'));
+            }
+            $classes = ['international_peer_reviewed' => 'International Peer Reviewed', 'scopus_isi' => 'Scopus/ISI', 'national' => 'National', 'ched_accredited' => 'CHED Accredited'];
+            foreach (is_array($verification['classification'] ?? null) ? $verification['classification'] : [] as $class) {
+                if (isset($classes[$class])) {
+                    $doc->tick($classes[$class], $table);
+                }
+            }
+            $amount = (string) ($verification['amount'] ?? '');
+            $amountRow = $doc->rowByLabel($table, 'Amount of Incentive');
+            if ($amountRow !== null && $amount !== '') {
+                $doc->appendToCell($doc->cells($amountRow)[1] ?? null, ' ' . number_format((float) $amount, 2));
+            }
+            $remarksRow = $doc->rowByLabel($table, 'Remarks');
+            if ($remarksRow !== null && trim((string) ($verification['remarks'] ?? '')) !== '') {
+                $doc->appendToCell($doc->cells($remarksRow)[0] ?? null, ' ' . trim((string) $verification['remarks']));
+            }
+        }
+        $this->signStep(4, 'M&E OFFICER', AccessControl::RIDE_COORDINATOR_RESEARCH, 'M&E Officer');
+        // (8) RDO Director, (9) VP for RIDE.
+        $this->signStep(5, 'RDO DIRECTOR', AccessControl::DIRECTOR_RESEARCH, 'RDO Director');
+        $this->signStep(6, 'VP RIDE', AccessControl::VPRIDE, 'VP RIDE');
+    }
+
+    /** @return array<string, mixed> a reviewer's evaluation saved with their approval */
+    private function reviewValues(string $step): array
+    {
+        $values = $this->summary['reviews'][$step] ?? [];
+
+        return is_array($values) ? $values : [];
+    }
+
+    private function tickReported(DOMElement $table, string $reported): void
+    {
+        $row = $this->doc->rows($table)[1] ?? null;
+        if ($reported === 'reported') {
+            $this->doc->tick('Reported', $row);
+        } elseif ($reported === 'not_reported') {
+            $this->doc->tick('Not Reported', $row);
+        }
+    }
+
+    private function tickLevel(DOMElement $table, string $level): void
+    {
+        $levels = ['international' => 'International Conference', 'national' => 'National Conference', 'regional' => 'Regional Conference', 'local' => 'Local Conference'];
+        if (!isset($levels[$level])) {
+            return;
+        }
+        foreach ($this->doc->rows($table) as $row) {
+            $this->doc->tickCellBefore($levels[$level], $row);
+        }
+    }
+
+    /** Name and date on the blank signature row above a sign-off label ("R&D COORDINATOR | SIGNATURE | DATE"). */
+    private function signAbove(int $tableIndex, string $label, string $name, string $date): void
+    {
+        $table = $this->doc->table($tableIndex);
+        if ($table === null || trim($name) === '') {
+            return;
+        }
+        $rows = $this->doc->rows($table);
+        foreach ($rows as $i => $row) {
+            $first = $this->doc->cells($row)[0] ?? null;
+            if ($i > 0 && $first !== null && str_starts_with(strtoupper(trim($this->doc->text($first))), $label)) {
+                $cells = $this->doc->cells($rows[$i - 1]);
+                $this->doc->setCell($cells[0] ?? null, $name);
+                $this->doc->setCell($cells[2] ?? null, $date);
+                return;
+            }
+        }
+    }
+
+    private function signStep(int $tableIndex, string $label, string $step, string $position): void
+    {
+        $sign = $this->signatory($step, $position);
+        if ($sign !== null) {
+            $this->signAbove($tableIndex, $label, $sign['name'], $sign['date']);
         }
     }
 

@@ -128,6 +128,8 @@ final class Database
         self::applyMigrationFile('phase38');
         self::applyMigrationFile('phase39');
         self::applyMigrationFile('phase40');
+        self::applyMigrationFile('phase41');
+        self::applyMigrationFile('phase42');
     }
 
     public static function ensureSessionsTable(): void

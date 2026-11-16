@@ -19,22 +19,41 @@ final class ProposalController
 
     public function index(): void
     {
+        $this->registryPage('proposal');
+    }
+
+    /** Filed RDO request forms (Critical Activities, External Funding, Paper Presentation, ...). */
+    public function requests(): void
+    {
+        $this->registryPage('request');
+    }
+
+    /** Submitted reports: quarterly, progress, terminal and terminal report assessment. */
+    public function reports(): void
+    {
+        $this->registryPage('report');
+    }
+
+    private function registryPage(string $kind): void
+    {
         $user = Auth::user();
         view('proposals.index', [
-            'proposals' => \App\Support\ProposalRegistry::rows($this->registryProposals($user), fn (array $p): bool => $this->canApprove($p)),
+            'proposals' => \App\Support\ProposalRegistry::rows($this->registryProposals($user, $kind), fn (array $p): bool => $this->canApprove($p)),
             'currentUserId' => (int) $user['id'],
+            'registryKind' => $kind,
         ]);
     }
 
     /** CSV of the registry with the page's current filters (VPRIDE and RIDE reporters). */
     public function exportRegistry(): void
     {
-        if (!AccessControl::isVpride() && !Auth::hasRole('ride_reporter')) {
+        if (!AccessControl::isVpride()) {
             http_response_code(403);
             view('errors.403');
             return;
         }
         $user = Auth::user();
+        $kind = in_array((string) ($_GET['kind'] ?? ''), \App\Support\ProposalRegistry::KINDS, true) ? (string) $_GET['kind'] : 'proposal';
         $filters = [
             'tab' => array_key_exists((string) ($_GET['tab'] ?? ''), \App\Support\ProposalRegistry::TABS) ? (string) $_GET['tab'] : 'all',
             'form' => trim((string) ($_GET['form'] ?? '')),
@@ -42,34 +61,23 @@ final class ProposalController
             'q' => trim((string) ($_GET['q'] ?? '')),
         ];
         $rows = array_values(array_filter(
-            \App\Support\ProposalRegistry::rows($this->registryProposals($user), fn (array $p): bool => $this->canApprove($p)),
+            \App\Support\ProposalRegistry::rows($this->registryProposals($user, $kind), fn (array $p): bool => $this->canApprove($p)),
             static fn (array $row): bool => \App\Support\ProposalRegistry::matches($row, $filters)
         ));
         $csv = \App\Support\ProposalRegistry::csv($rows);
         header('Content-Type: text/csv; charset=UTF-8');
-        header('Content-Disposition: attachment; filename="proposals-' . date('Y-m-d') . '.csv"');
+        header('Content-Disposition: attachment; filename="' . $kind . 's-' . date('Y-m-d') . '.csv"');
         header('Content-Length: ' . strlen($csv));
         header('Cache-Control: private, no-store');
         echo $csv;
     }
 
-    /** @return list<array<string, mixed>> proposals the registry lists for the viewer */
-    private function registryProposals(array $user): array
+    /** @return list<array<string, mixed>> records of one kind (proposal, request, report) the viewer can see */
+    private function registryProposals(array $user, string $kind = 'proposal'): array
     {
         return array_values(array_filter(
             $this->visibleProposalsForCurrentUser($user),
-            static function (array $proposal): bool {
-                if (proposal_is_terminal_report_assessment_form($proposal)) {
-                    return false;
-                }
-
-                if (!proposal_is_terminal_report($proposal)) {
-                    return true;
-                }
-
-                $directorApproval = Proposal::approvalAtStep((int) ($proposal['id'] ?? 0), AccessControl::DIRECTOR_RESEARCH);
-                return $directorApproval === null;
-            }
+            static fn (array $proposal): bool => \App\Support\ProposalRegistry::kindOf($proposal) === $kind
         ));
     }
 
@@ -392,7 +400,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedCompletedResearchesInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -459,7 +467,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedOngoingResearchesInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -526,7 +534,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedResearchOutputPublishedInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -593,7 +601,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedResearchOutputPresentedInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -660,7 +668,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedCommercializedInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -727,7 +735,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedResultedInExtensionInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -794,7 +802,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedJournalCitationInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1135,7 +1143,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedInventionsUmCopyrightsInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1163,7 +1171,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedLinkagesInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1191,7 +1199,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedTrainingsConductedInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1228,7 +1236,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedTechnicalAdvisoryInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1265,7 +1273,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedExtensionLinkagesInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1302,7 +1310,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedOutreachActivitiesInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1339,7 +1347,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedTechnologyAdoptionInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1376,7 +1384,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedConsolidatedCompletedResearchesInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1404,7 +1412,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedConsolidatedOngoingResearchesInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         if ($data['college_id'] === 0 && AccessControl::isVpride()) {
             $data['college_id'] = \App\Services\OngoingResearchesConsolidation::containerCollegeId();
         }
@@ -1435,7 +1443,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedConsolidatedResearchOutputPublishedInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1463,7 +1471,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedConsolidatedResearchOutputPresentedInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1491,7 +1499,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedProgressReportInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1519,7 +1527,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedTerminalReportInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1547,7 +1555,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedTerminalReportAssessmentFormInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -1975,7 +1983,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedBookCitationInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0) {
@@ -2023,7 +2031,7 @@ final class ProposalController
         $user = Auth::user();
         $data = $this->validatedInput();
         $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (int) ($user['college_id'] ?? $_POST['college_id'] ?? 0);
+        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
         $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
 
         if ($data['college_id'] === 0 || $data['title'] === '') {
@@ -2760,7 +2768,7 @@ final class ProposalController
         $reportType = proposal_form_type($proposal);
         if (\App\Support\ExtensionActivityTypes::get($reportType) !== null) {
             $savedSummary = json_decode((string) ($proposal['summary'] ?? ''), true);
-            $generatedVars = $this->conductedActivitiesPrefill($reportType, Auth::user(), (string) (is_array($savedSummary) ? ($savedSummary['reporting_period'] ?? '') : ''));
+            $generatedVars = $this->conductedActivitiesPrefill($reportType, Auth::user(), (string) (is_array($savedSummary) ? ($savedSummary['reporting_period'] ?? '') : ''), (int) ($proposal['college_id'] ?? 0));
             $proposal['summary'] = self::summaryWithGeneratedRows((string) ($proposal['summary'] ?? ''), $generatedVars['prefillSummary'] ?? null, $reportType);
         }
 
@@ -3259,6 +3267,25 @@ final class ProposalController
         if ($action === 'return' && trim($comment) === '') {
             set_flash('error', 'Please provide comments when returning for revision.');
             redirect('proposals/' . $id);
+        }
+        if ($action === 'approve') {
+            // Forms with a reviewer section (the incentive requests): the reviewer's entries are saved with the approval.
+            $requestType = \App\Support\ResearchRequestForms::typeOf($proposal);
+            $step = (string) ($proposal['current_step'] ?? '');
+            $reviewFields = $requestType !== null ? \App\Support\ResearchRequestForms::reviewFields($requestType, $step) : [];
+            if ($reviewFields !== []) {
+                [$review, $reviewErrors] = \App\Support\ResearchRequestForms::validatedReview($reviewFields, $_POST['review'] ?? null);
+                if ($reviewErrors !== []) {
+                    $_SESSION['_old_review'] = $_POST['review'] ?? [];
+                    set_flash('error', implode(' ', $reviewErrors));
+                    redirect('proposals/' . $id);
+                }
+                unset($_SESSION['_old_review']);
+                $summary = json_decode((string) ($proposal['summary'] ?? ''), true);
+                $summary = is_array($summary) ? $summary : [];
+                $summary['reviews'][$step] = $review;
+                Proposal::updateSummaryCoauthorsOnly($id, (string) json_encode($summary, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            }
         }
         Proposal::advanceWorkflow($id, $action, (int) Auth::user()['id'], $comment);
         AuditLog::record('proposal', $id, $action);
@@ -5737,9 +5764,6 @@ final class ProposalController
         if (AccessControl::isVpride() || Auth::hasRole('ride_admin')) {
             return $proposal;
         }
-        if (Auth::hasRole('ride_reporter')) {
-            return $proposal;
-        }
         if ((int) $proposal['user_id'] === (int) $user['id']) {
             return $proposal;
         }
@@ -5751,15 +5775,7 @@ final class ProposalController
             )) {
             return $proposal;
         }
-        if (AccessControl::proposalScopeType() !== null) {
-            if (AccessControl::canViewProposal($proposal)) {
-                return $proposal;
-            }
-            http_response_code(403);
-            view('errors.403');
-            return null;
-        }
-        if (Auth::hasRole('coordinator_research', 'coordinator_extension', 'dean') && (int) $user['college_id'] === (int) $proposal['college_id']) {
+        if (AccessControl::canViewProposal($proposal)) {
             return $proposal;
         }
         http_response_code(403);
@@ -5788,19 +5804,11 @@ final class ProposalController
         if (!in_array($proposal['status'], ['submitted', 'under_review'], true)) {
             return false;
         }
-        if (!AccessControl::canViewProposal($proposal)) {
+        // Nobody approves their own record; otherwise the step's role holder within scope does.
+        if ((int) ($proposal['user_id'] ?? 0) === (int) (Auth::user()['id'] ?? 0) || !AccessControl::canViewProposal($proposal)) {
             return false;
         }
-        $step = $proposal['current_step'] ?? '';
-        return match ($step) {
-            AccessControl::COORDINATOR_RESEARCH => AccessControl::isCoordinatorResearch(),
-            AccessControl::COORDINATOR_EXTENSION => AccessControl::isCoordinatorExtension(),
-            AccessControl::DEAN => Auth::hasRole('dean'),
-            AccessControl::DIRECTOR_RESEARCH => AccessControl::isDirectorResearch(),
-            AccessControl::DIRECTOR_EXTENSION => AccessControl::isDirectorExtension(),
-            AccessControl::VPRIDE => AccessControl::isVpride(),
-            default => false,
-        };
+        return AccessControl::holdsStep((string) ($proposal['current_step'] ?? ''));
     }
 
     private function allowCompletedResearchesAccess(): bool
@@ -6034,31 +6042,26 @@ final class ProposalController
         return false;
     }
 
-    /** @param array<string, mixed> $user */
+    /**
+     * Records the user can see: their oversight scope (AccessControl::visibleProposals()) plus their own and
+     * the ones they co-author.
+     *
+     * @param array<string, mixed> $user
+     */
     private function visibleProposalsForCurrentUser(array $user): array
     {
-        $scopeType = AccessControl::proposalScopeType();
-        if (AccessControl::isVpride() || Auth::hasRole('ride_reporter')) {
-            return $scopeType !== null ? Proposal::all(null, $scopeType) : Proposal::all();
+        $rows = [];
+        foreach (AccessControl::visibleProposals() as $proposal) {
+            $rows[(int) $proposal['id']] = $proposal;
         }
-        if (AccessControl::isCoordinatorResearch() || AccessControl::isCoordinatorExtension() || AccessControl::isExtensionWorker()) {
-            if (!($user['college_id'] ?? null)) {
-                return [];
+        if (Auth::hasRole('faculty')) {
+            foreach (Proposal::forUser((int) ($user['id'] ?? 0)) as $proposal) {
+                $rows[(int) $proposal['id']] ??= $proposal;
             }
+        }
+        krsort($rows);
 
-            return array_values(array_filter(
-                Proposal::forCollege((int) $user['college_id']),
-                static fn (array $proposal): bool => (string) ($proposal['project_type'] ?? '') === $scopeType
-            ));
-        }
-        if ($scopeType !== null) {
-            return Proposal::all(null, $scopeType);
-        }
-        if (Auth::hasRole('dean') && ($user['college_id'] ?? null)) {
-            return Proposal::forCollege((int) $user['college_id']);
-        }
-
-        return Proposal::forUser((int) ($user['id'] ?? 0));
+        return array_values($rows);
     }
 
     private function allowObrMatrixAccess(): bool
@@ -6135,7 +6138,8 @@ final class ProposalController
         }
         $scope = \App\Controllers\ExtensionActivityController::reportScope(
             Auth::user() ?? [],
-            \App\Support\ExtensionActivityTypes::officeOf($formType)
+            \App\Support\ExtensionActivityTypes::officeOf($formType),
+            $existingProposal !== null ? (int) ($existingProposal['college_id'] ?? 0) : null
         );
         $generated = \App\Models\ExtensionActivity::reportSummary($formType, $period, $scope)['summary'];
         foreach ($definition['sections'] as $section) {
@@ -6187,7 +6191,7 @@ final class ProposalController
         $ref = $value;
         unset($ref);
     }
-    private function conductedActivitiesPrefill(string $formType, ?array $user, string $savedPeriod = ''): array
+    private function conductedActivitiesPrefill(string $formType, ?array $user, string $savedPeriod = '', ?int $collegeId = null): array
     {
         $period = '';
         if (\App\Support\FacultyFormDeadlines::locksFacultyReportingPeriod($formType)) {
@@ -6207,7 +6211,8 @@ final class ProposalController
 
         $scope = \App\Controllers\ExtensionActivityController::reportScope(
             $user ?? [],
-            \App\Support\ExtensionActivityTypes::officeOf($formType)
+            \App\Support\ExtensionActivityTypes::officeOf($formType),
+            $collegeId
         );
         $generated = \App\Models\ExtensionActivity::reportSummary($formType, $period, $scope);
 
@@ -6222,7 +6227,8 @@ final class ProposalController
 
     private function collegeNameForUser(array $user): string
     {
-        $collegeId = (int) ($user['college_id'] ?? 0);
+        // For a RIDE coordinator: the college of their cluster the report is being prepared for.
+        $collegeId = quarterly_report_college_id($user);
         if ($collegeId === 0) {
             return '';
         }

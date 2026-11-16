@@ -36,34 +36,30 @@ $activity = is_array($monthlyActivity ?? null) ? $monthlyActivity : ['labels' =>
     <?php require APP_PATH . '/views/dashboard/_coauthor-invitations.php'; ?>
 
     <div class="fd-actions">
-        <a class="fd-action" href="<?= base_url('proposals/create' . proposal_nav_scope_query('research')) ?>">
-            <strong>New research proposal</strong><span>Research and Development</span>
-        </a>
-        <a class="fd-action" href="<?= base_url('proposals/create' . proposal_nav_scope_query('extension')) ?>">
-            <strong>New extension proposal</strong><span>Extension Services</span>
-        </a>
-        <a class="fd-action" href="<?= base_url('scholarly') ?>">
-            <strong>Record a publication</strong><span>Papers and presentations</span>
-        </a>
-        <a class="fd-action" href="<?= base_url('forms') ?>">
-            <strong>Downloadable forms</strong><span>Templates to fill out</span>
-        </a>
+        <?= dashboard_action(base_url('proposals/create' . proposal_nav_scope_query('research')), 'fa-flask', 'New research proposal', 'Research and Development') ?>
+        <?= dashboard_action(base_url('proposals/create' . proposal_nav_scope_query('extension')), 'fa-handshake-angle', 'New extension proposal', 'Extension Services') ?>
+        <?= dashboard_action(base_url('scholarly'), 'fa-graduation-cap', 'Record a publication', 'Papers and presentations') ?>
+        <?= dashboard_action(base_url('forms'), 'fa-file-arrow-down', 'Downloadable forms', 'Templates to fill out') ?>
     </div>
 
     <div class="fd-stats">
         <a class="fd-stat<?= $attentionCount > 0 ? ' fd-stat--alert' : '' ?>" href="#fd-attention">
+            <?= dashboard_stat_icon('fa-bell') ?>
             <span class="fd-stat-value"><?= $attentionCount ?></span>
             <span class="fd-stat-label">Need your attention</span>
         </a>
         <a class="fd-stat" href="#fd-in-review">
+            <?= dashboard_stat_icon('fa-hourglass-half') ?>
             <span class="fd-stat-value"><?= count($inReview) ?></span>
             <span class="fd-stat-label">Proposals in review</span>
         </a>
         <a class="fd-stat" href="<?= base_url('projects') ?>">
+            <?= dashboard_stat_icon('fa-diagram-project') ?>
             <span class="fd-stat-value"><?= count($ongoingProjects) ?></span>
             <span class="fd-stat-label">Ongoing projects</span>
         </a>
         <a class="fd-stat" href="<?= base_url('scholarly') ?>">
+            <?= dashboard_stat_icon('fa-book-open') ?>
             <span class="fd-stat-value"><?= $publicationCount ?></span>
             <span class="fd-stat-label">Publications recorded</span>
         </a>

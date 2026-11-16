@@ -13,7 +13,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
     <script>document.documentElement.classList.add('ride-preload'); try { if (localStorage.getItem('ride:sidebar-collapsed') === '1') { document.documentElement.classList.add('sidebar-collapsed'); } } catch (e) {}</script>
     <?php endif; ?>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <?php if (!$isAuthStandalone): ?>
     <?php
     $appCssPath = BASE_PATH . '/public/assets/css/app.css';
@@ -41,74 +41,47 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
     <div class="app-wrapper">
         <aside class="sidebar" id="app-sidebar">
             <div class="sidebar-header">
-                <div class="logo-area">
-                    <div class="logo-icon">
-                        <img src="<?= base_url('assets/images/ride-logo.png') ?>" alt="RIDE - Research, Innovation, Development and Extension" width="40" height="40">
-                    </div>
-                    <div class="logo-text">
-                        <h2>RIDE Hub</h2>
-                        <span>Information Management System for RIDE</span>
-                    </div>
-                </div>
+                <a class="sidebar-brand" href="<?= base_url('dashboard') ?>">
+                    <span class="sidebar-brand-name">RIDE Hub</span>
+                    <span class="sidebar-brand-tagline">Information Management System for RIDE</span>
+                </a>
                 <button type="button" class="sidebar-toggle" id="sidebar-toggle" aria-controls="app-sidebar" aria-expanded="true" title="Collapse sidebar">
-                    <i class="fas fa-angle-double-left" aria-hidden="true"></i><span class="sr-only">Collapse sidebar</span>
+                    <i class="fa-solid fa-angles-left" aria-hidden="true"></i><span class="sr-only">Collapse sidebar</span>
                 </button>
             </div>
-            <nav class="nav-menu">
+            <nav class="nav-menu" aria-label="Main">
                 <?php $isVprideAccount = \App\Support\AccessControl::isVpride(); ?>
                 <a href="<?= base_url('dashboard') ?>" class="nav-item<?= nav_active('dashboard') ? ' active' : '' ?>">
-                    <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+                    <i class="fa-solid fa-gauge-high" aria-hidden="true"></i><span>Dashboard</span>
                 </a>
                 <?php if ($isVprideAccount): ?>
                 <div class="nav-section">
-                    <div class="nav-section-label">Research &amp; Extension</div>
+                    <div class="nav-section-label">Workspace</div>
                     <a href="<?= base_url('proposals') ?>" class="nav-item<?= nav_active('proposals') && !nav_active('proposals/create') ? ' active' : '' ?>">
-                        <i class="fas fa-file-alt"></i> <span>Proposals</span>
+                        <i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>Proposals</span>
+                    </a>
+                    <a href="<?= base_url('requests') ?>" class="nav-item<?= request_path() === 'requests' ? ' active' : '' ?>">
+                        <i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i><span>Requests</span>
+                    </a>
+                    <a href="<?= base_url('reports') ?>" class="nav-item<?= request_path() === 'reports' ? ' active' : '' ?>">
+                        <i class="fa-solid fa-file-contract" aria-hidden="true"></i><span>Reports</span>
                     </a>
                     <a href="<?= base_url('projects') ?>" class="nav-item<?= nav_active('projects') ? ' active' : '' ?>">
-                        <i class="fas fa-project-diagram"></i> <span>Projects</span>
+                        <i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span>
                     </a>
-                    <a href="<?= base_url('reports/extension-beneficiaries') ?>" class="nav-item<?= nav_active('reports') ? ' active' : '' ?>">
-                        <i class="fas fa-chart-pie"></i> <span>Reports</span>
+                    <a href="<?= base_url('reports/extension-beneficiaries') ?>" class="nav-item<?= nav_active('reports/extension-beneficiaries') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i><span>Beneficiaries Report</span>
                     </a>
-                    <a href="<?= base_url('forms') ?>" class="nav-item<?= nav_active('forms') ? ' active' : '' ?>">
-                        <i class="fas fa-file-download"></i> <span>Downloadable Forms</span>
+                    <?php if (\App\Support\AccessControl::isAdmin()): ?>
+                    <a href="<?= base_url('activities') ?>" class="nav-item<?= nav_active('activities') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i><span>Conducted Activities</span>
                     </a>
-                    <a href="<?= base_url('faculty-directory') ?>" class="nav-item<?= nav_active('faculty-directory') ? ' active' : '' ?>">
-                        <i class="fas fa-address-book"></i> <span>Faculty Directory</span>
-                    </a>
-                </div>
-                <div class="nav-section">
-                    <div class="nav-section-label">Settings</div>
-                    <?php if (\App\Support\FacultyFormDeadlines::canManage()): ?>
-                    <a href="<?= base_url('settings/faculty-deadlines') ?>" class="nav-item<?= nav_active('settings/faculty-deadlines') ? ' active' : '' ?>">
-                        <i class="fas fa-calendar-check"></i> <span>Form Deadlines</span>
+                    <a href="<?= base_url('research-accomplishments') ?>" class="nav-item<?= nav_active('research-accomplishments') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-trophy" aria-hidden="true"></i><span>Research Accomplishments</span>
                     </a>
                     <?php endif; ?>
                 </div>
                 <?php else: ?>
-                <?php if (\App\Support\FacultyFormDeadlines::canManage()): ?>
-                <a href="<?= base_url('settings/faculty-deadlines') ?>" class="nav-item<?= nav_active('settings/faculty-deadlines') ? ' active' : '' ?>">
-                    <i class="fas fa-calendar-check"></i> <span>Form Deadlines</span>
-                </a>
-                <?php endif; ?>
-                <a href="<?= base_url('proposals') ?>" class="nav-item<?= nav_active('proposals') && !nav_active('proposals/create') ? ' active' : '' ?>">
-                    <i class="fas fa-file-alt"></i> <span>Proposals</span>
-                </a>
-                <a href="<?= base_url('projects') ?>" class="nav-item<?= nav_active('projects') ? ' active' : '' ?>">
-                    <i class="fas fa-project-diagram"></i> <span>Projects</span>
-                </a>
-                <?php if (\App\Support\AccessControl::canEnterConductedActivities() && !conducted_activities_in_extension_nav()): ?>
-                <a href="<?= base_url('activities') ?>" class="nav-item<?= nav_active('activities') ? ' active' : '' ?>">
-                    <i class="fas fa-clipboard-list"></i> <span>Conducted Activities</span>
-                </a>
-                <?php endif; ?>
-                <a href="<?= base_url('forms') ?>" class="nav-item<?= nav_active('forms') ? ' active' : '' ?>">
-                    <i class="fas fa-file-download"></i> <span>Downloadable Forms</span>
-                </a>
-                <a href="<?= base_url('faculty-directory') ?>" class="nav-item<?= nav_active('faculty-directory') ? ' active' : '' ?>">
-                    <i class="fas fa-address-book"></i> <span>Faculty Directory</span>
-                </a>
                 <?php
                 $newProposalActive = nav_active('proposals/create');
                 $completedResearchesNavActive = nav_active('quarterly-reports/completed-researches') || nav_active('proposals/create/completed-researches');
@@ -220,20 +193,11 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 $showTechnologyAdoptionNav = \App\Support\AccessControl::canAccessTechnologyAdoption();
                 $showResearchProposalNav = !\App\Support\AccessControl::isVpride()
                     && !$hideDirectorResearchFormNav;
-                if (\App\Support\AccessControl::isCoordinatorResearch()) {
-                    // The R&D Coordinator prepares the quarterly reports themselves (generated from Research
-                    // Accomplishments), so the Consolidated versions are no longer offered to them.
-                    $showConsolidatedCompletedResearchesNav = $showConsolidatedOngoingResearchesNav = false;
-                    $showConsolidatedResearchOutputPublishedNav = $showConsolidatedResearchOutputPresentedNav = false;
-                    $showConsolidatedCommercializedNav = $showConsolidatedResultedInExtensionNav = false;
-                    $showConsolidatedJournalCitationNav = $showConsolidatedBookCitationNav = false;
-                    $showConsolidatedInventionsUmCopyrightsNav = $showConsolidatedLinkagesNav = false;
-                }
                 $showResearchAccomplishmentsNav = $showResearchProposalNav
                     && \App\Support\AccessControl::canEnterResearchAccomplishments();
                 $researchAccomplishmentsNavActive = $showResearchAccomplishmentsNav && nav_active('research-accomplishments');
-                $hideCoordinatorProposalIntroNav = \App\Support\AccessControl::isCoordinator()
-                    && !\App\Support\AccessControl::isCoordinatorExtension();
+                // RIDE coordinators review and prepare reports; they do not file proposals.
+                $hideCoordinatorProposalIntroNav = \App\Support\AccessControl::isRideCoordinator();
                 $terminalReportNavGroupActive = $hasDualProposalMenu
                     ? proposal_nav_scoped_active(
                         $progressReportNavActive || $terminalReportNavActive || $terminalReportAssessmentFormNavActive,
@@ -242,11 +206,7 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     : ($terminalReportNavActive || $terminalReportAssessmentFormNavActive);
                 $showConductedActivitiesNav = conducted_activities_in_extension_nav();
                 $conductedActivitiesNavActive = $showConductedActivitiesNav && nav_active('activities');
-                $researchMenuScope = (\App\Support\AccessControl::isCoordinatorExtension()
-                    || \App\Support\AccessControl::isDirectorExtension()
-                    || \App\Support\AccessControl::isExtensionWorker())
-                    ? 'extension'
-                    : 'research';
+                $researchMenuScope = \App\Support\AccessControl::proposalScopeType() === 'extension' ? 'extension' : 'research';
                 // Progress, Terminal and Terminal Report Assessment are research (VPRDE) forms: they sit in the research menu.
                 $projectReportsInResearchMenu = $showTerminalReportNav && $showResearchProposalNav && $researchMenuScope === 'research';
                 $researchProposalNavActive = ($hasDualProposalMenu
@@ -257,12 +217,43 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 $researchExtensionNavActive = $hasDualProposalMenu
                     && (proposal_nav_scoped_active($proposalNavItemsActive, 'extension') || $conductedActivitiesNavActive);
                 ?>
+                <div class="nav-section">
+                    <div class="nav-section-label">Workspace</div>
+                    <a href="<?= base_url('proposals') ?>" class="nav-item<?= nav_active('proposals') && !nav_active('proposals/create') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-file-lines" aria-hidden="true"></i><span>Proposals</span>
+                    </a>
+                    <?php if (\App\Support\AccessControl::canFileResearchRequests() || \App\Support\AccessControl::isRideCoordinatorResearch()
+                        || \App\Support\AccessControl::isDirectorResearch()): ?>
+                    <a href="<?= base_url('requests') ?>" class="nav-item<?= request_path() === 'requests' ? ' active' : '' ?>">
+                        <i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i><span>Requests</span>
+                    </a>
+                    <?php endif; ?>
+                    <a href="<?= base_url('reports') ?>" class="nav-item<?= request_path() === 'reports' ? ' active' : '' ?>">
+                        <i class="fa-solid fa-file-contract" aria-hidden="true"></i><span>Reports</span>
+                    </a>
+                    <a href="<?= base_url('projects') ?>" class="nav-item<?= nav_active('projects') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Projects</span>
+                    </a>
+                    <?php if (\App\Support\AccessControl::canEnterConductedActivities() && !conducted_activities_in_extension_nav()): ?>
+                    <a href="<?= base_url('activities') ?>" class="nav-item<?= nav_active('activities') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i><span>Conducted Activities</span>
+                    </a>
+                    <?php endif; ?>
+                    <?php if (\App\Support\AccessControl::isDirectorExtension()): ?>
+                    <a href="<?= base_url('reports/extension-beneficiaries') ?>" class="nav-item<?= nav_active('reports/extension-beneficiaries') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i><span>Beneficiaries Report</span>
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <?php if ($showResearchProposalNav || $showTerminalReportNav): ?>
+                <div class="nav-section">
+                    <div class="nav-section-label">RIDE</div>
                 <?php if ($showResearchProposalNav): ?>
                 <div class="nav-group nav-group-collapsible" id="research-proposal-nav" data-nav-collapsible>
                     <button type="button" class="nav-item nav-item-toggle<?= $researchProposalNavActive ? ' active' : '' ?>" id="research-proposal-nav-toggle" aria-expanded="true" aria-controls="research-proposal-submenu">
-                        <i class="fas fa-plus-circle" aria-hidden="true"></i>
+                        <i class="fa-solid <?= $researchMenuScope === 'extension' ? 'fa-handshake-angle' : 'fa-flask' ?>" aria-hidden="true"></i>
                         <span><?= htmlspecialchars(proposal_nav_group_label()) ?></span>
-                        <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
+                        <i class="fa-solid fa-chevron-down nav-chevron" aria-hidden="true"></i>
                     </button>
                     <div class="nav-submenu" id="research-proposal-submenu">
                     <?php
@@ -272,8 +263,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     <?php if ($projectReportsInResearchMenu): ?>
                     <div class="nav-subgroup<?= $terminalReportNavGroupActive ? ' has-active' : '' ?>" id="project-reports-nav" data-nav-subgroup>
                         <button type="button" class="nav-subitem nav-subgroup-toggle<?= $terminalReportNavGroupActive ? ' is-current' : '' ?>" aria-expanded="true" aria-controls="project-reports-subitems">
+                            <i class="fa-solid fa-folder-open nav-subicon" aria-hidden="true"></i>
                             <span>Project Reports</span>
-                            <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
+                            <i class="fa-solid fa-chevron-down nav-chevron" aria-hidden="true"></i>
                         </button>
                         <div class="nav-subgroup-items" id="project-reports-subitems">
                         <?php
@@ -289,9 +281,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <?php if ($hasDualProposalMenu && $showResearchProposalNav): ?>
                 <div class="nav-group nav-group-collapsible" id="research-extension-nav" data-nav-collapsible>
                     <button type="button" class="nav-item nav-item-toggle<?= $researchExtensionNavActive ? ' active' : '' ?>" id="research-extension-nav-toggle" aria-expanded="true" aria-controls="research-extension-submenu">
-                        <i class="fas fa-hands-helping" aria-hidden="true"></i>
+                        <i class="fa-solid fa-handshake-angle" aria-hidden="true"></i>
                         <span>Extension Services</span>
-                        <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
+                        <i class="fa-solid fa-chevron-down nav-chevron" aria-hidden="true"></i>
                     </button>
                     <div class="nav-submenu" id="research-extension-submenu">
                     <?php
@@ -304,9 +296,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <?php if ($showTerminalReportNav && !$projectReportsInResearchMenu): ?>
                 <div class="nav-group nav-group-collapsible" id="terminal-report-nav" data-nav-collapsible>
                     <button type="button" class="nav-item nav-item-toggle<?= $terminalReportNavGroupActive ? ' active' : '' ?>" id="terminal-report-nav-toggle" aria-expanded="true" aria-controls="terminal-report-submenu">
-                        <i class="fas fa-clipboard-check" aria-hidden="true"></i>
+                        <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
                         <span>Terminal Report</span>
-                        <i class="fas fa-chevron-down nav-chevron" aria-hidden="true"></i>
+                        <i class="fa-solid fa-chevron-down nav-chevron" aria-hidden="true"></i>
                     </button>
                     <div class="nav-submenu" id="terminal-report-submenu">
                     <?php
@@ -316,64 +308,70 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                     </div>
                 </div>
                 <?php endif; ?>
-                <?php if ((\App\Core\Auth::hasRole('ride_reporter') || \App\Support\AccessControl::isDirectorExtension()) && !$isVprideAccount): ?>
-                    <a href="<?= base_url('reports/extension-beneficiaries') ?>" class="nav-item<?= nav_active('reports') ? ' active' : '' ?>">
-                        <i class="fas fa-chart-pie"></i> <span>Reports</span>
+                </div>
+                <?php endif; ?>
+                <?php endif; ?>
+                <div class="nav-section">
+                    <div class="nav-section-label">Resources</div>
+                    <a href="<?= base_url('forms') ?>" class="nav-item<?= nav_active('forms') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span>Downloadable Forms</span>
                     </a>
-                <?php endif; ?>
-                <?php endif; ?>
-                <?php if (\App\Core\Auth::hasRole('ride_admin')): ?>
+                    <a href="<?= base_url('faculty-directory') ?>" class="nav-item<?= nav_active('faculty-directory') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-address-book" aria-hidden="true"></i><span>Faculty Directory</span>
+                    </a>
+                    <?php if (\App\Core\Auth::hasRole('faculty')): ?>
+                    <a href="<?= base_url('scholarly') ?>" class="nav-item<?= nav_active('scholarly') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>My Scholarly Output</span>
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <?php $canManageDeadlines = \App\Support\FacultyFormDeadlines::canManage(); ?>
+                <?php if ($canManageDeadlines || \App\Core\Auth::hasRole('ride_admin')): ?>
+                <div class="nav-section">
+                    <div class="nav-section-label">Administration</div>
+                    <?php if ($canManageDeadlines): ?>
+                    <a href="<?= base_url('settings/faculty-deadlines') ?>" class="nav-item<?= nav_active('settings/faculty-deadlines') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-calendar-check" aria-hidden="true"></i><span>Form Deadlines</span>
+                    </a>
+                    <?php endif; ?>
+                    <?php if (\App\Core\Auth::hasRole('ride_admin')): ?>
                     <a href="<?= base_url('admin/accounts') ?>" class="nav-item<?= nav_active('admin/accounts') ? ' active' : '' ?>">
-                        <i class="fas fa-users"></i> <span>Accounts</span>
+                        <i class="fa-solid fa-users-gear" aria-hidden="true"></i><span>Accounts</span>
                     </a>
                     <a href="<?= base_url('admin/programs') ?>" class="nav-item<?= nav_active('admin/programs') ? ' active' : '' ?>">
-                        <i class="fas fa-sitemap"></i> <span>Programs</span>
+                        <i class="fa-solid fa-sitemap" aria-hidden="true"></i><span>Programs</span>
                     </a>
                     <a href="<?= base_url('admin/scholarly') ?>" class="nav-item<?= nav_active('admin/scholarly') ? ' active' : '' ?>">
-                        <i class="fas fa-book-open"></i> <span>Faculty Papers</span>
-                    </a>
-                    <a href="<?= base_url('admin/public-site') ?>" class="nav-item<?= nav_active('admin/public-site') ? ' active' : '' ?>">
-                        <i class="fas fa-globe"></i> <span>Public Site</span>
-                    </a>
-                    <a href="<?= base_url('admin/highlights') ?>" class="nav-item<?= nav_active('admin/highlights') ? ' active' : '' ?>">
-                        <i class="fas fa-images"></i> <span>Login Highlights</span>
+                        <i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Faculty Papers</span>
                     </a>
                     <a href="<?= base_url('admin/form-templates') ?>" class="nav-item<?= nav_active('admin/form-templates') ? ' active' : '' ?>">
-                        <i class="fas fa-file-upload"></i> <span>Form Templates</span>
+                        <i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><span>Form Templates</span>
                     </a>
-                <?php endif; ?>
-                <?php if (\App\Core\Auth::hasRole('faculty')): ?>
-                    <a href="<?= base_url('scholarly') ?>" class="nav-item<?= nav_active('scholarly') ? ' active' : '' ?>">
-                        <i class="fas fa-graduation-cap"></i> <span>My Scholarly Output</span>
+                    <a href="<?= base_url('admin/public-site') ?>" class="nav-item<?= nav_active('admin/public-site') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-globe" aria-hidden="true"></i><span>Manage Website Content</span>
                     </a>
-                <?php endif; ?>
-                <?php if (\App\Core\Auth::hasRole('ride_admin')): ?>
-                    <a href="<?= base_url('admin/accounts') ?>" class="nav-item">
-                        <i class="fas fa-user-shield"></i> <span>RIDE Administrator</span>
+                    <a href="<?= base_url('admin/highlights') ?>" class="nav-item<?= nav_active('admin/highlights') ? ' active' : '' ?>">
+                        <i class="fa-solid fa-images" aria-hidden="true"></i><span>Login Highlights</span>
                     </a>
+                    <?php endif; ?>
+                </div>
                 <?php endif; ?>
             </nav>
             <div class="sidebar-footer">
                 <a class="profile-mini" href="<?= base_url('profile') ?>" title="Account settings"<?= nav_active('profile') ? ' aria-current="page"' : '' ?>>
                     <?php $sidebarAvatarUrl = user_avatar_url($u); ?>
                     <?php if ($sidebarAvatarUrl !== null): ?>
-                        <img
-                            src="<?= htmlspecialchars($sidebarAvatarUrl) ?>"
-                            alt=""
-                            class="avatar avatar-image"
-                        >
+                        <img src="<?= htmlspecialchars($sidebarAvatarUrl) ?>" alt="" class="avatar avatar-image">
                     <?php else: ?>
                         <div class="avatar"><?= htmlspecialchars($initials) ?></div>
                     <?php endif; ?>
                     <div class="profile-info">
                         <p><?= htmlspecialchars($displayName) ?></p>
-                        <small><?= htmlspecialchars((string) $u['email']) ?></small>
-                        <span class="profile-link-hint">Account settings</span>
+                        <small><?= htmlspecialchars($roleLabel) ?></small>
                     </div>
-                    <i class="fas fa-chevron-right profile-chevron" aria-hidden="true"></i>
                 </a>
-                <a href="<?= base_url('logout') ?>" class="logout-btn" title="Logout">
-                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                <a href="<?= base_url('logout') ?>" class="logout-btn" title="Log out" aria-label="Log out">
+                    <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
                 </a>
             </div>
         </aside>
@@ -447,6 +445,9 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 <?php endif; ?>
                 <?php if ($msg = flash('error')): ?>
                     <div class="alert alert-error"><?= htmlspecialchars($msg) ?></div>
+                <?php endif; ?>
+                <?php if (request_path() === 'dashboard'): ?>
+                    <?php require APP_PATH . '/views/dashboard/_feature-search.php'; ?>
                 <?php endif; ?>
                 <?php if (isset($pageContent)): ?>
                     <?= $pageContent ?>

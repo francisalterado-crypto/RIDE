@@ -190,7 +190,9 @@ final class QuarterlyReportFile
 
         $college = trim((string) ($summary['college_name'] ?? $proposal['college_name'] ?? ''));
         if ($college !== '') {
-            $book->replaceInHeader('/COLLEGE OF\s*\.{2,}/i', mb_strtoupper($college));
+            // "COLLEGE OF ....." in most templates; ESO-06 has "COLLEGE OF" alone at the end of its header line.
+            $book->replaceInHeader('/COLLEGE OF(?:[ 	]*\.{2,}|[ 	]*(?=?
+|$))/i', mb_strtoupper($college));
         }
         $book->setCell($config['as_of'], 'As of ' . self::asOfText($summary));
 
@@ -231,6 +233,8 @@ final class QuarterlyReportFile
                 foreach ($table['columns'] as $col => $field) {
                     $book->setCell($col . $r, self::value($type, (string) $key, $field, $row));
                 }
+                // Long titles and names wrap instead of being cut off by the narrow columns.
+                $book->wrapRow($r, array_keys($table['columns']));
             }
         }
 
@@ -262,6 +266,8 @@ final class QuarterlyReportFile
         if ($dean !== '') {
             $book->setCell($moved($config['dean']), $dean);
         }
+
+        $book->fitToPageWidth();
 
         return $book->render();
     }

@@ -28,7 +28,7 @@ final class DashboardController
         $isFaculty = Auth::hasRole('faculty');
         $facultyTypes = ['research', 'extension'];
         $scopeType = AccessControl::proposalScopeType();
-        $all = AccessControl::isVpride() || Auth::hasRole('ride_reporter');
+        $all = AccessControl::isVpride();
         $collegeId = $user['college_id'] ? (int) $user['college_id'] : null;
         $splitDashboard = $scopeType === null && (
             $all
@@ -36,17 +36,15 @@ final class DashboardController
             || Auth::hasRole('dean')
         );
 
-        // Faculty without a monitoring role get a dashboard about their own work instead of workflow analytics.
-        $facultyOnly = $isFaculty && $scopeType === null && !$all && !Auth::hasRole('dean', 'ride_admin');
+        // Reviewers (college coordinator, dean, RIDE coordinator, director, OVPRIDE, admin) get an action-focused
+        // dashboard for their step and scope; College Coordinators are faculty too and see their own drafts there.
+        $reviewerContext = self::reviewerContext($user);
 
-        // Reviewers (coordinator, dean, director, VPRIDE) get an action-focused dashboard for their step and scope.
-        $reviewerContext = $facultyOnly ? null : self::reviewerContext($user);
-
-        // Extension workers record Conducted Activities; their dashboard is about those entries.
-        $workerOnly = !$facultyOnly && $reviewerContext === null && AccessControl::isExtensionWorker();
+        // Faculty without a review role get a dashboard about their own work.
+        $facultyOnly = $reviewerContext === null && $isFaculty;
 
         $dashboardSections = [];
-        if ($facultyOnly || $reviewerContext !== null || $workerOnly) {
+        if ($facultyOnly || $reviewerContext !== null) {
             // Built below, after the shared notices.
         } elseif ($splitDashboard) {
             foreach (['research', 'extension'] as $projectType) {
@@ -87,7 +85,7 @@ final class DashboardController
             ];
         }
 
-        $isOwnScoped = $isFaculty || AccessControl::isExtensionWorker();
+        $isOwnScoped = $facultyOnly;
         $overdueMilestones = Milestone::overdueForUser(
             $all ? null : ($collegeId && !$isOwnScoped ? $collegeId : null),
             $isOwnScoped ? (int) $user['id'] : null,
@@ -105,7 +103,7 @@ final class DashboardController
             : [];
 
         $facultyReportingNotice = null;
-        if ($isFaculty || AccessControl::isExtensionWorker() || AccessControl::isCoordinator()) {
+        if ($isFaculty || AccessControl::isRideCoordinator()) {
             $currentPeriod = QuarterlyReporting::currentPeriodKey();
             $facultyReportingNotice = [
                 'scheduleNotice' => FacultyFormDeadlines::scheduleNoticeText(),
@@ -125,15 +123,6 @@ final class DashboardController
                 'pendingCoAuthorInvitations' => $pendingCoAuthorInvitations,
                 'ownOverdueMilestones' => $isOwnScoped ? $overdueMilestones : [],
                 'ownOverdueReports' => $isOwnScoped ? $overdueReports : [],
-            ]));
-            return;
-        }
-
-        if ($workerOnly) {
-            view('dashboard.worker', array_merge(self::workerDashboardData((int) $user['id']), [
-                'user' => $user,
-                'globalMessage' => $globalMessage,
-                'facultyReportingNotice' => $facultyReportingNotice,
             ]));
             return;
         }
@@ -165,27 +154,43 @@ final class DashboardController
     /**
      * Which review step and scope the signed-in user works on, highest role first.
      *
-     * @return array{role: string, title: string, step: string, types: list<string>, collegeId: ?int}|null
+     * collegeIds: null for university-wide roles, one college for college roles, the cluster colleges for RIDE
+     * coordinators. collegeId is set only when the scope is a single college.
+     *
+     * @return array{role: string, title: string, step: string, types: list<string>, collegeId: ?int, collegeIds: ?list<int>}|null
      */
     private static function reviewerContext(array $user): ?array
     {
         $collegeId = (int) ($user['college_id'] ?? 0) ?: null;
-        $context = static fn (string $role, string $title, string $step, array $types, ?int $college): array => [
+        $context = static fn (string $role, string $title, string $step, array $types, ?int $college, ?array $colleges = null): array => [
             'role' => $role,
             'title' => $title,
             'step' => $step,
             'types' => $types,
             'collegeId' => $college,
+            'collegeIds' => $colleges ?? ($college !== null ? [$college] : null),
         ];
 
-        if (AccessControl::isVpride()) {
-            return $context('vpride', 'Vice President for RIDE', AccessControl::VPRIDE, ['research', 'extension'], null);
+        if (AccessControl::isAdmin()) {
+            // The Administrator sees everything but approves nothing: no queue.
+            return $context('vpride', 'Administrator', '', ['research', 'extension'], null);
+        }
+        if (AccessControl::isOvpride()) {
+            return $context('vpride', 'OVPRIDE', AccessControl::VPRIDE, ['research', 'extension'], null);
         }
         if (AccessControl::isDirectorResearch()) {
             return $context('director', 'RDO Director', AccessControl::DIRECTOR_RESEARCH, ['research'], null);
         }
         if (AccessControl::isDirectorExtension()) {
             return $context('director', 'ESO Director', AccessControl::DIRECTOR_EXTENSION, ['extension'], null);
+        }
+        if (AccessControl::isRideCoordinatorResearch()) {
+            $colleges = AccessControl::clusterCollegeIds('research');
+            return $context('ride', 'Research Coordinator (RDO)', AccessControl::RIDE_COORDINATOR_RESEARCH, ['research'], count($colleges) === 1 ? $colleges[0] : null, $colleges);
+        }
+        if (AccessControl::isRideCoordinatorExtension()) {
+            $colleges = AccessControl::clusterCollegeIds('extension');
+            return $context('ride', 'Field Extensionist (ESO)', AccessControl::RIDE_COORDINATOR_EXTENSION, ['extension'], count($colleges) === 1 ? $colleges[0] : null, $colleges);
         }
         if ($collegeId === null) {
             return null;
@@ -194,10 +199,10 @@ final class DashboardController
             return $context('dean', 'College Dean', AccessControl::DEAN, ['research', 'extension'], $collegeId);
         }
         if (AccessControl::isCoordinatorResearch()) {
-            return $context('coordinator', 'Research Coordinator', AccessControl::COORDINATOR_RESEARCH, ['research'], $collegeId);
+            return $context('coordinator', 'College Coordinator - Research', AccessControl::COORDINATOR_RESEARCH, ['research'], $collegeId);
         }
         if (AccessControl::isCoordinatorExtension()) {
-            return $context('coordinator', 'Field Extensionist', AccessControl::COORDINATOR_EXTENSION, ['extension'], $collegeId);
+            return $context('coordinator', 'College Coordinator - Extension', AccessControl::COORDINATOR_EXTENSION, ['extension'], $collegeId);
         }
 
         return null;
@@ -208,16 +213,30 @@ final class DashboardController
     {
         $types = $context['types'];
         $collegeId = $context['collegeId'];
+        $scopeColleges = $context['collegeIds'] ?? null;
         $singleType = count($types) === 1 ? $types[0] : null;
         $inScope = static fn (array $row): bool => in_array((string) ($row['project_type'] ?? ''), $types, true)
-            && ($collegeId === null || (int) ($row['college_id'] ?? 0) === $collegeId);
+            && ($scopeColleges === null || in_array((int) ($row['college_id'] ?? 0), $scopeColleges, true));
+        // Queries take one college or all; a cluster (several colleges) is queried for all and filtered.
+        $queryCollege = $scopeColleges === null ? null : (count($scopeColleges) === 1 ? $scopeColleges[0] : null);
 
         // Proposals waiting on this user, oldest first.
-        $queue = Proposal::pendingAtStep($context['step'], $collegeId, $singleType);
+        $queue = $context['step'] === '' || $scopeColleges === []
+            ? []
+            : array_values(array_filter(Proposal::pendingAtStep($context['step'], $queryCollege, $singleType), $inScope));
 
-        $stats = Proposal::monitoringStats($collegeId, $singleType);
-        $byStatus = $stats['by_status'] ?? [];
-        $pendingByStep = $stats['pending_by_step'] ?? [];
+        // Status counts, summed over the colleges in scope.
+        $byStatus = [];
+        $pendingByStep = [];
+        foreach ($scopeColleges === null ? [null] : $scopeColleges as $statsCollege) {
+            $stats = Proposal::monitoringStats($statsCollege, $singleType);
+            foreach ($stats['by_status'] ?? [] as $key => $count) {
+                $byStatus[$key] = ($byStatus[$key] ?? 0) + (int) $count;
+            }
+            foreach ($stats['pending_by_step'] ?? [] as $key => $count) {
+                $pendingByStep[$key] = ($pendingByStep[$key] ?? 0) + (int) $count;
+            }
+        }
 
         // Pipeline: how many proposals sit at each review step, in workflow order.
         $stepOrder = [];
@@ -226,16 +245,21 @@ final class DashboardController
         }
         $stepOrder[] = AccessControl::DEAN;
         foreach ($types as $type) {
+            $stepOrder[] = AccessControl::rideCoordinatorStepForType($type);
+        }
+        foreach ($types as $type) {
             $stepOrder[] = AccessControl::directorStepForType($type);
         }
         $stepOrder[] = AccessControl::VPRIDE;
         $shortStepLabels = [
-            AccessControl::COORDINATOR_RESEARCH => 'Research Coordinator',
-            AccessControl::COORDINATOR_EXTENSION => 'Field Extensionist',
+            AccessControl::COORDINATOR_RESEARCH => 'College Coordinator - Research',
+            AccessControl::COORDINATOR_EXTENSION => 'College Coordinator - Extension',
             AccessControl::DEAN => 'College Dean',
+            AccessControl::RIDE_COORDINATOR_RESEARCH => 'Research Coordinator (RDO)',
+            AccessControl::RIDE_COORDINATOR_EXTENSION => 'Field Extensionist (ESO)',
             AccessControl::DIRECTOR_RESEARCH => 'RDO Director',
             AccessControl::DIRECTOR_EXTENSION => 'ESO Director',
-            AccessControl::VPRIDE => 'VPRIDE',
+            AccessControl::VPRIDE => 'OVPRIDE',
         ];
         $pipeline = [];
         foreach ($stepOrder as $step) {
@@ -246,15 +270,16 @@ final class DashboardController
             ];
         }
 
-        $ongoing = array_values(array_filter(Proposal::ongoing($collegeId, null, $singleType), static fn (array $p): bool => in_array((string) $p['status'], ['ongoing', 'approved'], true)));
-        $overdueMilestones = array_values(array_filter(Milestone::overdueForUser($collegeId, null, $collegeId === null), $inScope));
-        $overdueReports = array_values(array_filter(ProgressReport::overdue(null, $collegeId), $inScope));
+        $ongoing = array_values(array_filter(Proposal::ongoing($queryCollege, null, $singleType), static fn (array $p): bool => in_array((string) $p['status'], ['ongoing', 'approved'], true) && $inScope($p)));
+        $overdueMilestones = array_values(array_filter(Milestone::overdueForUser($queryCollege, null, $queryCollege === null), $inScope));
+        $overdueReports = array_values(array_filter(ProgressReport::overdue(null, $queryCollege), $inScope));
 
         $collegeNames = [];
         $collegeIds = [];
         foreach (\App\Models\College::all() as $college) {
             $collegeNames[(int) $college['id']] = (string) ($college['code'] ?? '') !== '' ? (string) $college['code'] : (string) $college['name'];
-            if ((string) ($college['unit_type'] ?? 'college') === 'college') {
+            if ((string) ($college['unit_type'] ?? 'college') === 'college'
+                && ($scopeColleges === null || in_array((int) $college['id'], $scopeColleges, true))) {
                 $collegeIds[] = (int) $college['id'];
             }
         }
@@ -262,13 +287,13 @@ final class DashboardController
         // Directors and VPRIDE compare colleges; deans compare their two tracks.
         $breakdown = [];
         if ($collegeId === null) {
-            // Every college is listed, so colleges with no activity stand out; centers appear only when they have proposals.
+            // Every college in scope is listed, so colleges with no activity stand out; centers appear only when they have proposals.
             foreach ($collegeIds as $id) {
                 $breakdown[$collegeNames[$id]] = ['in_review' => 0, 'ongoing' => 0, 'completed' => 0];
             }
             foreach (Proposal::forMonitoring(null, null, $singleType) as $p) {
                 // Proposals only; reports and request forms are not projects.
-                if (!in_array((string) $p['project_type'], $types, true) || !proposal_is_proposal_form($p)) {
+                if (!$inScope($p) || !proposal_is_proposal_form($p)) {
                     continue;
                 }
                 $key = $collegeNames[(int) $p['college_id']] ?? 'Other';
@@ -316,9 +341,9 @@ final class DashboardController
             $followUps[$id]['reports']++;
         }
 
-        // Coordinators also file reports of their own.
+        // College Coordinators file their own proposals; RIDE coordinators prepare the quarterly reports.
         $myDrafts = [];
-        if ($context['role'] === 'coordinator') {
+        if (in_array($context['role'], ['coordinator', 'ride'], true)) {
             $myDrafts = array_values(array_filter(
                 Proposal::forUser($userId),
                 static fn (array $p): bool => (int) $p['user_id'] === $userId && in_array((string) $p['status'], ['draft', 'returned'], true)
@@ -338,75 +363,44 @@ final class DashboardController
             'submitters' => $context['role'] === 'vpride' ? \App\Models\User::researchSubmitters($singleType) : [],
             'followUps' => array_values($followUps),
             'myDrafts' => $myDrafts,
-            'monthlyActivity' => Proposal::monthlyWorkflowActivity(null, $collegeId, $types),
-            'scopeLabel' => ($collegeId !== null ? ($collegeNames[$collegeId] ?? 'Your college') : 'All colleges')
+            'monthlyActivity' => self::monthlyActivityFor($scopeColleges, $types),
+            'scopeLabel' => ($scopeColleges === null
+                    ? 'All colleges'
+                    : ($scopeColleges === [] ? 'No colleges assigned' : implode(', ', array_map(static fn (int $id): string => $collegeNames[$id] ?? '', $scopeColleges))))
                 . ', ' . ($singleType !== null ? ucfirst($singleType) : 'Research and Extension'),
         ];
     }
 
     /**
-     * Extension worker: their Conducted Activities in the current reporting period, entries still missing
-     * supporting documents, and entries per month.
+     * Monthly submitted/approved counts for a set of colleges (null = all), summed per month.
      *
-     * @return array<string, mixed>
+     * @param list<int>|null $collegeIds
+     * @param list<string> $types
+     * @return array<string, list<mixed>>
      */
-    private static function workerDashboardData(int $userId): array
+    private static function monthlyActivityFor(?array $collegeIds, array $types): array
     {
-        $types = \App\Support\ExtensionActivityTypes::forOffice('eso');
-        $period = QuarterlyReporting::currentPeriodKey() ?? '';
-        $range = $period !== '' ? \App\Support\ExtensionActivityTypes::periodDateRange($period) : null;
-        $scope = ['user_id' => $userId];
-        $periodEntries = $range !== null ? \App\Models\ExtensionActivity::list($scope, null, $range[0], $range[1]) : [];
-
-        $byType = array_fill_keys(array_keys($types), 0);
-        foreach ($periodEntries as $entry) {
-            if (isset($byType[(string) $entry['activity_type']])) {
-                $byType[(string) $entry['activity_type']]++;
+        if ($collegeIds === null || count($collegeIds) === 1) {
+            return Proposal::monthlyWorkflowActivity(null, $collegeIds[0] ?? null, $types);
+        }
+        $total = null;
+        foreach ($collegeIds as $id) {
+            $series = Proposal::monthlyWorkflowActivity(null, $id, $types);
+            if ($total === null) {
+                $total = $series;
+                continue;
+            }
+            foreach ($series as $key => $values) {
+                if ($key === 'labels' || !is_array($values)) {
+                    continue;
+                }
+                foreach ($values as $i => $value) {
+                    $total[$key][$i] = (int) ($total[$key][$i] ?? 0) + (int) $value;
+                }
             }
         }
 
-        // Entries of the period whose required supporting documents are not all attached.
-        $filled = \App\Models\ExtensionActivityDocument::filledCategoryCounts(
-            array_map(static fn (array $entry): int => (int) $entry['id'], $periodEntries),
-            \App\Support\ExtensionActivityTypes::allRequiredDocumentCategories()
-        );
-        $missingDocs = [];
-        foreach ($periodEntries as $entry) {
-            $required = count(\App\Support\ExtensionActivityTypes::requiredDocumentCategories((string) $entry['activity_type']));
-            $have = (int) ($filled[(int) $entry['id']] ?? 0);
-            if ($required > 0 && $have < $required) {
-                $missingDocs[] = $entry + ['docs_required' => $required, 'docs_filled' => $have];
-            }
-        }
-
-        // Entries per month by activity date, last six months.
-        $labels = [];
-        $monthIndex = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $month = new \DateTimeImmutable('first day of -' . $i . ' month');
-            $monthIndex[$month->format('Y-m')] = count($labels);
-            $labels[] = $month->format('M');
-        }
-        $perMonth = array_fill(0, count($labels), 0);
-        $since = (new \DateTimeImmutable('first day of -5 month'))->format('Y-m-01');
-        $recent = \App\Models\ExtensionActivity::list($scope, null, $since, null);
-        foreach ($recent as $entry) {
-            $key = substr((string) ($entry['activity_date'] ?? ''), 0, 7);
-            if (isset($monthIndex[$key])) {
-                $perMonth[$monthIndex[$key]]++;
-            }
-        }
-
-        return [
-            'types' => $types,
-            'period' => $period,
-            'periodRange' => $range,
-            'periodEntries' => $periodEntries,
-            'byType' => $byType,
-            'missingDocs' => $missingDocs,
-            'recentEntries' => array_slice(array_reverse($recent), 0, 6),
-            'entriesPerMonth' => ['labels' => $labels, 'counts' => $perMonth],
-        ];
+        return $total ?? Proposal::monthlyWorkflowActivity(null, -1, $types);
     }
 
     /** @return array<string, mixed> */

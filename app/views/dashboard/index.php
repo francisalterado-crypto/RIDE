@@ -130,6 +130,21 @@ $statusLabels = [
 </style>
 
 <div class="graph-dashboard">
+  <div class="fd-actions fd-actions--top">
+    <?php if (\App\Core\Auth::hasRole('ride_admin')): ?>
+      <?= dashboard_action(base_url('admin/accounts'), 'fa-users-gear', 'Accounts', 'Approve and manage users') ?>
+      <?= dashboard_action(base_url('admin/form-templates'), 'fa-file-arrow-up', 'Form templates', 'Upload blank office forms') ?>
+      <?= dashboard_action(base_url('admin/programs'), 'fa-sitemap', 'Programs', 'Colleges and extension programs') ?>
+      <?= dashboard_action(base_url('admin/public-site'), 'fa-globe', 'Manage Website Content', 'Pages, news and highlights') ?>
+    <?php else: ?>
+      <?= dashboard_action(base_url('proposals'), 'fa-file-lines', 'Proposals', 'Research and extension') ?>
+      <?= dashboard_action(base_url('projects'), 'fa-diagram-project', 'Projects', 'Milestones and reports') ?>
+      <?php if (\App\Support\AccessControl::isDirectorExtension()): ?>
+        <?= dashboard_action(base_url('reports/extension-beneficiaries'), 'fa-chart-pie', 'Beneficiaries report', 'Extension accreditation data') ?>
+      <?php endif; ?>
+      <?= dashboard_action(base_url('forms'), 'fa-file-arrow-down', 'Downloadable forms', 'Templates to fill out') ?>
+    <?php endif; ?>
+  </div>
   <?php require APP_PATH . '/views/dashboard/_coauthor-invitations.php'; ?>
 
   <?php if (!empty($facultyReportingNotice)): ?>

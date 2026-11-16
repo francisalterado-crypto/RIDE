@@ -214,6 +214,32 @@ final class ResearchRequestController
             $summary['contact_mobile'] = (string) ($owner['contact_number'] ?? '');
             $summary['contact_email'] = (string) ($owner['email'] ?? '');
         }
+        if (isset($definition['fields']['contributions'])) {
+            $authors = is_array($summary['contributions'] ?? null) ? $summary['contributions'] : [];
+            if (trim((string) ($summary['wpu_coauthors'] ?? '')) !== '' && count($authors) < 2) {
+                $errors[] = 'Percentage Contribution: list every WPU author, the applicant included, when co-authors are named.';
+            }
+            if ($authors !== []) {
+                $total = 0.0;
+                foreach ($authors as $author) {
+                    $percent = str_replace('%', '', (string) ($author['percent'] ?? ''));
+                    if (trim((string) ($author['name'] ?? '')) === '' || !is_numeric($percent)) {
+                        $errors[] = 'Percentage Contribution: each author needs a name and a percentage.';
+                        break;
+                    }
+                    $total += (float) $percent;
+                }
+                if (abs($total - 100) > 0.01) {
+                    $errors[] = 'Percentage Contribution: the percentages total ' . rtrim(rtrim(number_format($total, 2), '0'), '.') . ', not 100.';
+                }
+            }
+        }
+        if (!empty($definition['applicant'])) {
+            // Applicant's information (section 1 of the incentive forms): the researcher's profile.
+            $owner = \App\Models\User::findById($ownerId) ?? [];
+            $summary += ProponentProfile::applicantFields($ownerId);
+            $summary['applicant_name'] = ProponentProfile::displayName($owner);
+        }
         if (isset($_POST['plan_year_from']) || isset($_POST['plan_year_to'])) {
             foreach (['plan_year_from', 'plan_year_to'] as $key) {
                 $year = trim((string) ($_POST[$key] ?? ''));
@@ -235,6 +261,29 @@ final class ResearchRequestController
      * @param list<string> $columns
      * @return list<array<string, string>>
      */
+    /** The filled Percentage Contribution for Incentives Claim workbook of an incentive request. */
+    public function contribution(int $id): void
+    {
+        $proposal = \App\Models\Proposal::find($id);
+        $user = Auth::user();
+        $canView = $proposal !== null && $user !== null && (
+            \App\Support\AccessControl::canViewProposal($proposal)
+            || \App\Support\ProposalCoAuthors::userHasCoauthorAccess((int) $proposal['id'], (string) ($proposal['summary'] ?? ''), (int) $user['id'])
+        );
+        $bytes = $canView ? \App\Services\IncentiveContributionSheet::build($proposal) : null;
+        if ($bytes === null) {
+            http_response_code(404);
+            view('errors.404');
+            return;
+        }
+        $title = trim((string) preg_replace('/[^A-Za-z0-9 _.-]+/', '', (string) $proposal['title']));
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="' . ($title !== '' ? substr($title, 0, 80) : 'Request') . ' - Percentage Contribution.xlsx"');
+        header('Content-Length: ' . strlen($bytes));
+        header('Cache-Control: private, no-store');
+        echo $bytes;
+    }
+
     private function validatedRows(mixed $rows, array $columns): array
     {
         $result = [];

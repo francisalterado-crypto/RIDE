@@ -22,18 +22,7 @@ final class ProjectController
     {
         Notification::checkOverdueAlerts();
         $user = Auth::user();
-        $scopeType = AccessControl::proposalScopeType();
-        if (AccessControl::isVpride() || Auth::hasRole('ride_reporter')) {
-            $projects = $scopeType !== null ? Proposal::ongoing(null, null, $scopeType) : Proposal::ongoing();
-        } elseif (AccessControl::isCoordinatorResearch() || AccessControl::isCoordinatorExtension() || AccessControl::isExtensionWorker()) {
-            $projects = $user['college_id'] ? Proposal::ongoing((int) $user['college_id'], null, $scopeType) : [];
-        } elseif ($scopeType !== null) {
-            $projects = Proposal::ongoing(null, null, $scopeType);
-        } elseif (Auth::hasRole('dean') && $user['college_id']) {
-            $projects = Proposal::ongoing((int) $user['college_id']);
-        } else {
-            $projects = Proposal::ongoing(null, (int) $user['id']);
-        }
+        $projects = AccessControl::visibleProjects();
         view('projects.index', ['projects' => $projects]);
     }
 
@@ -485,7 +474,7 @@ final class ProjectController
 
     public function accreditationReport(): void
     {
-        $extensionOnly = !AccessControl::isVpride() && !Auth::hasRole('ride_reporter');
+        $extensionOnly = !AccessControl::isVpride();
         if ($extensionOnly && !AccessControl::isDirectorExtension()) {
             http_response_code(403);
             view('errors.403');

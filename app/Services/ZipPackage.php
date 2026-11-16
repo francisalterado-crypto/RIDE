@@ -94,6 +94,11 @@ final class ZipPackage
         ];
     }
 
+    public function remove(string $name): void
+    {
+        unset($this->entries[$name]);
+    }
+
     public function toString(): string
     {
         $body = '';

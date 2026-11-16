@@ -129,13 +129,13 @@ foreach ($coAuthors as $coAuthor) {
     $linkedUserId = (int) ($coAuthor['user_id'] ?? 0);
     if ($linkedUserId > 0) {
         $entry['user_id'] = $linkedUserId;
+        $entry['invitation_status'] = trim((string) ($coAuthor['invitation_status'] ?? ''));
+    } elseif ($entry['last_name'] === '' && $entry['first_name'] === '' && $entry['middle_name'] === '') {
+        continue;
     }
     $normalizedCoAuthors[] = $entry;
 }
 
-if ($normalizedCoAuthors === []) {
-    $normalizedCoAuthors[] = ['last_name' => '', 'first_name' => '', 'middle_name' => ''];
-}
 $coAuthors = $normalizedCoAuthors;
 $titleValue = (string) ($proposal['title'] ?? '');
 $fundingSourceValue = (string) ($proposal['funding_source'] ?? '');
@@ -212,105 +212,75 @@ $ethicsRequired = $proposal !== null
                 <p class="webform-readonly"><?= $show('applicant_researchgate_link') ?></p>
             </div>
         </div>
-        <div class="webform-subsection">
+        <div class="webform-subsection coauthors" id="coauthors" data-coauthors>
             <h3>Co-Author(s)</h3>
-                    <div class="proposal-coauthors-wrap">
-                        <?php if ($facultyCoAuthorOptions !== []): ?>
-                        <div class="proposal-coauthor-picker">
-                            <p class="proposal-section-note">Tag registered faculty from the RIDE account registry. They receive a notification and must accept before they can view this proposal on their dashboard.</p>
-                            <label for="faculty-coauthor-search" class="proposal-coauthor-picker-label">Search faculty</label>
-                            <input type="search" id="faculty-coauthor-search" class="proposal-coauthor-search" placeholder="Type name or college..." autocomplete="off">
-                            <select id="faculty-coauthor-select" class="proposal-coauthor-select" size="6" aria-label="Registered faculty co-authors">
-                                <?php foreach ($facultyCoAuthorOptions as $option): ?>
-                                    <option
-                                        value="<?= (int) $option['id'] ?>"
-                                        data-last-name="<?= htmlspecialchars($option['last_name']) ?>"
-                                        data-first-name="<?= htmlspecialchars($option['first_name']) ?>"
-                                        data-middle-name="<?= htmlspecialchars($option['middle_name']) ?>"
-                                        data-college="<?= htmlspecialchars($option['college_name']) ?>"
-                                    ><?= htmlspecialchars($option['label']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <button type="button" id="add-faculty-coauthor" class="btn btn-outline btn-sm">Add Selected Faculty</button>
+            <p class="webform-hint">Search the RIDE faculty registry. A tagged faculty member is notified and must accept before the proposal appears on their dashboard. A co-author without a RIDE account can be added by name.</p>
+
+            <div class="coauthor-picker">
+                <label for="coauthor-search" class="sr-only">Search faculty by name or college</label>
+                <div class="coauthor-search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    <input type="search" id="coauthor-search" autocomplete="off" spellcheck="false"
+                        placeholder="Search faculty by name or college"
+                        role="combobox" aria-expanded="false" aria-controls="coauthor-results" aria-autocomplete="list">
+                </div>
+                <ul class="coauthor-results" id="coauthor-results" role="listbox" hidden></ul>
+                <p class="coauthor-message" data-coauthor-message aria-live="polite" hidden></p>
+            </div>
+
+            <script type="application/json" id="coauthor-faculty-data"><?= json_encode(array_map(static fn (array $option): array => [
+                'id' => (int) $option['id'],
+                'last' => (string) $option['last_name'],
+                'first' => (string) $option['first_name'],
+                'middle' => (string) $option['middle_name'],
+                'college' => (string) $option['college_name'],
+            ], $facultyCoAuthorOptions), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
+
+            <?php $facultyCollegeById = array_column($facultyCoAuthorOptions, 'college_name', 'id'); ?>
+            <ol class="coauthor-list" data-coauthor-list>
+                <?php foreach ($coAuthors as $index => $coAuthor): ?>
+                    <?php
+                    $linkedUserId = (int) ($coAuthor['user_id'] ?? 0);
+                    $invitationStatus = trim((string) ($coAuthor['invitation_status'] ?? ''));
+                    $invitationLabel = $linkedUserId > 0 ? \App\Support\ProposalCoAuthors::invitationStatusLabel($invitationStatus) : '';
+                    $fullName = trim(implode(' ', array_filter([(string) ($coAuthor['first_name'] ?? ''), (string) ($coAuthor['middle_name'] ?? ''), (string) ($coAuthor['last_name'] ?? '')])));
+                    ?>
+                    <li class="coauthor-card<?= $linkedUserId > 0 ? ' is-linked' : '' ?>" data-coauthor-card>
+                        <span class="coauthor-avatar" aria-hidden="true"><?= htmlspecialchars(strtoupper(substr((string) ($coAuthor['first_name'] ?? ''), 0, 1) . substr((string) ($coAuthor['last_name'] ?? ''), 0, 1)) ?: '?') ?></span>
+                        <div class="coauthor-body">
+                            <?php if ($linkedUserId > 0): ?>
+                                <input type="hidden" data-field="user_id" name="coauthors[<?= $index ?>][user_id]" value="<?= $linkedUserId ?>">
+                                <input type="hidden" data-field="last_name" name="coauthors[<?= $index ?>][last_name]" value="<?= htmlspecialchars((string) ($coAuthor['last_name'] ?? '')) ?>">
+                                <input type="hidden" data-field="first_name" name="coauthors[<?= $index ?>][first_name]" value="<?= htmlspecialchars((string) ($coAuthor['first_name'] ?? '')) ?>">
+                                <input type="hidden" data-field="middle_name" name="coauthors[<?= $index ?>][middle_name]" value="<?= htmlspecialchars((string) ($coAuthor['middle_name'] ?? '')) ?>">
+                                <span class="coauthor-name"><?= htmlspecialchars($fullName) ?></span>
+                                <span class="coauthor-meta">
+                                    <span class="coauthor-tag coauthor-tag--account"><i class="fa-solid fa-user-check" aria-hidden="true"></i> RIDE account</span>
+                                    <?php if (($facultyCollegeById[$linkedUserId] ?? '') !== ''): ?>
+                                        <span class="coauthor-college"><?= htmlspecialchars((string) $facultyCollegeById[$linkedUserId]) ?></span>
+                                    <?php endif; ?>
+                                    <?php if ($invitationLabel !== ''): ?>
+                                        <span class="coauthor-tag coauthor-tag--<?= htmlspecialchars($invitationStatus !== '' ? $invitationStatus : 'pending') ?>"><?= htmlspecialchars($invitationLabel) ?></span>
+                                    <?php endif; ?>
+                                </span>
+                            <?php else: ?>
+                                <span class="coauthor-meta"><span class="coauthor-tag"><i class="fa-solid fa-user-pen" aria-hidden="true"></i> Not registered in RIDE</span></span>
+                                <div class="coauthor-names">
+                                    <?php foreach (['last_name' => 'Last name', 'first_name' => 'First name', 'middle_name' => 'Middle name'] as $nameField => $nameLabel): ?>
+                                        <label>
+                                            <span><?= $nameLabel ?><?= $nameField !== 'middle_name' ? ' <span class="webform-req">*</span>' : '' ?></span>
+                                            <input type="text" data-field="<?= $nameField ?>" name="coauthors[<?= $index ?>][<?= $nameField ?>]" value="<?= htmlspecialchars((string) ($coAuthor[$nameField] ?? '')) ?>" placeholder="Enter <?= strtolower($nameLabel) ?>">
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
-                        <?php endif; ?>
-                        <p class="trainings-conducted-scroll-hint proposal-section-note">Scroll horizontally to view all columns. Use &ldquo;Add Row&rdquo; for co-authors not registered in RIDE.</p>
-                        <div class="webform-table-wrap">
-                        <table id="proposal-coauthors-table" class="webform-table proposal-coauthors-table">
-                            <thead>
-                                <tr>
-                                    <th>Source</th>
-                                    <th>Last Name</th>
-                                    <th>First Name</th>
-                                    <th>Middle Name</th>
-                                    <th class="webform-table-action proposal-coauthors-action-col"><span class="sr-only">Remove</span></th>
-                                </tr>
-                            </thead>
-                            <tbody id="proposal-coauthors-body">
-                                <?php foreach ($coAuthors as $index => $coAuthor): ?>
-                                    <?php
-                                    $linkedUserId = (int) ($coAuthor['user_id'] ?? 0);
-                                    $invitationStatus = trim((string) ($coAuthor['invitation_status'] ?? ''));
-                                    $invitationLabel = $linkedUserId > 0
-                                        ? \App\Support\ProposalCoAuthors::invitationStatusLabel($invitationStatus)
-                                        : '';
-                                    ?>
-                                    <tr<?= $linkedUserId > 0 ? ' data-linked-faculty="1"' : '' ?>>
-                                        <td class="proposal-coauthor-source-cell">
-                                            <?php if ($linkedUserId > 0): ?>
-                                                <span class="badge badge-ongoing">Faculty account</span>
-                                                <?php if ($invitationLabel !== ''): ?>
-                                                    <span class="badge <?= $invitationStatus === 'accepted' ? 'badge-ongoing' : ($invitationStatus === 'rejected' ? 'badge-returned' : 'badge-under_review') ?>"><?= htmlspecialchars($invitationLabel) ?></span>
-                                                <?php endif; ?>
-                                                <input type="hidden" data-field="user_id" name="coauthors[<?= $index ?>][user_id]" value="<?= $linkedUserId ?>">
-                                            <?php else: ?>
-                                                <span class="muted">Manual</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <textarea
-                                                data-field="last_name"
-                                                name="coauthors[<?= $index ?>][last_name]"
-                                                class="proposal-coauthor-field"
-                                                rows="2"
-                                                data-autoresize
-                                                placeholder="Enter last name"
-                                                <?= $linkedUserId > 0 ? 'readonly' : '' ?>
-                                            ><?= htmlspecialchars((string) ($coAuthor['last_name'] ?? '')) ?></textarea>
-                                        </td>
-                                        <td>
-                                            <textarea
-                                                data-field="first_name"
-                                                name="coauthors[<?= $index ?>][first_name]"
-                                                class="proposal-coauthor-field"
-                                                rows="2"
-                                                data-autoresize
-                                                placeholder="Enter first name"
-                                                <?= $linkedUserId > 0 ? 'readonly' : '' ?>
-                                            ><?= htmlspecialchars((string) ($coAuthor['first_name'] ?? '')) ?></textarea>
-                                        </td>
-                                        <td>
-                                            <textarea
-                                                data-field="middle_name"
-                                                name="coauthors[<?= $index ?>][middle_name]"
-                                                class="proposal-coauthor-field"
-                                                rows="2"
-                                                data-autoresize
-                                                placeholder="Enter middle name"
-                                            ><?= htmlspecialchars((string) ($coAuthor['middle_name'] ?? '')) ?></textarea>
-                                        </td>
-                                        <td class="webform-table-action proposal-coauthors-action-cell">
-                                            <button type="button" class="webform-icon-btn" data-action="delete-coauthor" title="Remove" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                        </div>
-                        <div class="proposal-coauthors-actions">
-                            <button type="button" id="add-coauthor-row" class="btn btn-outline btn-sm">Add Row</button>
-                        </div>
-                    </div>
+                        <button type="button" class="webform-icon-btn coauthor-remove" data-coauthor-remove title="Remove co-author" aria-label="Remove <?= htmlspecialchars($fullName !== '' ? $fullName : 'co-author') ?>"><i class="fa-solid fa-xmark"></i></button>
+                    </li>
+                <?php endforeach; ?>
+            </ol>
+            <p class="coauthor-empty" data-coauthor-empty<?= $coAuthors !== [] ? ' hidden' : '' ?>>No co-authors added. This section can be left empty.</p>
+            <button type="button" class="webform-add-btn" data-coauthor-add-manual>Add a co-author not registered in RIDE</button>
         </div>
         <p class="webform-hint">All information (excluding co-author/s) is the project/study leader&apos;s only.</p>
     </section>
@@ -625,213 +595,227 @@ $ethicsRequired = $proposal !== null
 
 <script>
 (() => {
-    const tableBody = document.getElementById('proposal-coauthors-body');
-    const addButton = document.getElementById('add-coauthor-row');
-    const facultySelect = document.getElementById('faculty-coauthor-select');
-    const facultySearch = document.getElementById('faculty-coauthor-search');
-    const addFacultyButton = document.getElementById('add-faculty-coauthor');
-    const autoResizeTextareas = Array.from(document.querySelectorAll('textarea[data-autoresize]'));
-
-    const resizeTextarea = (textarea) => {
-        textarea.style.height = 'auto';
-        textarea.style.height = `${textarea.scrollHeight}px`;
-    };
-
-    autoResizeTextareas.forEach((textarea) => {
-        resizeTextarea(textarea);
-        textarea.addEventListener('input', () => resizeTextarea(textarea));
+    document.querySelectorAll('textarea[data-autoresize]').forEach((textarea) => {
+        const resize = () => { textarea.style.height = 'auto'; textarea.style.height = `${textarea.scrollHeight}px`; };
+        resize();
+        textarea.addEventListener('input', resize);
     });
 
-    if (!tableBody || !addButton) {
+    // Co-authors: search the faculty registry, or add a co-author not registered in RIDE.
+    const root = document.querySelector('[data-coauthors]');
+    if (!root) {
         return;
     }
+    const list = root.querySelector('[data-coauthor-list]');
+    const empty = root.querySelector('[data-coauthor-empty]');
+    const input = root.querySelector('#coauthor-search');
+    const results = root.querySelector('#coauthor-results');
+    const message = root.querySelector('[data-coauthor-message]');
+    let faculty = [];
+    try {
+        faculty = JSON.parse(root.querySelector('#coauthor-faculty-data')?.textContent || '[]');
+    } catch (error) { /* no registry */ }
+    faculty.forEach((person) => {
+        person.name = [person.first, person.middle, person.last].filter(Boolean).join(' ');
+        person.haystack = `${person.name} ${person.last}, ${person.first} ${person.college}`.toLowerCase();
+    });
 
-    const linkedUserIdsInTable = () => {
-        const ids = new Set();
-        tableBody.querySelectorAll('input[data-field="user_id"]').forEach((input) => {
-            const value = parseInt(input.value, 10);
-            if (!Number.isNaN(value) && value > 0) {
-                ids.add(value);
-            }
-        });
-        return ids;
+    const escape = (text) => String(text).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const initials = (first, last) => `${(first || '').charAt(0)}${(last || '').charAt(0)}`.toUpperCase() || '?';
+    const linkedIds = () => new Set(Array.from(list.querySelectorAll('input[data-field="user_id"]')).map((el) => parseInt(el.value, 10)));
+    const say = (text) => {
+        message.textContent = text;
+        message.hidden = text === '';
     };
 
-    const updateRowNames = () => {
-        Array.from(tableBody.querySelectorAll('tr')).forEach((row, index) => {
-            row.querySelectorAll('input[data-field], textarea[data-field]').forEach((input) => {
-                input.name = `coauthors[${index}][${input.dataset.field}]`;
+    const renumber = () => {
+        list.querySelectorAll('[data-coauthor-card]').forEach((card, index) => {
+            card.querySelectorAll('[data-field]').forEach((field) => {
+                field.name = `coauthors[${index}][${field.dataset.field}]`;
             });
         });
+        empty.hidden = list.children.length > 0;
     };
 
-    const createSourceCell = (linked = false, userId = '') => {
-        const cell = document.createElement('td');
-        cell.className = 'proposal-coauthor-source-cell';
-        if (linked) {
-            const badge = document.createElement('span');
-            badge.className = 'badge badge-ongoing';
-            badge.textContent = 'Faculty account';
-            cell.appendChild(badge);
+    const removeButton = (label) => `<button type="button" class="webform-icon-btn coauthor-remove" data-coauthor-remove title="Remove co-author" aria-label="Remove ${escape(label)}"><i class="fa-solid fa-xmark"></i></button>`;
 
-            const hidden = document.createElement('input');
-            hidden.type = 'hidden';
-            hidden.dataset.field = 'user_id';
-            hidden.value = String(userId);
-            cell.appendChild(hidden);
+    const addLinked = (person) => {
+        if (linkedIds().has(person.id)) {
+            say(`${person.name} is already listed as a co-author.`);
+            return;
+        }
+        const card = document.createElement('li');
+        card.className = 'coauthor-card is-linked is-new';
+        card.dataset.coauthorCard = '';
+        card.innerHTML = `
+            <span class="coauthor-avatar" aria-hidden="true">${escape(initials(person.first, person.last))}</span>
+            <div class="coauthor-body">
+                <input type="hidden" data-field="user_id" value="${person.id}">
+                <input type="hidden" data-field="last_name" value="${escape(person.last)}">
+                <input type="hidden" data-field="first_name" value="${escape(person.first)}">
+                <input type="hidden" data-field="middle_name" value="${escape(person.middle)}">
+                <span class="coauthor-name">${escape(person.name)}</span>
+                <span class="coauthor-meta">
+                    <span class="coauthor-tag coauthor-tag--account"><i class="fa-solid fa-user-check" aria-hidden="true"></i> RIDE account</span>
+                    ${person.college ? `<span class="coauthor-college">${escape(person.college)}</span>` : ''}
+                    <span class="coauthor-tag coauthor-tag--pending">Invitation sent on save</span>
+                </span>
+            </div>
+            ${removeButton(person.name)}`;
+        list.appendChild(card);
+        renumber();
+        say('');
+    };
+
+    const addManual = (typed = '') => {
+        // A typed full name is split as "First Middle Last"; surname particles (Dela Cruz, De los Santos,
+        // San Juan) stay with the last name. The fields can be corrected after adding.
+        const parts = typed.trim().split(/\s+/).filter(Boolean);
+        const particles = ['de', 'del', 'dela', 'la', 'las', 'los', 'delos', 'delas', 'di', 'da', 'san', 'sta', 'sta.', 'santa', 'sto', 'sto.', 'santo', 'van', 'von', 'mac', 'mc'];
+        const first = parts.length > 0 ? parts.shift() : '';
+        let lastParts = parts.length > 0 ? [parts.pop()] : [];
+        while (parts.length > 0 && particles.includes(parts[parts.length - 1].toLowerCase())) {
+            lastParts.unshift(parts.pop());
+        }
+        const last = lastParts.join(' ');
+        const middle = parts.join(' ');
+        const field = (name, label, value, required) => `
+            <label>
+                <span>${label}${required ? ' <span class="webform-req">*</span>' : ''}</span>
+                <input type="text" data-field="${name}" value="${escape(value)}" placeholder="Enter ${label.toLowerCase()}">
+            </label>`;
+        const card = document.createElement('li');
+        card.className = 'coauthor-card is-new';
+        card.dataset.coauthorCard = '';
+        card.innerHTML = `
+            <span class="coauthor-avatar" aria-hidden="true">${escape(initials(first, last))}</span>
+            <div class="coauthor-body">
+                <span class="coauthor-meta"><span class="coauthor-tag"><i class="fa-solid fa-user-pen" aria-hidden="true"></i> Not registered in RIDE</span></span>
+                <div class="coauthor-names">
+                    ${field('last_name', 'Last name', last, true)}
+                    ${field('first_name', 'First name', first, true)}
+                    ${field('middle_name', 'Middle name', middle, false)}
+                </div>
+            </div>
+            ${removeButton('co-author')}`;
+        list.appendChild(card);
+        renumber();
+        say('');
+        card.querySelector(last === '' ? '[data-field="last_name"]' : '[data-field="middle_name"]')?.focus();
+    };
+
+    // Search results: matching faculty, then "add as not registered" for the typed name.
+    let options = [];
+    let active = -1;
+    const close = () => {
+        results.hidden = true;
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+        active = -1;
+    };
+    const highlight = (index) => {
+        active = index;
+        results.querySelectorAll('[role="option"]').forEach((el, i) => {
+            el.classList.toggle('is-active', i === active);
+            el.setAttribute('aria-selected', i === active ? 'true' : 'false');
+            if (i === active) {
+                input.setAttribute('aria-activedescendant', el.id);
+                el.scrollIntoView({ block: 'nearest' });
+            }
+        });
+    };
+    const render = () => {
+        const query = input.value.trim().toLowerCase();
+        if (query === '') {
+            close();
+            return;
+        }
+        const taken = linkedIds();
+        const terms = query.split(/\s+/);
+        const matches = faculty.filter((person) => terms.every((term) => person.haystack.includes(term))).slice(0, 8);
+        options = matches.map((person) => ({ type: 'faculty', person, taken: taken.has(person.id) }));
+        options.push({ type: 'manual', name: input.value.trim() });
+        results.innerHTML = options.map((option, i) => option.type === 'faculty'
+            ? `<li role="option" id="coauthor-option-${i}" class="coauthor-option${option.taken ? ' is-taken' : ''}" aria-selected="false" aria-disabled="${option.taken}">
+                    <span class="coauthor-avatar" aria-hidden="true">${escape(initials(option.person.first, option.person.last))}</span>
+                    <span class="coauthor-option-text"><strong>${escape(option.person.name)}</strong><span>${escape(option.person.college || 'No college on file')}${option.taken ? ', already added' : ''}</span></span>
+               </li>`
+            : `<li role="option" id="coauthor-option-${i}" class="coauthor-option coauthor-option--manual" aria-selected="false">
+                    <span class="coauthor-avatar" aria-hidden="true"><i class="fa-solid fa-user-plus"></i></span>
+                    <span class="coauthor-option-text"><strong>Add "${escape(option.name)}"</strong><span>Co-author not registered in RIDE</span></span>
+               </li>`).join('');
+        results.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+        highlight(options.findIndex((option) => option.type === 'manual' || !option.taken));
+    };
+    const choose = (index) => {
+        const option = options[index];
+        if (!option || option.taken) {
+            return;
+        }
+        if (option.type === 'faculty') {
+            addLinked(option.person);
         } else {
-            const label = document.createElement('span');
-            label.className = 'muted';
-            label.textContent = 'Manual';
-            cell.appendChild(label);
+            addManual(option.name);
         }
-        return cell;
-    };
-
-    const createCoauthorFieldCell = (field, placeholder, value = '', readOnly = false) => {
-        const cell = document.createElement('td');
-        const textarea = document.createElement('textarea');
-        textarea.dataset.field = field;
-        textarea.className = 'proposal-coauthor-field';
-        textarea.rows = 2;
-        textarea.dataset.autoresize = '';
-        textarea.placeholder = placeholder;
-        textarea.value = value;
-        if (readOnly) {
-            textarea.readOnly = true;
+        input.value = '';
+        close();
+        if (option.type === 'faculty') {
+            input.focus();
         }
-        cell.appendChild(textarea);
-        resizeTextarea(textarea);
-        textarea.addEventListener('input', () => resizeTextarea(textarea));
-        return cell;
     };
 
-    const createDeleteCell = () => {
-        const cell = document.createElement('td');
-        cell.className = 'webform-table-action proposal-coauthors-action-cell';
+    input.addEventListener('input', render);
+    input.addEventListener('focus', () => { if (input.value.trim() !== '') { render(); } });
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown' && !results.hidden) {
+            event.preventDefault();
+            highlight((active + 1) % options.length);
+        } else if (event.key === 'ArrowUp' && !results.hidden) {
+            event.preventDefault();
+            highlight((active - 1 + options.length) % options.length);
+        } else if (event.key === 'Enter') {
+            // Never submit the proposal form from the search box.
+            event.preventDefault();
+            if (!results.hidden && active >= 0) {
+                choose(active);
+            }
+        } else if (event.key === 'Escape') {
+            input.value = '';
+            close();
+        }
+    });
+    results.addEventListener('mousedown', (event) => {
+        const option = event.target.closest('[role="option"]');
+        if (option) {
+            event.preventDefault();
+            choose(Array.from(results.children).indexOf(option));
+        }
+    });
+    input.addEventListener('blur', () => setTimeout(close, 120));
 
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'webform-icon-btn';
-        button.dataset.action = 'delete-coauthor';
-        button.title = 'Remove';
-        button.setAttribute('aria-label', 'Remove');
-        button.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
-        cell.appendChild(button);
-
-        return cell;
-    };
-
-    const createManualRow = () => {
-        const row = document.createElement('tr');
-        row.appendChild(createSourceCell(false));
-        row.appendChild(createCoauthorFieldCell('last_name', 'Enter last name'));
-        row.appendChild(createCoauthorFieldCell('first_name', 'Enter first name'));
-        row.appendChild(createCoauthorFieldCell('middle_name', 'Enter middle name'));
-        row.appendChild(createDeleteCell());
-        return row;
-    };
-
-    const createFacultyRow = (option) => {
-        const row = document.createElement('tr');
-        row.dataset.linkedFaculty = '1';
-        row.appendChild(createSourceCell(true, option.value));
-        row.appendChild(createCoauthorFieldCell('last_name', 'Enter last name', option.dataset.lastName || '', true));
-        row.appendChild(createCoauthorFieldCell('first_name', 'Enter first name', option.dataset.firstName || '', true));
-        row.appendChild(createCoauthorFieldCell('middle_name', 'Enter middle name', option.dataset.middleName || ''));
-        row.appendChild(createDeleteCell());
-        return row;
-    };
-
-    const removeEmptyPlaceholderRow = () => {
-        const rows = Array.from(tableBody.querySelectorAll('tr'));
-        if (rows.length !== 1) {
+    root.querySelector('[data-coauthor-add-manual]')?.addEventListener('click', () => addManual(''));
+    list.addEventListener('click', (event) => {
+        const remove = event.target.closest('[data-coauthor-remove]');
+        if (!remove) {
             return;
         }
-        const row = rows[0];
-        const hasLinked = row.querySelector('input[data-field="user_id"]');
-        const lastName = row.querySelector('[data-field="last_name"]');
-        const firstName = row.querySelector('[data-field="first_name"]');
-        const middleName = row.querySelector('[data-field="middle_name"]');
-        const isEmpty = !hasLinked
-            && (lastName?.value.trim() ?? '') === ''
-            && (firstName?.value.trim() ?? '') === ''
-            && (middleName?.value.trim() ?? '') === '';
-        if (isEmpty) {
-            row.remove();
+        remove.closest('[data-coauthor-card]')?.remove();
+        renumber();
+        say('');
+        input.focus();
+    });
+    list.addEventListener('input', (event) => {
+        const card = event.target.closest('[data-coauthor-card]');
+        if (!card || card.classList.contains('is-linked')) {
+            return;
         }
-    };
-
-    addButton.addEventListener('click', () => {
-        tableBody.appendChild(createManualRow());
-        updateRowNames();
+        const first = card.querySelector('[data-field="first_name"]')?.value || '';
+        const last = card.querySelector('[data-field="last_name"]')?.value || '';
+        card.querySelector('.coauthor-avatar').textContent = initials(first, last);
     });
 
-    if (facultySelect && addFacultyButton) {
-        addFacultyButton.addEventListener('click', () => {
-            const option = facultySelect.options[facultySelect.selectedIndex];
-            if (!option || !option.value) {
-                facultySelect.focus();
-                return;
-            }
-
-            const userId = parseInt(option.value, 10);
-            if (linkedUserIdsInTable().has(userId)) {
-                window.alert('This faculty member is already listed as a co-author.');
-                return;
-            }
-
-            removeEmptyPlaceholderRow();
-            tableBody.appendChild(createFacultyRow(option));
-            updateRowNames();
-        });
-    }
-
-    if (facultySelect && facultySearch) {
-        const allOptions = Array.from(facultySelect.options).map((option) => ({
-            element: option,
-            text: option.textContent.toLowerCase(),
-            college: (option.dataset.college || '').toLowerCase(),
-        }));
-
-        const filterFacultyOptions = () => {
-            const query = facultySearch.value.trim().toLowerCase();
-            let firstVisible = null;
-            allOptions.forEach(({ element, text, college }) => {
-                const visible = query === '' || text.includes(query) || college.includes(query);
-                element.hidden = !visible;
-                if (visible && firstVisible === null) {
-                    firstVisible = element;
-                }
-            });
-            if (firstVisible) {
-                firstVisible.selected = true;
-            }
-        };
-
-        facultySearch.addEventListener('input', filterFacultyOptions);
-        filterFacultyOptions();
-    }
-
-    tableBody.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-action="delete-coauthor"]');
-        if (!button) {
-            return;
-        }
-
-        const row = button.closest('tr');
-        if (!row) {
-            return;
-        }
-
-        row.remove();
-        if (tableBody.querySelectorAll('tr').length === 0) {
-            tableBody.appendChild(createManualRow());
-        }
-        updateRowNames();
-    });
-
-    updateRowNames();
+    renumber();
 })();
 </script>
 

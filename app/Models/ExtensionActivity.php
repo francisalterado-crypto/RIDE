@@ -183,6 +183,11 @@ final class ExtensionActivity
         if (isset($scope['college_id'])) {
             return [['a.college_id = ?'], [(int) $scope['college_id']]];
         }
+        if (isset($scope['college_ids'])) {
+            $ids = array_values(array_map('intval', $scope['college_ids'])) ?: [0];
+
+            return [['a.college_id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')'], $ids];
+        }
 
         return [['a.user_id = ?'], [(int) ($scope['user_id'] ?? 0)]];
     }

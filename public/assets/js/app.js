@@ -280,7 +280,7 @@
             }
             if (exportLink) {
                 const params = new URLSearchParams({ tab: activeTab, form, year, q: searchInput.value.trim() });
-                exportLink.href = `${exportLink.dataset.base}?${params.toString()}`;
+                exportLink.href = `${exportLink.dataset.base}${exportLink.dataset.base.includes("?") ? "&" : "?"}${params.toString()}`;
             }
             if (countLabel) {
                 countLabel.textContent = visible === total
@@ -475,8 +475,83 @@
         syncToggle();
     };
 
+    // Button icons: every .btn gets a Font Awesome icon that matches its action, read from its label, so the
+    // same action looks the same on every page (labels are often built in PHP, so this is done in one place).
+    // A button that already has an icon, or has data-no-icon, is left alone. First matching rule wins.
+    const BUTTON_ICON_RULES = [
+        [/^print|^save as pdf/, 'fa-print'],
+        [/^return for revision|^return\b/, 'fa-rotate-left'],
+        [/^submit|^send|^post\b|^resubmit/, 'fa-paper-plane'],
+        [/^approve|^accept|^endorse|^mark (as )?(reviewed|completed|complete)|^complete|^finish|^use this/, 'fa-check'],
+        [/^decline|^reject/, 'fa-ban'],
+        [/^reset password|password/, 'fa-key'],
+        [/^save|^update/, 'fa-floppy-disk'],
+        [/^cancel|^close|^discard|^clear/, 'fa-xmark'],
+        [/^delete|^remove/, 'fa-trash-can'],
+        [/^restore/, 'fa-trash-arrow-up'],
+        [/^edit|^change/, 'fa-pen-to-square'],
+        [/^upload/, 'fa-upload'],
+        [/^download|^export/, 'fa-download'],
+        [/^generate/, 'fa-file-circle-plus'],
+        [/^\+|^add|^new|^create|^record\b/, 'fa-plus'],
+        [/^back/, 'fa-arrow-left'],
+        [/^continue|^next|^proceed/, 'fa-arrow-right'],
+        [/^monitor/, 'fa-chart-line'],
+        [/^message|conversation|^reply/, 'fa-comment'],
+        [/^open/, 'fa-folder-open'],
+        [/^view|^details|^show|^preview/, 'fa-eye'],
+        [/^search/, 'fa-magnifying-glass'],
+        [/^filter|^apply/, 'fa-filter'],
+        [/^manage|^settings/, 'fa-gear'],
+        [/^log ?out|^sign out/, 'fa-right-from-bracket'],
+    ];
+    const decorateButtons = (root) => {
+        if (!root || !root.querySelectorAll) {
+            return;
+        }
+        const buttons = root.matches?.('.btn') ? [root] : [];
+        root.querySelectorAll('.btn, .webform-add-btn').forEach((button) => buttons.push(button));
+        buttons.forEach((button) => {
+            if (button.dataset.noIcon !== undefined || button.dataset.iconDone || button.querySelector('i, svg, img')) {
+                return;
+            }
+            const label = (button.textContent || button.value || '').trim().toLowerCase();
+            const rule = BUTTON_ICON_RULES.find(([pattern]) => pattern.test(label));
+            button.dataset.iconDone = '1';
+            if (!rule || button.tagName === 'INPUT') {
+                return;
+            }
+            // "+ Add Row": the plus sign becomes the icon.
+            const first = button.firstChild;
+            if (first && first.nodeType === Node.TEXT_NODE && /^\s*\+\s*/.test(first.textContent)) {
+                first.textContent = first.textContent.replace(/^\s*\+\s*/, '');
+            }
+            const icon = document.createElement('i');
+            icon.className = `fa-solid ${rule[1]} btn-icon-auto`;
+            icon.setAttribute('aria-hidden', 'true');
+            button.prepend(icon);
+        });
+    };
+    let buttonObserver = null;
+    const watchButtons = () => {
+        const target = document.querySelector('.page-body');
+        if (!target || buttonObserver) {
+            return;
+        }
+        buttonObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    decorateButtons(node);
+                }
+            }));
+        });
+        buttonObserver.observe(target, { childList: true, subtree: true });
+    };
+
     // Per-page setup: runs on first load and again after each in-app navigation swaps the page body.
     const initPageContent = () => {
+        decorateButtons(document.querySelector('.page-body'));
+        watchButtons();
         capitalizePageFields(document.querySelector('.page-body') || document);
         initAccountsSearch();
         initProposalRegistrySearch();

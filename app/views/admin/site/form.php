@@ -10,7 +10,7 @@ $series = strtolower((string) ($values['series'] ?? ''));
 $action = $isEdit ? base_url('admin/public-site/posts/' . $post['id']) : base_url('admin/public-site/posts');
 ?>
 <div class="page-actions-bar">
-    <a class="btn btn-outline" href="<?= base_url('admin/public-site') ?>">Back to Public Site</a>
+    <a class="btn btn-outline" href="<?= base_url('admin/public-site') ?>">Back to Manage Website Content</a>
 </div>
 
 <form class="webform site-post-form" method="post" action="<?= $action ?>" enctype="multipart/form-data">

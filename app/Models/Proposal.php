@@ -252,15 +252,17 @@ final class Proposal
         if (!$proposal) {
             return;
         }
-        // Coordinator-filed college reports skip the coordinator's own endorsement step.
-        $coordinatorFiled = proposal_filer_is_coordinator($proposal);
-        $step = $coordinatorFiled
-            ? AccessControl::DEAN
-            : AccessControl::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
+        // The route is fixed at submission (see AccessControl::reviewChain()): the full chain, a College
+        // Coordinator's own record (skips their endorsement), or a quarterly report prepared by the RIDE coordinator.
+        $route = AccessControl::submitRoute($proposal);
+        $proposal['coordinator_filed'] = $route;
+        $proposal['status'] = 'submitted';
+        $step = AccessControl::firstStep($proposal);
         $stmt = Database::pdo()->prepare(
             'UPDATE proposals SET status = \'submitted\', current_step = ?, coordinator_filed = ?, submitted_at = NOW() WHERE id = ?'
         );
-        $stmt->execute([$step, $coordinatorFiled ? 1 : 0, $id]);
+        $stmt->execute([$step, $route, $id]);
+        Notification::notifyStepHolders($proposal, $step);
     }
 
     public static function addComment(int $proposalId, int $userId, string $comment, string $action = 'comment', ?string $step = null): void
@@ -278,7 +280,7 @@ final class Proposal
             return false;
         }
 
-        $step = $proposal['current_step'] ?? AccessControl::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
+        $step = $proposal['current_step'] ?? AccessControl::firstStep($proposal);
 
         if ($action === 'return') {
             Database::pdo()->prepare(
@@ -303,8 +305,19 @@ final class Proposal
             return true;
         }
 
-        $next = self::nextStep($step, $proposal);
-        if ($next === 'approved' && \App\Support\ResearchRequestForms::typeOf($proposal) !== null) {
+        $next = AccessControl::nextStep((string) $step, $proposal);
+        if ($next === 'approved' && \App\Support\ProposalRegistry::kindOf($proposal) === 'report') {
+            // Reports are approved records, not projects: no project code, no monitoring.
+            Database::pdo()->prepare(
+                'UPDATE proposals SET status = \'approved\', current_step = NULL, approved_at = NOW() WHERE id = ?'
+            )->execute([$id]);
+            Notification::notifyProjectLeader(
+                (int) $proposal['user_id'],
+                'Report approved',
+                'Your report "' . $proposal['title'] . '" received final approval.',
+                'proposals/' . $id
+            );
+        } elseif ($next === 'approved' && \App\Support\ResearchRequestForms::typeOf($proposal) !== null) {
             // Request forms are approvals of a request, not new projects: own REQ- code, no monitoring.
             $code = self::generateRequestCode($proposal);
             Database::pdo()->prepare(
@@ -334,6 +347,7 @@ final class Proposal
                 'UPDATE proposals SET status = \'under_review\', current_step = ? WHERE id = ?'
             );
             $stmt->execute([$next, $id]);
+            Notification::notifyStepHolders($proposal, $next);
         }
 
         $hash = hash('sha256', $id . '|' . $userId . '|' . time());
@@ -354,19 +368,6 @@ final class Proposal
         }
 
         return true;
-    }
-
-    private static function nextStep(string $current, array $proposal): string
-    {
-        $projectType = (string) ($proposal['project_type'] ?? 'research');
-
-        return match ($current) {
-            AccessControl::COORDINATOR_RESEARCH, AccessControl::COORDINATOR_EXTENSION => AccessControl::DEAN,
-            AccessControl::DEAN => AccessControl::directorStepForType($projectType),
-            AccessControl::DIRECTOR_RESEARCH, AccessControl::DIRECTOR_EXTENSION => AccessControl::VPRIDE,
-            AccessControl::VPRIDE => 'approved',
-            default => AccessControl::VPRIDE,
-        };
     }
 
     private static function generateProjectCode(array $proposal): string
@@ -700,10 +701,10 @@ final class Proposal
         $stmt = Database::pdo()->prepare($sql);
         $stmt->execute($params);
 
-        // Approved request forms are not projects.
+        // Only proposals become projects: approved requests and reports are not.
         return array_values(array_filter(
             $stmt->fetchAll() ?: [],
-            static fn (array $p): bool => \App\Support\ResearchRequestForms::typeOf($p) === null
+            static fn (array $p): bool => \App\Support\ProposalRegistry::kindOf($p) === 'proposal'
         ));
     }
 

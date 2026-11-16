@@ -36,6 +36,9 @@ foreach ($definition['fields'] as $name => $field) {
 }
 
 $cards = [];
+if (!empty($definition['applicant'])) {
+    $cards['req-sec-applicant'] = 'Applicant';
+}
 if (!empty($definition['contact'])) {
     $cards['req-sec-contact'] = 'Contact Person';
 }
@@ -44,10 +47,10 @@ if ($definition['research_link'] !== null) {
 }
 $cards['req-sec-details'] = 'Details';
 foreach ($rowFields as $name => $field) {
-    $cards['req-sec-' . $name] = 'Activities';
+    $cards['req-sec-' . $name] = (string) ($field['card_title'] ?? 'Activities');
 }
 if ($checkFields !== []) {
-    $cards['req-sec-alignment'] = 'SDGs & CHED';
+    $cards['req-sec-alignment'] = (string) ($definition['checks_card']['title'] ?? 'SDGs & CHED');
 }
 if ($narrativeFields !== []) {
     $cards['req-sec-narrative'] = 'Narrative';
@@ -83,7 +86,7 @@ $renderField = static function (string $name, array $field, string $current, boo
         <?php else: ?>
             <label for="<?= $id ?>"><?= htmlspecialchars((string) $field['label']) ?><?= $mark ?></label>
             <?php if ($field['type'] === 'textarea'): ?>
-                <textarea <?= $attrs ?> rows="<?= in_array($name, ['lead_researchers', 'co_researchers', 'study_origin_details'], true) ? 2 : 4 ?>" data-autoresize><?= htmlspecialchars($current) ?></textarea>
+                <textarea <?= $attrs ?> rows="<?= in_array($name, ['lead_researchers', 'co_researchers', 'study_origin_details', 'wpu_coauthors'], true) ? 2 : 4 ?>" data-autoresize><?= htmlspecialchars($current) ?></textarea>
             <?php else: ?>
                 <input type="<?= $field['type'] === 'date' ? 'date' : 'text' ?>" <?= $attrs ?> value="<?= htmlspecialchars($current) ?>"<?= $locked ? ' readonly' : '' ?>>
             <?php endif; ?>
@@ -134,6 +137,34 @@ $renderField = static function (string $name, array $field, string $current, boo
             <a href="#<?= $anchor ?>"><span><?= $cardNo($anchor) ?></span><?= htmlspecialchars($label) ?></a>
         <?php endforeach; ?>
     </nav>
+
+    <?php if (!empty($definition['applicant'])): ?>
+        <?php $applicant = \App\Support\ProponentProfile::applicantFields((int) ($proponent['id'] ?? 0)); ?>
+        <section class="webform-card" id="req-sec-applicant">
+            <header class="webform-card-head">
+                <span class="webform-card-num"><?= $cardNo('req-sec-applicant') ?></span>
+                <div>
+                    <h2>Applicant's Information</h2>
+                    <p>From your profile. <a href="<?= base_url('profile') ?>" target="_blank" rel="noopener">Update your profile</a> to change these, then reload this page.</p>
+                </div>
+            </header>
+            <div class="webform-grid">
+                <?php foreach ([
+                    'Full Name' => $proponentName,
+                    'College/Unit/Center' => $applicant['applicant_college_department'],
+                    'Contact Number' => $applicant['applicant_contact_number'],
+                    'E-mail Address' => $applicant['applicant_email'],
+                    'ResearchGate Account Link' => $applicant['applicant_researchgate_link'],
+                    'Google Scholar Account Link' => $applicant['applicant_google_scholar_link'],
+                ] as $applicantLabel => $applicantValue): ?>
+                    <div class="webform-field">
+                        <span class="webform-label"><?= htmlspecialchars($applicantLabel) ?></span>
+                        <p class="webform-readonly"><?= trim((string) $applicantValue) !== '' ? htmlspecialchars((string) $applicantValue) : '<span class="muted">Not set in profile</span>' ?></p>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    <?php endif; ?>
 
     <?php if (!empty($definition['contact'])): ?>
         <section class="webform-card" id="req-sec-contact">
@@ -228,37 +259,54 @@ $renderField = static function (string $name, array $field, string $current, boo
     <?php foreach ($rowFields as $name => $field): ?>
         <?php
         $rows = is_array($values[$name] ?? null) ? $values[$name] : [];
+        if ($rows === [] && ($field['prefill'] ?? '') === 'applicant' && !$isEdit) {
+            // The applicant is the first author.
+            $applicantProfile = \App\Support\ProponentProfile::applicantFields((int) ($proponent['id'] ?? 0));
+            $rows[] = [
+                'name' => $proponentName,
+                'position_college' => trim(implode(', ', array_filter([$applicantProfile['applicant_position'], $applicantProfile['applicant_college_department']]))),
+            ];
+        }
         if ($rows === []) {
             $rows[] = [];
         }
+        $columnTypes = (array) ($field['column_types'] ?? []);
         ?>
         <section class="webform-card" id="req-sec-<?= htmlspecialchars($name) ?>">
             <header class="webform-card-head">
                 <span class="webform-card-num"><?= $cardNo('req-sec-' . $name) ?></span>
                 <div>
-                    <h2><?= htmlspecialchars((string) $field['label']) ?><?= $reqMark($name) ?></h2>
-                    <p>Add one entry for each activity.</p>
+                    <h2><?= htmlspecialchars((string) ($field['card_title'] ?? $field['label'])) ?><?= $reqMark($name) ?></h2>
+                    <p><?= htmlspecialchars((string) ($field['hint'] ?? 'Add one entry for each activity.')) ?></p>
                 </div>
             </header>
             <div class="webform-repeater" data-request-rows="<?= htmlspecialchars($name) ?>">
                 <?php foreach ($rows as $index => $row): ?>
                     <div class="webform-item">
                         <div class="webform-item-head">
-                            <span class="webform-item-label">Activity</span>
+                            <span class="webform-item-label"><?= htmlspecialchars((string) ($field['item_label'] ?? 'Activity')) ?></span>
                             <button type="button" class="webform-icon-btn" data-remove-row title="Remove" aria-label="Remove"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                         <div class="webform-grid">
                             <?php foreach ($field['columns'] as $column => $columnLabel): ?>
-                                <div class="webform-field<?= $column === 'justification' ? ' webform-field--full' : '' ?>">
+                                <?php $columnType = $columnTypes[$column] ?? ''; ?>
+                                <div class="webform-field<?= $column === 'justification' || $columnType === 'long' ? ' webform-field--full' : '' ?>">
                                     <label><?= htmlspecialchars((string) $columnLabel) ?></label>
-                                    <textarea rows="<?= $column === 'justification' ? 3 : 1 ?>" data-autoresize data-column="<?= htmlspecialchars($column) ?>" name="<?= htmlspecialchars($name) ?>[<?= (int) $index ?>][<?= htmlspecialchars($column) ?>]"><?= htmlspecialchars((string) ($row[$column] ?? '')) ?></textarea>
+                                    <?php if ($columnType === 'percent'): ?>
+                                        <input type="number" min="0" max="100" step="0.01" inputmode="decimal" data-percent data-column="<?= htmlspecialchars($column) ?>" name="<?= htmlspecialchars($name) ?>[<?= (int) $index ?>][<?= htmlspecialchars($column) ?>]" value="<?= htmlspecialchars((string) ($row[$column] ?? '')) ?>" placeholder="Enter the percentage">
+                                    <?php else: ?>
+                                        <textarea rows="<?= $column === 'justification' || $columnType === 'long' ? 3 : 1 ?>" data-autoresize data-column="<?= htmlspecialchars($column) ?>" name="<?= htmlspecialchars($name) ?>[<?= (int) $index ?>][<?= htmlspecialchars($column) ?>]"><?= htmlspecialchars((string) ($row[$column] ?? '')) ?></textarea>
+                                    <?php endif; ?>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
-            <button type="button" class="webform-add-btn" data-add-row="<?= htmlspecialchars($name) ?>">Add activity</button>
+            <?php if (in_array('percent', $columnTypes, true)): ?>
+                <p class="request-percent-total" data-percent-total="<?= htmlspecialchars($name) ?>" aria-live="polite"></p>
+            <?php endif; ?>
+            <button type="button" class="webform-add-btn" data-add-row="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars((string) ($field['add_label'] ?? 'Add activity')) ?></button>
         </section>
     <?php endforeach; ?>
 
@@ -267,14 +315,16 @@ $renderField = static function (string $name, array $field, string $current, boo
             <header class="webform-card-head">
                 <span class="webform-card-num"><?= $cardNo('req-sec-alignment') ?></span>
                 <div>
-                    <h2>SDGs &amp; CHED A.C.H.I.E.V.E.</h2>
-                    <p>Tick all that apply.</p>
+                    <h2><?= htmlspecialchars((string) ($definition['checks_card']['title'] ?? 'SDGs & CHED A.C.H.I.E.V.E.')) ?></h2>
+                    <p><?= htmlspecialchars((string) ($definition['checks_card']['hint'] ?? 'Tick all that apply.')) ?></p>
                 </div>
             </header>
             <?php foreach ($checkFields as $name => $field): ?>
                 <?php $picked = array_fill_keys(array_filter(is_array($values[$name] ?? null) ? $values[$name] : [], 'is_string'), true); ?>
                 <div class="webform-subsection">
-                    <h3><?= htmlspecialchars((string) $field['label']) ?><?= $reqMark($name) ?></h3>
+                    <?php if (empty($definition['checks_card'])): ?>
+                        <h3><?= htmlspecialchars((string) $field['label']) ?><?= $reqMark($name) ?></h3>
+                    <?php endif; ?>
                     <div class="proposal-check-grid">
                         <?php foreach ($field['options'] as $optionValue => $optionLabel): ?>
                             <label class="proposal-check-item">
@@ -428,8 +478,8 @@ $renderField = static function (string $name, array $field, string $current, boo
     // Repeaters: renumber names after adding or removing an entry.
     const renumber = (repeater) => {
         repeater.querySelectorAll('.webform-item').forEach((item, index) => {
-            item.querySelectorAll('textarea[name]').forEach((textarea) => {
-                textarea.name = textarea.name.replace(/\[\d+\]/, `[${index}]`);
+            item.querySelectorAll('textarea[name], input[name]').forEach((control) => {
+                control.name = control.name.replace(/\[\d+\]/, `[${index}]`);
             });
         });
     };
@@ -441,7 +491,7 @@ $renderField = static function (string $name, array $field, string $current, boo
                 return;
             }
             const item = last.cloneNode(true);
-            item.querySelectorAll('textarea').forEach((textarea) => { textarea.value = ''; });
+            item.querySelectorAll('textarea, input').forEach((control) => { control.value = ''; });
             repeater.appendChild(item);
             renumber(repeater);
             bindResize(item);
@@ -458,9 +508,36 @@ $renderField = static function (string $name, array $field, string $current, boo
             item.remove();
             renumber(repeater);
         } else {
-            item.querySelectorAll('textarea').forEach((textarea) => { textarea.value = ''; resize(textarea); });
+            item.querySelectorAll('textarea, input').forEach((control) => { control.value = ''; });
+            item.querySelectorAll('textarea').forEach(resize);
+        }
+        updateTotals();
+    });
+
+    // Percentage Contribution: running total, which must be 100.
+    const updateTotals = () => {
+        form.querySelectorAll('[data-percent-total]').forEach((out) => {
+            const repeater = form.querySelector(`[data-request-rows="${out.dataset.percentTotal}"]`);
+            let total = 0;
+            let any = false;
+            repeater?.querySelectorAll('[data-percent]').forEach((input) => {
+                if (input.value.trim() !== '') {
+                    any = true;
+                    total += parseFloat(input.value) || 0;
+                }
+            });
+            const rounded = Math.round(total * 100) / 100;
+            out.textContent = any ? `Total: ${rounded}%${Math.abs(rounded - 100) < 0.01 ? '' : ' (must be 100%)'}` : '';
+            out.classList.toggle('is-ok', any && Math.abs(rounded - 100) < 0.01);
+            out.classList.toggle('is-off', any && Math.abs(rounded - 100) >= 0.01);
+        });
+    };
+    form.addEventListener('input', (event) => {
+        if (event.target.matches('[data-percent]')) {
+            updateTotals();
         }
     });
+    updateTotals();
 })();
 </script>
 

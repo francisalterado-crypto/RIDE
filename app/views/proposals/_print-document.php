@@ -24,7 +24,7 @@ $appCssVersion = is_file($appCssPath) ? (string) filemtime($appCssPath) : '1';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print Preview: <?= htmlspecialchars($documentTitle) ?></title>
     <link rel="icon" type="image/png" href="<?= base_url('assets/images/ride-logo.png') ?>" sizes="32x32">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>?v=<?= htmlspecialchars($appCssVersion) ?>">
     <style>
         body.print-preview-body { background: #525659; margin: 0; padding: 0 0 3rem; font-family: Georgia, "Times New Roman", serif; }

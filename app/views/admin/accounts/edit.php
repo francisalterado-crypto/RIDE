@@ -72,9 +72,10 @@ $isCurrentUser = $currentUserId === (int) $account['id'];
                         $selectedRoleId = old('edit_role_id', (string) ($account['role_id'] ?? ''));
                         $isSelected = $selectedRoleId === (string) $role['id'];
                         $needsCollege = isset($collegeScopedSlugs[(string) $role['slug']]);
+                        $needsCluster = isset($clusterScopedTracks[(string) $role['slug']]);
                         ?>
                         <option value="<?= (int) $role['id'] ?>" <?= $isSelected ? 'selected' : '' ?>>
-                            <?= htmlspecialchars((string) $role['name']) ?><?= $needsCollege ? ' (college required)' : '' ?>
+                            <?= htmlspecialchars((string) $role['name']) ?><?= $needsCollege ? ' (college required)' : ($needsCluster ? ' (cluster required)' : '') ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -92,6 +93,12 @@ $isCurrentUser = $currentUserId === (int) $account['id'];
                     <?php endforeach; ?>
                 </select>
             </div>
+
+            <?php
+            $selectedClusterIds = array_map('intval', (array) ($_SESSION['_old']['edit_cluster_ids'] ?? $accountClusterIds ?? []));
+            $clusterFieldPrefix = 'edit-account-cluster';
+            require APP_PATH . '/views/admin/accounts/_cluster-field.php';
+            ?>
 
             <div class="accounts-form-field accounts-form-field-span-2">
                 <label for="edit_account_program">Program</label>
@@ -131,7 +138,8 @@ $isCurrentUser = $currentUserId === (int) $account['id'];
     <h2>Account Notes</h2>
     <ul>
         <li>Changing the role replaces the previous role assignment for this account.</li>
-        <li>College must be set for coordinator, dean, faculty, and external partner roles.</li>
+        <li>College must be set for the College Coordinators, the College Dean and faculty. College Coordinators also get the Faculty role.</li>
+        <li>The Research Coordinator (RDO) and the Field Extensionist (ESO) need at least one cluster of their track.</li>
         <li>Program is optional and can pre-fill the proposal form for faculty accounts.</li>
         <li>The current admin account cannot remove its own admin access from this screen.</li>
     </ul>

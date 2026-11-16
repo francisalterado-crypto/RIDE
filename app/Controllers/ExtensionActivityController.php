@@ -61,7 +61,8 @@ final class ExtensionActivityController
         }
 
         $user = Auth::user() ?? [];
-        $collegeId = (int) ($user['college_id'] ?? 0);
+        // A RIDE coordinator records the entry for one of the colleges of their clusters.
+        $collegeId = AccessControl::worksAcrossColleges() ? quarterly_report_college_id($user) : (int) ($user['college_id'] ?? 0);
         $id = ExtensionActivity::create((int) $user['id'], $collegeId > 0 ? $collegeId : null, $type, $section, $data);
         $this->saveProjectLink($id, $type);
         AuditLog::record('extension_activity', $id, 'created');
@@ -219,8 +220,8 @@ final class ExtensionActivityController
     }
 
     /**
-     * Who may open an entry and its files: the person who entered it, people of the same college, and the
-     * university-wide reviewers of that office's quarterly reports (its Director, VPRIDE, RIDE Admin).
+     * Who may open an entry and its files: the person who entered it, people of the same college, the RIDE
+     * coordinator of the office over that college, and the office's Director, OVPRIDE and the Administrator.
      *
      * @param array<string, mixed> $entry
      */
@@ -232,8 +233,12 @@ final class ExtensionActivityController
         }
         $isResearch = ExtensionActivityTypes::officeOf((string) $entry['activity_type']) === 'rdo';
         $isDirector = $isResearch ? AccessControl::isDirectorResearch() : AccessControl::isDirectorExtension();
-        if ($isDirector || AccessControl::isVpride() || Auth::hasRole('ride_admin')) {
+        if ($isDirector || AccessControl::isVpride()) {
             return true;
+        }
+        $isOfficeCoordinator = $isResearch ? AccessControl::isRideCoordinatorResearch() : AccessControl::isRideCoordinatorExtension();
+        if ($isOfficeCoordinator) {
+            return in_array((int) ($entry['college_id'] ?? 0), AccessControl::rideCoordinatorCollegeIds(), true);
         }
         $collegeId = (int) ($user['college_id'] ?? 0);
 
@@ -241,19 +246,40 @@ final class ExtensionActivityController
     }
 
     /**
-     * Whose entries a user sees and compiles into reports: the office's report preparer (Field
-     * Extensionist for ESO, R&D Coordinator for RDO) covers their whole college, everyone else only their
-     * own entries.
+     * Whose entries a report is compiled from: the office's report preparer (Field Extensionist for ESO,
+     * Research Coordinator for RDO) compiles one college of their clusters ($collegeId, or the one picked on the
+     * page); everyone else only their own entries.
      *
      * @param array<string, mixed> $user
      * @return array{user_id?: int, college_id?: int}
      */
-    public static function reportScope(array $user, string $office = 'eso'): array
+    public static function reportScope(array $user, string $office = 'eso', ?int $collegeId = null): array
     {
-        $collegeId = (int) ($user['college_id'] ?? 0);
-        $isPreparer = $office === 'rdo' ? AccessControl::isCoordinatorResearch() : AccessControl::isCoordinatorExtension();
-        if ($collegeId > 0 && $isPreparer) {
-            return ['college_id' => $collegeId];
+        if (self::isPreparer($office)) {
+            return ['college_id' => $collegeId ?? quarterly_report_college_id($user)];
+        }
+
+        return ['user_id' => (int) ($user['id'] ?? 0)];
+    }
+
+    /** The office's report preparer: Research Coordinator (RDO) or Field Extensionist (ESO). */
+    private static function isPreparer(string $office): bool
+    {
+        return AccessControl::isAdmin()
+            || ($office === 'rdo' ? AccessControl::isRideCoordinatorResearch() : AccessControl::isRideCoordinatorExtension());
+    }
+
+    /**
+     * Whose entries a user's list shows: the office's report preparer sees every college of their clusters,
+     * everyone else their own entries.
+     *
+     * @param array<string, mixed> $user
+     * @return array{user_id?: int, college_ids?: list<int>}
+     */
+    private static function listScope(array $user, string $office): array
+    {
+        if (self::isPreparer($office)) {
+            return ['college_ids' => AccessControl::rideCoordinatorCollegeIds()];
         }
 
         return ['user_id' => (int) ($user['id'] ?? 0)];
@@ -275,7 +301,7 @@ final class ExtensionActivityController
             $period = QuarterlyReporting::currentPeriodKey() ?? 'all';
         }
         $range = $period !== 'all' ? ExtensionActivityTypes::periodDateRange($period) : null;
-        $scope = self::reportScope($user, $office);
+        $scope = self::listScope($user, $office);
         $entries = ExtensionActivity::list($scope, $type !== '' ? $type : null, $range[0] ?? null, $range[1] ?? null);
         if ($type === '') {
             $entries = array_values(array_filter(
@@ -292,7 +318,7 @@ final class ExtensionActivityController
             'selectedType' => $type,
             'selectedPeriod' => $period,
             'periodRange' => $range,
-            'isCollegeScope' => isset($scope['college_id']),
+            'isCollegeScope' => isset($scope['college_ids']),
             'currentUserId' => (int) ($user['id'] ?? 0),
             'canGenerateReports' => $office === 'rdo'
                 ? AccessControl::canPrepareResearchQuarterlyReports()
@@ -321,7 +347,19 @@ final class ExtensionActivityController
             $bMine = (int) ($b['college_id'] ?? 0) === $userCollegeId;
             return $aMine === $bMine ? 0 : ($aMine ? -1 : 1);
         });
+        $entryColleges = [];
+        if ($entry === null && AccessControl::worksAcrossColleges()) {
+            $ids = AccessControl::rideCoordinatorCollegeIds();
+            foreach (\App\Models\College::all() as $college) {
+                if (in_array((int) $college['id'], $ids, true)) {
+                    $entryColleges[(int) $college['id']] = (string) $college['name'];
+                }
+            }
+        }
         view('activities.form', [
+            // RIDE coordinators record entries for one of the colleges of their clusters.
+            'entryColleges' => $entryColleges,
+            'entryCollege' => $entryColleges !== [] ? quarterly_report_college_id(Auth::user() ?? []) : 0,
             // ESO entries can be tied to a planned extension project; the user's college's projects are listed.
             'extensionProjects' => $isEso ? \App\Models\ExtensionProject::options($userCollegeId > 0 ? $userCollegeId : null) : [],
             'extensionPrograms' => $extensionPrograms,

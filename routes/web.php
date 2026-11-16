@@ -68,6 +68,8 @@ $router->get('/signatures/{userId}', [ProfileController::class, 'showSignature']
 
 $router->get('/proposals', [ProposalController::class, 'index'], $auth);
 $router->get('/proposals/export', [ProposalController::class, 'exportRegistry'], $auth);
+$router->get('/requests', [ProposalController::class, 'requests'], $auth);
+$router->get('/reports', [ProposalController::class, 'reports'], $auth);
 $router->get('/proposals/terminal-report-registry', [ProposalController::class, 'terminalReportRegistry'], $auth);
 $router->get('/proposals/create', [ProposalController::class, 'create'], $auth);
 $router->get('/proposals/create/manuscript', [ProposalController::class, 'createManuscript'], $auth);
@@ -255,6 +257,7 @@ $router->get('/research-requests/new/{slug}', [ResearchRequestController::class,
 $router->post('/research-requests/new/{slug}', [ResearchRequestController::class, 'store'], $auth);
 $router->post('/research-requests/preview/{slug}', [ResearchRequestController::class, 'preview'], $auth);
 $router->get('/research-requests/{id}/edit', [ResearchRequestController::class, 'edit'], $auth);
+$router->get('/research-requests/{id}/contribution', [ResearchRequestController::class, 'contribution'], $auth);
 $router->post('/research-requests/{id}', [ResearchRequestController::class, 'update'], $auth);
 $router->get('/research-accomplishments', [ExtensionActivityController::class, 'researchIndex'], $auth);
 $router->get('/research-accomplishments/new/{slug}', [ExtensionActivityController::class, 'create'], $auth);

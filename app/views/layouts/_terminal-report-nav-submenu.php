@@ -17,7 +17,7 @@ $navLabel = static fn (string $label): string => htmlspecialchars(proposal_nav_s
 
     <a href="<?= base_url(\App\Support\AccessControl::isCoordinatorResearch() ? 'proposals/terminal-report-registry' : 'proposals/create/terminal-report' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($terminalReportNavActive) ? ' active' : '' ?>">
 
-        <span><?= $navLabel('Terminal Report') ?></span>
+        <i class="fa-solid fa-flag-checkered nav-subicon" aria-hidden="true"></i><span><?= $navLabel('Terminal Report') ?></span>
 
     </a>
 
@@ -27,7 +27,7 @@ $navLabel = static fn (string $label): string => htmlspecialchars(proposal_nav_s
 
     <a href="<?= base_url('proposals/create/progress-report' . $scopeQuery) ?>" class="nav-subitem<?= $navActive($progressReportNavActive) ? ' active' : '' ?>">
 
-        <span><?= $navLabel('Progress Report') ?></span>
+        <i class="fa-solid fa-chart-line nav-subicon" aria-hidden="true"></i><span><?= $navLabel('Progress Report') ?></span>
 
     </a>
 
@@ -37,7 +37,7 @@ $navLabel = static fn (string $label): string => htmlspecialchars(proposal_nav_s
 
     <a href="<?= $terminalAssessmentHref ?>" class="nav-subitem<?= $navActive($terminalReportAssessmentFormNavActive) ? ' active' : '' ?>">
 
-        <span><?= $navLabel('Terminal Report Assessment Form') ?></span>
+        <i class="fa-solid fa-list-check nav-subicon" aria-hidden="true"></i><span><?= $navLabel('Terminal Report Assessment Form') ?></span>
 
     </a>
 

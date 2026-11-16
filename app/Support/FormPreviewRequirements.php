@@ -18,6 +18,7 @@ final class FormPreviewRequirements
     /** Request-form fields the forms themselves mark optional ("if already decided", "leave blank", ...). */
     private const OPTIONAL_REQUEST_FIELDS = [
         'co_researchers', 'funds_downloaded', 'amount', 'target_conference', 'organizer', 'study_origin_completion_date',
+        'wpu_coauthors', 'partner_institution', 'contributions',
     ];
 
     /** @return list<array{name: string, key: string, label: string, column?: bool}> */

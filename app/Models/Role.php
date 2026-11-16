@@ -16,8 +16,6 @@ final class Role
             'coordinator_extension',
             'dean',
             'faculty',
-            'extension_worker',
-            'external_partner',
         ];
     }
 
@@ -50,5 +48,14 @@ final class Role
     public static function requiresCollege(string $slug): bool
     {
         return in_array($slug, self::collegeScopedSlugs(), true);
+    }
+
+    /** RIDE coordinators cover clusters of one track: role slug => track. @return array<string, string> */
+    public static function clusterScopedTracks(): array
+    {
+        return [
+            \App\Support\AccessControl::RIDE_COORDINATOR_RESEARCH => 'research',
+            \App\Support\AccessControl::RIDE_COORDINATOR_EXTENSION => 'extension',
+        ];
     }
 }

@@ -18,6 +18,40 @@ final class Notification
         $stmt->execute([$userId, $title, $message, $link]);
     }
 
+    /**
+     * Tells whoever acts on a record's current step that it is waiting for them: the College Coordinator or
+     * Dean of its college, the RIDE coordinator of its college's cluster, or the Director / OVPRIDE.
+     */
+    public static function notifyStepHolders(array $proposal, string $step): void
+    {
+        $collegeId = (int) ($proposal['college_id'] ?? 0);
+        $sql = 'SELECT DISTINCT u.id FROM users u
+                INNER JOIN user_roles ur ON ur.user_id = u.id
+                INNER JOIN roles r ON r.id = ur.role_id AND r.slug = ?';
+        $params = [$step];
+        if (in_array($step, [\App\Support\AccessControl::COORDINATOR_RESEARCH, \App\Support\AccessControl::COORDINATOR_EXTENSION, \App\Support\AccessControl::DEAN], true)) {
+            $sql .= ' WHERE (ur.college_id = ? OR u.college_id = ?)';
+            array_push($params, $collegeId, $collegeId);
+        } elseif (in_array($step, \App\Support\AccessControl::RIDE_COORDINATOR_STEPS, true)) {
+            $column = $step === \App\Support\AccessControl::RIDE_COORDINATOR_EXTENSION ? 'extension_cluster_id' : 'research_cluster_id';
+            $sql .= ' INNER JOIN user_clusters uc ON uc.user_id = u.id
+                      INNER JOIN colleges c ON c.' . $column . ' = uc.cluster_id AND c.id = ?
+                      WHERE 1 = 1';
+            $params[] = $collegeId;
+        } else {
+            $sql .= ' WHERE 1 = 1';
+        }
+        $sql .= ' AND u.is_active = 1 AND u.id <> ?';
+        $params[] = (int) ($proposal['user_id'] ?? 0);
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute($params);
+        $title = 'Waiting for your review';
+        $message = '"' . (string) ($proposal['title'] ?? '') . '" is waiting at ' . \App\Support\AccessControl::stepLabel($step) . '.';
+        foreach ($stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [] as $userId) {
+            self::notifyProjectLeader((int) $userId, $title, $message, 'proposals/' . (int) ($proposal['id'] ?? 0));
+        }
+    }
+
     public static function checkOverdueAlerts(): void
     {
         Milestone::refreshOverdue();

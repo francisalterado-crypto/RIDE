@@ -8,23 +8,7 @@
 
 $pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
 $pageHeading = 'Progress Report';
-$pageSubtitle = 'Quarterly project progress report.';
-
-$summaryData = [];
-if (!empty($proposal['summary'])) {
-    $decodedSummary = json_decode((string) $proposal['summary'], true);
-    if (is_array($decodedSummary)) {
-        $summaryData = $decodedSummary;
-    }
-}
-
-$value = static function (string $key) use ($summaryData): string {
-    $current = $summaryData[$key] ?? null;
-    return is_string($current) && $current !== '' ? $current : '-';
-};
-
-$entries = is_array($summaryData['entries'] ?? null) ? $summaryData['entries'] : [];
-$coauthors = is_array($summaryData['coauthors'] ?? null) ? $summaryData['coauthors'] : [];
+$pageSubtitle = 'Quarterly project progress report (WPU-QSF-RDE-VPRDE-18 Rev.00 (09.20.24)).';
 ?>
 
 <div class="page-actions-bar">
@@ -33,130 +17,8 @@ $coauthors = is_array($summaryData['coauthors'] ?? null) ? $summaryData['coautho
     <?php endif; ?>
 </div>
 
-<div class="proposal-paper completed-researches-paper trainings-conducted-paper progress-report-paper">
-    <header class="completed-researches-header">
-        <p class="completed-researches-header-line">Republic of the Philippines</p>
-        <p class="completed-researches-header-line completed-researches-header-line--strong">WESTERN PHILIPPINES UNIVERSITY</p>
-        <p class="completed-researches-header-line">Office of Research and Development</p>
-        <h2 class="completed-researches-title">PROGRESS REPORT</h2>
-        <p class="completed-researches-form-id">WPU-QSF-RDE-VPRDE-18 Rev.00 (09.20.24)</p>
-    </header>
-
-    <section class="proposal-section">
-        <h2 class="proposal-section-title">Report Information</h2>
-        <table class="proposal-table">
-            <tr>
-                <th>Status</th>
-                <td>
-                    <span class="badge badge-<?= htmlspecialchars($proposal['status']) ?>"><?= htmlspecialchars($proposal['status']) ?></span>
-                    <?php if ($proposal['current_step']): ?>
-                        <div class="proposal-table-meta">Step: <?= htmlspecialchars($stepLabel) ?></div>
-                    <?php endif; ?>
-                </td>
-                <th>Project Code</th>
-                <td><?= htmlspecialchars($proposal['project_code'] ?: 'Draft') ?></td>
-            </tr>
-            <tr>
-                <th>Research Title</th>
-                <td colspan="3"><?= htmlspecialchars($value('research_title')) ?></td>
-            </tr>
-            <tr>
-                <th>Period Covered</th>
-                <td><?= htmlspecialchars($value('period_covered')) ?></td>
-                <th>Duration in Months</th>
-                <td><?= htmlspecialchars($value('duration_months')) ?></td>
-            </tr>
-            <tr>
-                <th>Funding/ Support</th>
-                <td colspan="3"><?= htmlspecialchars($value('funding_support')) ?></td>
-            </tr>
-            <tr>
-                <th>As of</th>
-                <td colspan="3"><?= htmlspecialchars($value('report_as_of')) ?></td>
-            </tr>
-        </table>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">I. THE PROPONENT</h3>
-        <table class="proposal-table">
-            <tr><th>Full Name</th><td colspan="3"><?= htmlspecialchars(trim((string) ($summaryData['last_name'] ?? '') . ', ' . (string) ($summaryData['first_name'] ?? '') . ' ' . (string) ($summaryData['middle_name'] ?? ''))) ?></td></tr>
-            <tr><th>Title/Prefix</th><td colspan="3"><?= htmlspecialchars($value('title_prefix')) ?></td></tr>
-            <tr><th>College/Department</th><td colspan="3"><?= htmlspecialchars($value('college_name')) ?></td></tr>
-            <tr><th>Campus</th><td colspan="3"><?= htmlspecialchars($value('campus')) ?></td></tr>
-            <tr><th>Email</th><td colspan="3"><?= htmlspecialchars($value('email')) ?></td></tr>
-            <tr><th>Contact Number</th><td colspan="3"><?= htmlspecialchars($value('contact_number')) ?></td></tr>
-            <tr><th>Google Scholar account link</th><td colspan="3"><?= htmlspecialchars($value('google_scholar_link')) ?></td></tr>
-            <tr><th>ResearchGate account link</th><td colspan="3"><?= htmlspecialchars($value('researchgate_link')) ?></td></tr>
-        </table>
-        <?php if ($coauthors !== []): ?>
-            <div class="trainings-conducted-section">
-                <p class="trainings-conducted-scroll-hint proposal-section-note">Scroll horizontally to view all columns.</p>
-                <div class="proposal-table-wrap trainings-conducted-table-wrap">
-                    <table class="proposal-table trainings-conducted-table proposal-coauthors-table">
-                        <thead>
-                            <tr><th>Co-Author(s)</th><th>Last Name</th><th>First Name</th><th>Middle Name</th></tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($coauthors as $author): ?>
-                                <tr>
-                                    <td></td>
-                                    <td><?= htmlspecialchars((string) ($author['last_name'] ?? '')) ?></td>
-                                    <td><?= htmlspecialchars((string) ($author['first_name'] ?? '')) ?></td>
-                                    <td><?= htmlspecialchars((string) ($author['middle_name'] ?? '')) ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        <?php endif; ?>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Project/Study Overview</h3>
-        <p><?= nl2br(htmlspecialchars((string) ($summaryData['project_overview'] ?? '-'))) ?></p>
-    </section>
-
-    <section class="proposal-section trainings-conducted-section">
-        <h3 class="proposal-subtitle">Work/s Completed and/or in Progress</h3>
-        <p class="trainings-conducted-scroll-hint proposal-section-note">Scroll horizontally to view all columns.</p>
-        <div class="proposal-table-wrap trainings-conducted-table-wrap">
-            <table class="proposal-table trainings-conducted-table">
-                <thead>
-                    <tr>
-                        <th>Activities</th>
-                        <th>Target Schedule (based on proposal)</th>
-                        <th>Period of Actual Implementation/Date of Completion</th>
-                        <th>Problems Encountered/Action Required</th>
-                    </tr>
-                </thead>
-                <tbody>
-            <?php if ($entries === []): ?>
-                <tr><td colspan="4">No entries yet.</td></tr>
-            <?php else: ?>
-                <?php foreach ($entries as $entry): ?>
-                    <tr>
-                        <td><?= nl2br(htmlspecialchars((string) ($entry['activity'] ?? ''))) ?></td>
-                        <td><?= nl2br(htmlspecialchars((string) ($entry['target_schedule'] ?? ''))) ?></td>
-                        <td><?= nl2br(htmlspecialchars((string) ($entry['actual_period'] ?? ''))) ?></td>
-                        <td><?= nl2br(htmlspecialchars((string) ($entry['problems'] ?? ''))) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Revised targets if the project is delayed/advanced</h3>
-        <p><?= nl2br(htmlspecialchars((string) ($summaryData['revised_targets'] ?? '-'))) ?></p>
-        <h3 class="proposal-subtitle">How the project/study is going in general</h3>
-        <p><?= nl2br(htmlspecialchars((string) ($summaryData['general_progress'] ?? '-'))) ?></p>
-    </section>
-
-</div>
+<?php require APP_PATH . '/views/proposals/_proposal-status-strip.php'; ?>
+<?php require APP_PATH . '/views/proposals/_project-report-details.php'; ?>
 
 <div class="app-panel proposal-workflow-panel">
     <?php

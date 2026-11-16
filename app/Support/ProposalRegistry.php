@@ -11,8 +11,11 @@ use App\Services\ResearchFormDocument;
  * The Proposals page registry: what each row shows (form, progress, return note, linked research), which
  * tab it belongs to, and the filters shared by the page and its CSV export.
  *
+ * Records are split by kind, each listed on its own page: proposals (RDO-20, ESO-03) on /proposals, RDO request
+ * forms on /requests, and reports (quarterly, progress, terminal, assessment) on /reports.
+ *
  * Tabs: action (waiting on the viewer), drafts (draft/returned), review (submitted/under review),
- * approved (approved/ongoing/completed), requests (RDO request forms, any status), all.
+ * approved (approved/ongoing/completed), all.
  */
 final class ProposalRegistry
 {
@@ -22,8 +25,22 @@ final class ProposalRegistry
         'drafts' => 'Drafts & returned',
         'review' => 'In review',
         'approved' => 'Approved',
-        'requests' => 'Requests',
     ];
+
+    public const KINDS = ['proposal', 'request', 'report'];
+
+    /** Which registry page a record belongs to: 'proposal', 'request' or 'report'. */
+    public static function kindOf(array $proposal): string
+    {
+        if (ResearchRequestForms::typeOf($proposal) !== null) {
+            return 'request';
+        }
+        if (proposal_is_proposal_form($proposal) || proposal_is_obr_matrix($proposal)) {
+            return 'proposal';
+        }
+
+        return 'report';
+    }
 
     /**
      * @param list<array<string, mixed>> $proposals
@@ -61,6 +78,7 @@ final class ProposalRegistry
             $p['registry'] = [
                 'form' => self::formLabel($p),
                 'is_request' => $requestType !== null,
+                'period' => self::periodText($p, $summary),
                 'group' => match (true) {
                     in_array($status, ['draft', 'returned'], true) => 'drafts',
                     in_array($status, ['submitted', 'under_review'], true) => 'review',
@@ -80,21 +98,31 @@ final class ProposalRegistry
         return $rows;
     }
 
+    /** Reporting period of a report, e.g. "March 2027", or '' when it has none. */
+    private static function periodText(array $proposal, array $summary): string
+    {
+        $period = QuarterlyReporting::periodFromSummary($summary);
+        if ($period !== '') {
+            return QuarterlyReporting::periodLabel($period, proposal_form_type($proposal) ?: null);
+        }
+
+        return trim((string) ($summary['report_as_of'] ?? ''));
+    }
+
     /** Form name with its office code where it has one, e.g. "RDO-32 Manuscript Writing for Publication". */
     public static function formLabel(array $proposal): string
     {
         return proposal_form_label($proposal);
     }
 
-    /** Whether a row is in a tab. Request forms only show under Requests and All. */
+    /** Whether a row is in a tab. */
     public static function inTab(array $row, string $tab): bool
     {
         $r = $row['registry'];
 
         return match ($tab) {
             'action' => $r['needs_action'],
-            'requests' => $r['is_request'],
-            'drafts', 'review', 'approved' => !$r['is_request'] && $r['group'] === $tab,
+            'drafts', 'review', 'approved' => $r['group'] === $tab,
             default => true,
         };
     }

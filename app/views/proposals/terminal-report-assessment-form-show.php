@@ -55,89 +55,60 @@ $judgmentText = $judgmentLabels[$judgmentKey] ?? '-';
     <?php endif; ?>
 </div>
 
-<div class="proposal-paper completed-researches-paper trainings-conducted-paper terminal-report-assessment-paper">
-    <header class="completed-researches-header">
-        <p class="completed-researches-header-line">Republic of the Philippines</p>
-        <p class="completed-researches-header-line completed-researches-header-line--strong">WESTERN PHILIPPINES UNIVERSITY</p>
-        <p class="completed-researches-header-line">Office of Research and Development</p>
-        <h2 class="completed-researches-title">TERMINAL REPORT ASSESSMENT FORM</h2>
-    </header>
-
-    <section class="proposal-section">
-        <h2 class="proposal-section-title">Report Information</h2>
-        <table class="proposal-table">
-            <tr>
-                <th>Status</th>
-                <td>
-                    <span class="badge badge-<?= htmlspecialchars($proposal['status']) ?>"><?= htmlspecialchars($proposal['status']) ?></span>
-                    <?php if ($proposal['current_step']): ?>
-                        <div class="proposal-table-meta">Step: <?= htmlspecialchars($stepLabel) ?></div>
-                    <?php endif; ?>
-                </td>
-                <th>Project Code</th>
-                <td><?= htmlspecialchars($proposal['project_code'] ?: 'Draft') ?></td>
-            </tr>
-            <tr><th>Date</th><td><?= htmlspecialchars($value('date')) ?></td><th>Control No.</th><td><?= htmlspecialchars($value('control_no')) ?></td></tr>
-            <tr><th>College</th><td colspan="3"><?= htmlspecialchars($value('college_name')) ?></td></tr>
-            <tr><th>Lead Researcher</th><td colspan="3"><?= htmlspecialchars($value('lead_researcher')) ?></td></tr>
-            <tr><th>Co-Researcher(s)</th><td colspan="3"><?= htmlspecialchars($value('co_researchers')) ?></td></tr>
-            <tr><th>Research Title</th><td colspan="3"><?= htmlspecialchars($value('research_title')) ?></td></tr>
-            <tr><th>Duration of the Study</th><td><?= htmlspecialchars($value('duration_of_study')) ?></td><th>Proposed Budget</th><td><?= htmlspecialchars($value('proposed_budget')) ?></td></tr>
-        </table>
-    </section>
-
-    <section class="proposal-section trainings-conducted-section">
-        <h3 class="proposal-subtitle">Assessment Checklist</h3>
-        <p class="trainings-conducted-scroll-hint proposal-section-note">Scroll horizontally to view all columns.</p>
-        <div class="proposal-table-wrap trainings-conducted-table-wrap">
-            <table class="proposal-table trainings-conducted-table terminal-assessment-table">
-                <colgroup>
-                    <col class="ta-col-no">
-                    <col class="ta-col-parameter">
-                    <col class="ta-col-score">
-                    <col class="ta-col-score">
-                    <col class="ta-col-score">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Parameters</th>
-                        <th>Yes</th>
-                        <th>No</th>
-                        <th>N/A</th>
-                    </tr>
-                </thead>
-                <tbody>
-            <?php foreach ($parameters as $number => $label): ?>
-                <?php $score = strtolower((string) ($scoreValues[(string) $number] ?? '')); ?>
-                <tr>
-                    <td><?= (int) $number ?></td>
-                    <td><?= htmlspecialchars($label) ?></td>
-                    <td class="terminal-assessment-score"><?= $score === 'yes' ? 'X' : '' ?></td>
-                    <td class="terminal-assessment-score"><?= $score === 'no' ? 'X' : '' ?></td>
-                    <td class="terminal-assessment-score"><?= $score === 'na' ? 'X' : '' ?></td>
-                </tr>
-            <?php endforeach; ?>
-                </tbody>
-            </table>
+<?php require APP_PATH . '/views/proposals/_proposal-status-strip.php'; ?>
+<?php
+$viewText = static fn (string $key): string => is_scalar($summaryData[$key] ?? null) ? trim((string) $summaryData[$key]) : '';
+$viewField = static function (string $label, string $content, bool $full = false): void {
+    ?>
+    <div class="wf-view-field<?= $full ? ' webform-field--full' : '' ?>">
+        <span class="wf-view-label"><?= htmlspecialchars($label) ?></span>
+        <div class="wf-view-value"><?= $content !== '' ? nl2br(htmlspecialchars($content)) : '<span class="wf-view-empty">Not provided</span>' ?></div>
+    </div>
+    <?php
+};
+$scoreLabels = ['yes' => 'Yes', 'no' => 'No', 'na' => 'N/A'];
+?>
+<div class="webform wf-view">
+    <section class="webform-card">
+        <header class="webform-card-head"><span class="webform-card-num">1</span><div><h2>Report Information</h2></div></header>
+        <div class="webform-grid">
+            <?php $viewField('Date', $viewText('date') !== '' ? proposal_format_workflow_date($viewText('date')) : ''); ?>
+            <?php $viewField('Control No.', $viewText('control_no')); ?>
+            <?php $viewField('College', $viewText('college_name')); ?>
+            <?php $viewField('Research Title', $viewText('research_title'), true); ?>
+            <?php $viewField('Lead Researcher', $viewText('lead_researcher')); ?>
+            <?php $viewField('Co-Researcher(s)', $viewText('co_researchers')); ?>
+            <?php $viewField('Duration of the Study', $viewText('duration_of_study')); ?>
+            <?php $viewField('Proposed Budget', $viewText('proposed_budget')); ?>
         </div>
     </section>
 
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Comment(s)/Suggestion(s)/Recommendation(s):</h3>
-        <p><?= nl2br(htmlspecialchars((string) ($summaryData['comments'] ?? '-'))) ?></p>
+    <section class="webform-card">
+        <header class="webform-card-head"><span class="webform-card-num">2</span><div><h2>Assessment Checklist</h2></div></header>
+        <ol class="assessment-list">
+            <?php foreach ($parameters as $number => $label): ?>
+                <?php $score = strtolower((string) ($scoreValues[(string) $number] ?? '')); ?>
+                <li class="assessment-item">
+                    <span class="assessment-num"><?= (int) $number ?></span>
+                    <span class="assessment-text"><?= htmlspecialchars($label) ?></span>
+                    <?php if (isset($scoreLabels[$score])): ?>
+                        <span class="assessment-result assessment-result--<?= $score ?>"><?= $scoreLabels[$score] ?></span>
+                    <?php else: ?>
+                        <span class="assessment-result wf-view-empty">Not rated</span>
+                    <?php endif; ?>
+                </li>
+            <?php endforeach; ?>
+        </ol>
     </section>
 
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">My Judgment</h3>
-        <p><?= htmlspecialchars($judgmentText) ?></p>
+    <section class="webform-card">
+        <header class="webform-card-head"><span class="webform-card-num">3</span><div><h2>Comments and Judgment</h2></div></header>
+        <div class="webform-grid">
+            <?php $viewField('Comment(s)/Suggestion(s)/Recommendation(s)', $viewText('comments'), true); ?>
+            <?php $viewField('My Judgment', $judgmentLabels[$judgmentKey] ?? '', true); ?>
+            <?php $viewField('Reviewer (TWG Chair/Member)', $viewText('reviewer_name')); ?>
+        </div>
     </section>
-
-    <section class="proposal-section completed-researches-signoff">
-        <p><strong>Signature over printed name:</strong> <?= htmlspecialchars($value('reviewer_name')) ?></p>
-        <p>TWG Chair/Member</p>
-    </section>
-
 </div>
 
 <div class="app-panel proposal-workflow-panel">

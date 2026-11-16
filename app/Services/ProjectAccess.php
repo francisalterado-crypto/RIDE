@@ -24,19 +24,7 @@ final class ProjectAccess
         if (!$user) {
             return null;
         }
-        if (Auth::hasRole('ride_reporter')) {
-            return $proposal;
-        }
-        if (AccessControl::isVpride()) {
-            return $proposal;
-        }
-        if (AccessControl::proposalScopeType() !== null && AccessControl::canViewProposal($proposal)) {
-            return $proposal;
-        }
-        if (Auth::hasRole('dean') && (int) $user['college_id'] === (int) $proposal['college_id']) {
-            return $proposal;
-        }
-        if ((int) $proposal['user_id'] === (int) $user['id']) {
+        if (AccessControl::canViewProposal($proposal)) {
             return $proposal;
         }
         if (Auth::hasRole('faculty')
@@ -64,8 +52,8 @@ final class ProjectAccess
     }
 
     /**
-     * Who reviews submitted progress reports: the approvers over the project (college coordinator and dean,
-     * the director for its track, VPRIDE). Never the project leader.
+     * Who reviews submitted progress reports: the approvers over the project (college coordinator, dean, RIDE
+     * coordinator, the director for its track, OVPRIDE). Never the project leader.
      */
     public static function canReviewReports(array $proposal): bool
     {
@@ -73,14 +61,13 @@ final class ProjectAccess
         if ($user === null || !self::isMonitoring($proposal) || (int) $proposal['user_id'] === (int) $user['id']) {
             return false;
         }
-        if (AccessControl::isVpride()) {
-            return true;
-        }
-        if (AccessControl::isDean() && (int) ($user['college_id'] ?? 0) === (int) $proposal['college_id']) {
+        if (AccessControl::isOvpride()) {
             return true;
         }
 
         return (AccessControl::isCoordinator()
+                || AccessControl::isDean()
+                || AccessControl::isRideCoordinator()
                 || AccessControl::isDirectorResearch()
                 || AccessControl::isDirectorExtension())
             && AccessControl::canViewProposal($proposal);
@@ -98,14 +85,14 @@ final class ProjectAccess
 
         return (AccessControl::isDirectorExtension()
                 || AccessControl::isCoordinatorExtension()
-                || AccessControl::isExtensionWorker())
+                || AccessControl::isRideCoordinatorExtension())
             && AccessControl::canViewProposal($proposal);
     }
 
     public static function isMonitoring(array $proposal): bool
     {
         return in_array($proposal['status'], self::MONITORING_STATUSES, true)
-            && \App\Support\ResearchRequestForms::typeOf($proposal) === null;
+            && \App\Support\ProposalRegistry::kindOf($proposal) === 'proposal';
     }
 
     public static function denyUnlessView(int $proposalId): ?array

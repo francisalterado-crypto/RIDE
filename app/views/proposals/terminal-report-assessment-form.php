@@ -38,175 +38,174 @@ $parameters = [
     13 => 'The over-all presentation of report captures the substance of the study.',
 ];
 $scoreValues = is_array($summaryData['scores'] ?? null) ? $summaryData['scores'] : [];
+$judgmentLabels = [
+    'accepted_without_revisions' => 'Accepted without revisions',
+    'accepted_after_minor_revisions' => 'Accepted after minor revisions suggested in this review',
+    'accepted_after_major_revisions' => 'Accepted after major revisions suggested in this review',
+    'failed_to_pass' => 'Failed to pass',
+];
+$scoreLabels = ['yes' => 'Yes', 'no' => 'No', 'na' => 'N/A'];
+$judgment = $value('judgment');
+$action = $isEdit ? base_url('proposals/' . $proposal['id'] . '/terminal-report-assessment-form') : base_url('proposals/terminal-report-assessment-form');
 ?>
 
-<?php $blankFormType = 'terminal_report_assessment_form'; require APP_PATH . '/views/partials/blank-form-link.php'; ?>
-<form class="proposal-paper completed-researches-paper trainings-conducted-paper terminal-report-assessment-paper" method="post" action="<?= $isEdit ? base_url('proposals/' . $proposal['id'] . '/terminal-report-assessment-form') : base_url('proposals/terminal-report-assessment-form') ?>">
+<form class="webform rdo-webform" id="assessment-form" method="post" action="<?= $action ?>">
     <?= csrf_field() ?>
 
-    <header class="completed-researches-header">
-        <p class="completed-researches-header-line">Republic of the Philippines</p>
-        <p class="completed-researches-header-line completed-researches-header-line--strong">WESTERN PHILIPPINES UNIVERSITY</p>
-        <p class="completed-researches-header-line">Office of Research and Development</p>
-        <h2 class="completed-researches-title">TERMINAL REPORT ASSESSMENT FORM</h2>
-    </header>
+    <div class="webform-hero">
+        <div>
+            <p class="webform-eyebrow">Office of Research and Development, Form WPU-QSF-RDE-VPRDE-22</p>
+            <h2 class="webform-hero-title">Terminal Report Assessment Form</h2>
+            <p class="webform-hero-text">Rate the terminal report on each parameter, give your comments and judgment, then save.</p>
+            <?php $blankFormType = 'terminal_report_assessment_form'; require APP_PATH . '/views/partials/blank-form-link.php'; ?>
+        </div>
+    </div>
 
-    <section class="proposal-section">
-        <h2 class="proposal-section-title">Report Information</h2>
-        <table class="proposal-table">
-            <tr>
-                <th>Date</th>
-                <td><input type="date" name="date" value="<?= htmlspecialchars($value('date')) ?>"></td>
-                <th>Control No.</th>
-                <td><input name="control_no" value="<?= htmlspecialchars($value('control_no')) ?>"></td>
-            </tr>
-            <tr>
-                <th>College</th>
-                <td colspan="3">
-                    <?php if ($collegeDisplay !== ''): ?>
-                        <input type="hidden" name="college_name" value="<?= htmlspecialchars($collegeDisplay) ?>">
-                        <span><?= htmlspecialchars($collegeDisplay) ?></span>
-                    <?php else: ?>
-                        <select name="college_id" id="terminal-assessment-college-id" required>
-                            <option value="">Select college</option>
-                            <?php foreach ($colleges as $college): ?>
-                                <option value="<?= (int) $college['id'] ?>" data-name="<?= htmlspecialchars((string) $college['name']) ?>">
-                                    <?= htmlspecialchars((string) $college['name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="hidden" name="college_name" id="terminal-assessment-college-name" value="">
-                    <?php endif; ?>
-                </td>
-            </tr>
-            <tr>
-                <th>Lead Researcher</th>
-                <td colspan="3"><input name="lead_researcher" value="<?= htmlspecialchars($value('lead_researcher')) ?>"></td>
-            </tr>
-            <tr>
-                <th>Co-Researcher(s)</th>
-                <td colspan="3"><input name="co_researchers" value="<?= htmlspecialchars($value('co_researchers')) ?>"></td>
-            </tr>
-            <tr>
-                <th>Research Title</th>
-                <td colspan="3"><input name="research_title" value="<?= htmlspecialchars($value('research_title', (string) ($proposal['title'] ?? ''))) ?>"></td>
-            </tr>
-            <tr>
-                <th>Duration of the Study</th>
-                <td><input name="duration_of_study" value="<?= htmlspecialchars($value('duration_of_study')) ?>"></td>
-                <th>Proposed Budget</th>
-                <td><input name="proposed_budget" value="<?= htmlspecialchars($value('proposed_budget')) ?>"></td>
-            </tr>
-        </table>
+    <section class="webform-card">
+        <header class="webform-card-head">
+            <span class="webform-card-num">1</span>
+            <div>
+                <h2>Report Information</h2>
+                <p>The research whose terminal report is assessed.</p>
+            </div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field">
+                <label for="assessment-date">Date</label>
+                <input id="assessment-date" type="date" name="date" value="<?= htmlspecialchars($value('date')) ?>">
+            </div>
+            <div class="webform-field">
+                <label for="assessment-control-no">Control No.</label>
+                <input id="assessment-control-no" name="control_no" value="<?= htmlspecialchars($value('control_no')) ?>" placeholder="Enter the RIDE Control No.">
+            </div>
+            <div class="webform-field">
+                <span class="webform-label">College</span>
+                <?php if ($collegeDisplay !== ''): ?>
+                    <input type="hidden" name="college_name" value="<?= htmlspecialchars($collegeDisplay) ?>">
+                    <p class="webform-readonly"><?= htmlspecialchars($collegeDisplay) ?></p>
+                <?php else: ?>
+                    <select name="college_id" id="terminal-assessment-college-id" required aria-label="College">
+                        <option value="">Select the college</option>
+                        <?php foreach ($colleges as $college): ?>
+                            <option value="<?= (int) $college['id'] ?>" data-name="<?= htmlspecialchars((string) $college['name']) ?>"><?= htmlspecialchars((string) $college['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="hidden" name="college_name" id="terminal-assessment-college-name" value="">
+                <?php endif; ?>
+            </div>
+            <div class="webform-field webform-field--full">
+                <label for="assessment-title">Research Title</label>
+                <input id="assessment-title" name="research_title" value="<?= htmlspecialchars($value('research_title', (string) ($proposal['title'] ?? ''))) ?>" placeholder="Enter the title of the research">
+            </div>
+            <div class="webform-field">
+                <label for="assessment-lead">Lead Researcher</label>
+                <input id="assessment-lead" name="lead_researcher" value="<?= htmlspecialchars($value('lead_researcher')) ?>">
+            </div>
+            <div class="webform-field">
+                <label for="assessment-co">Co-Researcher(s)</label>
+                <input id="assessment-co" name="co_researchers" value="<?= htmlspecialchars($value('co_researchers')) ?>">
+            </div>
+            <div class="webform-field">
+                <label for="assessment-duration">Duration of the Study</label>
+                <input id="assessment-duration" name="duration_of_study" value="<?= htmlspecialchars($value('duration_of_study')) ?>">
+            </div>
+            <div class="webform-field">
+                <label for="assessment-budget">Proposed Budget</label>
+                <input id="assessment-budget" inputmode="decimal" name="proposed_budget" value="<?= htmlspecialchars($value('proposed_budget')) ?>">
+            </div>
+        </div>
     </section>
 
-    <section class="proposal-section trainings-conducted-section">
-        <h3 class="proposal-subtitle">Assessment Checklist</h3>
-        <p class="trainings-conducted-scroll-hint proposal-section-note">Scroll horizontally to view all columns.</p>
-        <div class="proposal-table-wrap trainings-conducted-table-wrap">
-            <table class="proposal-table trainings-conducted-table terminal-assessment-table">
-                <colgroup>
-                    <col class="ta-col-no">
-                    <col class="ta-col-parameter">
-                    <col class="ta-col-score">
-                    <col class="ta-col-score">
-                    <col class="ta-col-score">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Parameters</th>
-                        <th>Yes</th>
-                        <th>No</th>
-                        <th>N/A</th>
-                    </tr>
-                </thead>
-                <tbody>
+    <section class="webform-card">
+        <header class="webform-card-head">
+            <span class="webform-card-num">2</span>
+            <div>
+                <h2>Assessment Checklist</h2>
+                <p>Select Yes, No or N/A for each parameter.</p>
+            </div>
+        </header>
+        <ol class="assessment-list">
             <?php foreach ($parameters as $number => $label): ?>
                 <?php $current = strtolower((string) ($scoreValues[(string) $number] ?? '')); ?>
-                <tr>
-                    <td><?= (int) $number ?></td>
-                    <td><?= htmlspecialchars($label) ?></td>
-                    <td class="terminal-assessment-score"><input type="radio" name="scores[<?= (int) $number ?>]" value="yes" <?= $current === 'yes' ? 'checked' : '' ?>></td>
-                    <td class="terminal-assessment-score"><input type="radio" name="scores[<?= (int) $number ?>]" value="no" <?= $current === 'no' ? 'checked' : '' ?>></td>
-                    <td class="terminal-assessment-score"><input type="radio" name="scores[<?= (int) $number ?>]" value="na" <?= $current === 'na' ? 'checked' : '' ?>></td>
-                </tr>
+                <li class="assessment-item">
+                    <span class="assessment-num"><?= (int) $number ?></span>
+                    <span class="assessment-text" id="assessment-param-<?= (int) $number ?>"><?= htmlspecialchars($label) ?></span>
+                    <span class="assessment-choice" role="radiogroup" aria-labelledby="assessment-param-<?= (int) $number ?>">
+                        <?php foreach ($scoreLabels as $score => $scoreLabel): ?>
+                            <label class="assessment-choice-option assessment-choice-option--<?= $score ?>">
+                                <input type="radio" name="scores[<?= (int) $number ?>]" value="<?= $score ?>"<?= $current === $score ? ' checked' : '' ?>>
+                                <span><?= $scoreLabel ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </span>
+                </li>
             <?php endforeach; ?>
-                </tbody>
-            </table>
+        </ol>
+    </section>
+
+    <section class="webform-card">
+        <header class="webform-card-head">
+            <span class="webform-card-num">3</span>
+            <div><h2>Comments and Judgment</h2></div>
+        </header>
+        <div class="webform-grid">
+            <div class="webform-field webform-field--full">
+                <label for="assessment-comments">Comment(s)/Suggestion(s)/Recommendation(s)</label>
+                <textarea id="assessment-comments" name="comments" rows="5" data-autoresize><?= htmlspecialchars($value('comments')) ?></textarea>
+            </div>
+            <div class="webform-field webform-field--full">
+                <span class="webform-label">My Judgment</span>
+                <div class="proposal-check-grid">
+                    <?php foreach ($judgmentLabels as $key => $label): ?>
+                        <label class="proposal-check-item">
+                            <input type="radio" name="judgment" value="<?= $key ?>"<?= $judgment === $key ? ' checked' : '' ?>>
+                            <span><?= htmlspecialchars($label) ?></span>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="webform-field">
+                <label for="reviewer_name">Reviewer (TWG Chair/Member)</label>
+                <input id="reviewer_name" name="reviewer_name" value="<?= htmlspecialchars($value('reviewer_name')) ?>" placeholder="Enter the printed name of the reviewer">
+            </div>
         </div>
     </section>
 
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">Comment(s)/Suggestion(s)/Recommendation(s):</h3>
-        <textarea class="proposal-textarea" rows="6" name="comments"><?= htmlspecialchars($value('comments')) ?></textarea>
+    <section class="webform-card">
+        <?php
+        $workflowProposal = $proposal ?? [
+            'status' => 'draft',
+            'project_type' => 'research',
+            'summary' => json_encode(['form_type' => 'terminal_report_assessment_form']),
+            'first_name' => '',
+            'last_name' => '',
+        ];
+        $workflowSteps = proposal_workflow_steps($workflowProposal);
+        require APP_PATH . '/views/proposals/_approval-workflow.php';
+        ?>
     </section>
 
-    <section class="proposal-section">
-        <h3 class="proposal-subtitle">My Judgment (Please check):</h3>
-        <?php $judgment = $value('judgment'); ?>
-        <div class="terminal-assessment-judgment">
-            <label class="proposal-check-item">
-                <input type="radio" name="judgment" value="accepted_without_revisions" <?= $judgment === 'accepted_without_revisions' ? 'checked' : '' ?>>
-                <span>Accepted without revisions</span>
-            </label>
-            <label class="proposal-check-item">
-                <input type="radio" name="judgment" value="accepted_after_minor_revisions" <?= $judgment === 'accepted_after_minor_revisions' ? 'checked' : '' ?>>
-                <span>Accepted after minor revisions suggested in this review</span>
-            </label>
-            <label class="proposal-check-item">
-                <input type="radio" name="judgment" value="accepted_after_major_revisions" <?= $judgment === 'accepted_after_major_revisions' ? 'checked' : '' ?>>
-                <span>Accepted after major revisions suggested in this review</span>
-            </label>
-            <label class="proposal-check-item">
-                <input type="radio" name="judgment" value="failed_to_pass" <?= $judgment === 'failed_to_pass' ? 'checked' : '' ?>>
-                <span>Failed to pass</span>
-            </label>
-        </div>
-    </section>
-
-    <section class="proposal-section completed-researches-signoff">
-        <div style="max-width: 420px;">
-            <label for="reviewer_name">Signature over printed name</label>
-            <input id="reviewer_name" name="reviewer_name" value="<?= htmlspecialchars($value('reviewer_name')) ?>">
-            <div style="font-size: 13px; margin-top: 4px;">TWG Chair/Member</div>
-        </div>
-    </section>
-
-    <?php
-    $workflowProposal = $proposal ?? [
-        'status' => 'draft',
-        'project_type' => 'research',
-        'summary' => json_encode(['form_type' => 'terminal_report_assessment_form']),
-        'first_name' => '',
-        'last_name' => '',
-    ];
-    $workflowSteps = proposal_workflow_steps($workflowProposal);
-    require APP_PATH . '/views/proposals/_approval-workflow.php';
-    ?>
-
-    <div class="actions proposal-form-actions">
-        <button type="submit" class="btn"><?= $isEdit ? 'Save Changes' : 'Save Draft' ?></button>
+    <div class="webform-actionbar">
         <?php if ($isEdit): ?>
-            <a class="btn btn-outline" href="<?= base_url('proposals/' . $proposal['id']) ?>">Cancel</a>
+            <a class="btn btn-outline" href="<?= base_url('proposals/' . (int) $proposal['id']) ?>">Cancel</a>
         <?php endif; ?>
+        <button type="submit" class="btn"><?= $isEdit ? 'Save Changes' : 'Save Draft' ?></button>
     </div>
 </form>
 
 <script>
 (() => {
+    document.querySelectorAll('#assessment-form textarea[data-autoresize]').forEach((textarea) => {
+        const resize = () => { textarea.style.height = 'auto'; textarea.style.height = `${textarea.scrollHeight}px`; };
+        resize();
+        textarea.addEventListener('input', resize);
+    });
     const collegeSelect = document.getElementById('terminal-assessment-college-id');
     const collegeNameInput = document.getElementById('terminal-assessment-college-name');
-    if (!collegeSelect || !collegeNameInput) {
-        return;
+    if (collegeSelect && collegeNameInput) {
+        const sync = () => { collegeNameInput.value = collegeSelect.options[collegeSelect.selectedIndex]?.dataset?.name ?? ''; };
+        collegeSelect.addEventListener('change', sync);
+        sync();
     }
-
-    const syncCollegeName = () => {
-        const option = collegeSelect.options[collegeSelect.selectedIndex];
-        collegeNameInput.value = option?.dataset?.name ?? '';
-    };
-
-    collegeSelect.addEventListener('change', syncCollegeName);
-    syncCollegeName();
 })();
 </script>

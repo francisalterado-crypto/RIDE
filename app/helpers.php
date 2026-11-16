@@ -115,14 +115,8 @@ function proposal_nav_has_dual_menu(): bool
 /** @return 'research'|'extension'|null Null when nav scope does not apply (single-track roles). */
 function proposal_nav_scope(): ?string
 {
-    if (\App\Core\Auth::hasRole('extension_worker')
-        || \App\Support\AccessControl::isCoordinatorExtension()
-        || \App\Support\AccessControl::isDirectorExtension()) {
-        return 'extension';
-    }
-
     if (!proposal_nav_has_dual_menu()) {
-        return null;
+        return \App\Support\AccessControl::proposalScopeType() === 'extension' ? 'extension' : null;
     }
 
     // POST values are title-cased globally in bootstrap, so compare in lowercase.
@@ -183,14 +177,14 @@ function proposal_nav_redirect_suffix(?string $scope = null): string
 
 /**
  * Whether the Conducted Activities link sits inside the user's Extension Services menu. Users without
- * that menu (e.g. the Coordinator of Research) get it as a top-level link instead.
+ * that menu get it as a top-level link instead.
  */
 function conducted_activities_in_extension_nav(): bool
 {
     if (!\App\Support\AccessControl::canEnterConductedActivities()
         || \App\Support\AccessControl::isVpride()
-        || \App\Support\AccessControl::isCoordinatorResearch()
-        || \App\Support\AccessControl::isDirectorResearch()) {
+        || \App\Support\AccessControl::isDirectorResearch()
+        || \App\Support\AccessControl::isRideCoordinatorResearch()) {
         return false;
     }
 
@@ -199,9 +193,7 @@ function conducted_activities_in_extension_nav(): bool
 
 function proposal_nav_group_label(): string
 {
-    if (\App\Support\AccessControl::isCoordinatorExtension()
-        || \App\Support\AccessControl::isDirectorExtension()
-        || \App\Support\AccessControl::isExtensionWorker()) {
+    if (\App\Support\AccessControl::proposalScopeType() === 'extension') {
         return 'Extension Services';
     }
 
@@ -223,6 +215,46 @@ function proposal_nav_submenu_label(string $label): string
         'Consolidated Research Output Published' => 'Consolidated Research Output Published',
         default => $label,
     };
+}
+
+/**
+ * A clickable action card on a dashboard: icon badge, title, short description, and a large faded copy of the
+ * icon as the card's background graphic. $title and $subtitle are escaped here.
+ */
+function dashboard_action(string $href, string $icon, string $title, string $subtitle): string
+{
+    $icon = htmlspecialchars($icon);
+
+    return '<a class="fd-action" href="' . htmlspecialchars($href) . '">'
+        . '<span class="fd-action-icon" aria-hidden="true"><i class="fa-solid ' . $icon . '"></i></span>'
+        . '<span class="fd-action-text"><strong>' . htmlspecialchars($title) . '</strong>'
+        . '<span>' . htmlspecialchars($subtitle) . '</span></span>'
+        . '<i class="fa-solid fa-arrow-right fd-action-go" aria-hidden="true"></i>'
+        . '<i class="fa-solid ' . $icon . ' fd-action-art" aria-hidden="true"></i>'
+        . '</a>';
+}
+
+/** Icon badge for a dashboard stat card. */
+function dashboard_stat_icon(string $icon): string
+{
+    return '<span class="fd-stat-icon" aria-hidden="true"><i class="fa-solid ' . htmlspecialchars($icon) . '"></i></span>';
+}
+
+/**
+ * The college a quarterly report is prepared for. RIDE coordinators prepare one report per college of their
+ * clusters and pick it (?college= on the report pages, report_college in the form); defaults to their first
+ * college. Everyone else prepares for their own college.
+ */
+function quarterly_report_college_id(array $user): int
+{
+    if (\App\Support\AccessControl::worksAcrossColleges()) {
+        $allowed = \App\Support\AccessControl::rideCoordinatorCollegeIds();
+        $picked = (int) ($_POST['report_college'] ?? $_GET['college'] ?? 0);
+
+        return in_array($picked, $allowed, true) ? $picked : ($allowed[0] ?? 0);
+    }
+
+    return (int) ($user['college_id'] ?? 0);
 }
 
 function user_initials(array $user): string
@@ -250,38 +282,20 @@ function user_avatar_url(array $user): ?string
 
 function user_role_label(): string
 {
-    if (\App\Support\AccessControl::isVpride()) {
-        return 'VPRIDE Administrator';
-    }
-    if (\App\Core\Auth::hasRole('ride_admin')) {
-        return 'RIDE Administrator';
-    }
-    if (\App\Support\AccessControl::isDirectorResearch()) {
-        return 'RDO Director';
-    }
-    if (\App\Support\AccessControl::isDirectorExtension()) {
-        return 'ESO Director';
-    }
-    if (\App\Support\AccessControl::isCoordinatorResearch()) {
-        return 'Research Coordinator';
-    }
-    if (\App\Support\AccessControl::isCoordinatorExtension()) {
-        return 'Field Extensionist';
-    }
-    if (\App\Core\Auth::hasRole('dean')) {
-        return 'College Dean';
-    }
-    if (\App\Core\Auth::hasRole('faculty')) {
-        return 'Faculty';
-    }
-    if (\App\Core\Auth::hasRole('ride_reporter')) {
-        return 'Reporter';
-    }
-    if (\App\Core\Auth::hasRole('external_partner')) {
-        return 'External Partner';
-    }
-
-    return 'User';
+    $M = \App\Support\AccessControl::class;
+    return match (true) {
+        $M::isAdmin() => 'Administrator',
+        $M::isOvpride() => 'OVPRIDE',
+        $M::isDirectorResearch() => 'RDO Director',
+        $M::isDirectorExtension() => 'ESO Director',
+        $M::isRideCoordinatorResearch() => 'Research Coordinator (RDO)',
+        $M::isRideCoordinatorExtension() => 'Field Extensionist (ESO)',
+        $M::isDean() => 'College Dean',
+        $M::isCoordinatorResearch() => 'College Coordinator - Research',
+        $M::isCoordinatorExtension() => 'College Coordinator - Extension',
+        \App\Core\Auth::hasRole('faculty') => 'Faculty',
+        default => 'User',
+    };
 }
 
 function status_label(string $status): string
@@ -917,11 +931,8 @@ function proposal_uses_faculty_submitted_monitoring_workflow(?array $proposal): 
  */
 function proposal_is_coordinator_submitted_report(?array $proposal): bool
 {
-    if (is_array($proposal) && isset($proposal['coordinator_filed'])) {
-        return (bool) (int) $proposal['coordinator_filed'];
-    }
-
-    return proposal_filer_is_coordinator($proposal);
+    return is_array($proposal)
+        && \App\Support\AccessControl::route($proposal) !== \App\Support\AccessControl::ROUTE_FULL;
 }
 
 /**
@@ -930,15 +941,8 @@ function proposal_is_coordinator_submitted_report(?array $proposal): bool
  */
 function proposal_filer_is_coordinator(?array $proposal): bool
 {
-    if (!is_array($proposal)
-        || proposal_uses_faculty_submitted_monitoring_workflow($proposal)
-        || (!proposal_is_quarterly_researches_report($proposal) && !proposal_is_wpu_funded_extension($proposal))) {
-        return false;
-    }
-
-    $coordinatorRole = \App\Support\AccessControl::coordinatorStepForType((string) ($proposal['project_type'] ?? 'research'));
-
-    return in_array($coordinatorRole, \App\Models\User::roleSlugs((int) ($proposal['user_id'] ?? 0)), true);
+    return is_array($proposal)
+        && \App\Support\AccessControl::submitRoute($proposal) !== \App\Support\AccessControl::ROUTE_FULL;
 }
 
 function proposal_form_type(?array $proposal): string
@@ -1077,7 +1081,7 @@ function proposal_step_endorsement(int $proposalId, string $step, string $positi
 function proposal_coordinator_endorsement(int $proposalId, string $projectType = 'research'): ?array
 {
     $step = \App\Support\AccessControl::coordinatorStepForType($projectType);
-    $label = $projectType === 'extension' ? 'Field Extensionist' : 'Research Coordinator';
+    $label = $projectType === 'extension' ? 'College Coordinator - Extension' : 'College Coordinator - Research';
 
     return proposal_step_endorsement($proposalId, $step, $label);
 }
@@ -1185,19 +1189,12 @@ function proposal_workflow_steps(?array $proposal): array
     $isTerminalReport = proposal_is_terminal_report($proposal);
     $isTerminalReportAssessment = proposal_is_terminal_report_assessment_form($proposal);
     $isObrMatrix = proposal_is_obr_matrix($proposal);
-    $isCoordinatorSubmittedReport = proposal_is_coordinator_submitted_report($proposal);
-    $reviewSteps = $isCoordinatorSubmittedReport
-        ? [
-            \App\Support\AccessControl::DEAN,
-            \App\Support\AccessControl::directorStepForType($projectType),
-            \App\Support\AccessControl::VPRIDE,
-        ]
-        : [
-            \App\Support\AccessControl::coordinatorStepForType($projectType),
-            \App\Support\AccessControl::DEAN,
-            \App\Support\AccessControl::directorStepForType($projectType),
-            \App\Support\AccessControl::VPRIDE,
-        ];
+    $route = is_array($proposal)
+        ? \App\Support\AccessControl::route($proposal)
+        : \App\Support\AccessControl::ROUTE_FULL;
+    $reviewSteps = is_array($proposal)
+        ? \App\Support\AccessControl::reviewChain($proposal)
+        : \App\Support\AccessControl::reviewChain(['project_type' => $projectType, 'coordinator_filed' => 0, 'status' => 'submitted']);
 
     $status = is_array($proposal) ? (string) ($proposal['status'] ?? 'draft') : 'draft';
     $currentStep = is_array($proposal) ? ($proposal['current_step'] ?? null) : null;
@@ -1219,9 +1216,11 @@ function proposal_workflow_steps(?array $proposal): array
 
     $steps = [[
         'key' => 'applicant',
-        'title' => $isCoordinatorSubmittedReport
-            ? ($isExtension ? 'Field Extensionist' : 'Research Coordinator')
-            : ($requestFormType !== null ? 'Researcher' : 'Faculty'),
+        'title' => match ($route) {
+            \App\Support\AccessControl::ROUTE_RIDE_PREPARED => $isExtension ? 'Field Extensionist (ESO)' : 'Research Coordinator (RDO)',
+            \App\Support\AccessControl::ROUTE_COORDINATOR_FILED => $isExtension ? 'College Coordinator - Extension' : 'College Coordinator - Research',
+            default => $requestFormType !== null ? 'Researcher' : 'Faculty',
+        },
         'description' => match (true) {
             $isProgressReport => 'Submit progress report',
             $isTerminalReport => 'Submit terminal report',
@@ -1244,16 +1243,14 @@ function proposal_workflow_steps(?array $proposal): array
         'acted_at' => $applicantDate,
     ]];
 
-    $coordinatorStep = \App\Support\AccessControl::coordinatorStepForType($projectType);
-    $reviewDescriptions = [
-        $coordinatorStep => 'Endorses and forwards to College Dean',
-        \App\Support\AccessControl::DEAN => $isExtension
-            ? 'Approves and forwards to ESO Director'
-            : 'Approves and forwards to RDO Director',
-        \App\Support\AccessControl::DIRECTOR_RESEARCH => 'Approves and forwards to VPRIDE',
-        \App\Support\AccessControl::DIRECTOR_EXTENSION => 'Approves and forwards to VPRIDE',
-        \App\Support\AccessControl::VPRIDE => 'Grants final approval',
-    ];
+    $reviewDescriptions = [];
+    foreach ($reviewSteps as $index => $stepKey) {
+        $nextKey = $reviewSteps[$index + 1] ?? null;
+        $reviewDescriptions[$stepKey] = $nextKey === null
+            ? 'Grants final approval'
+            : (in_array($stepKey, \App\Support\AccessControl::COORDINATOR_STEPS, true) ? 'Endorses' : ($stepKey === \App\Support\AccessControl::DEAN && $route === \App\Support\AccessControl::ROUTE_RIDE_PREPARED ? 'Attests' : (in_array($stepKey, \App\Support\AccessControl::RIDE_COORDINATOR_STEPS, true) ? 'Reviews' : 'Approves')))
+                . ' and forwards to ' . preg_replace('/ \((Endorsement|Approval|Review|Final Approval)\)$/', '', \App\Support\AccessControl::stepLabel($nextKey));
+    }
 
     foreach ($reviewSteps as $index => $stepKey) {
         $approval = $proposalId > 0 ? \App\Models\Proposal::approvalAtStep($proposalId, $stepKey) : null;

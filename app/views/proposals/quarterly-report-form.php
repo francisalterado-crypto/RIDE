@@ -59,9 +59,30 @@ $cardNo = 0;
         </header>
         <div class="webform-grid">
             <?php $quarterlyFormType = $reportType; require APP_PATH . '/views/partials/quarterly-period-field.php'; ?>
+            <?php
+            // A RIDE coordinator prepares one report per college of their clusters and picks it here.
+            $rideColleges = [];
+            if (!$isEdit && \App\Support\AccessControl::worksAcrossColleges()) {
+                $rideIds = \App\Support\AccessControl::rideCoordinatorCollegeIds();
+                foreach ($colleges as $college) {
+                    if (in_array((int) $college['id'], $rideIds, true)) {
+                        $rideColleges[(int) $college['id']] = (string) $college['name'];
+                    }
+                }
+            }
+            $rideCollege = $rideColleges !== [] ? quarterly_report_college_id(\App\Core\Auth::user() ?? []) : 0;
+            ?>
             <div class="webform-field">
                 <label for="report-college">College</label>
-                <?php if ($collegeDisplay !== ''): ?>
+                <?php if ($rideColleges !== []): ?>
+                    <select id="report-college" name="report_college" required data-report-college>
+                        <?php foreach ($rideColleges as $rideCollegeId => $rideCollegeName): ?>
+                            <option value="<?= (int) $rideCollegeId ?>"<?= (int) $rideCollegeId === $rideCollege ? ' selected' : '' ?>><?= htmlspecialchars($rideCollegeName) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="hidden" name="college_name" value="<?= htmlspecialchars($rideColleges[$rideCollege] ?? '') ?>">
+                    <small class="webform-hint">The college of your cluster this report is for. Changing it reloads the entries.</small>
+                <?php elseif ($collegeDisplay !== ''): ?>
                     <input type="hidden" name="college_name" value="<?= htmlspecialchars($collegeDisplay) ?>">
                     <input id="report-college" value="<?= htmlspecialchars($collegeDisplay) ?>" readonly>
                 <?php else: ?>
@@ -129,6 +150,12 @@ $cardNo = 0;
         if (period.value === '') return;
         const url = new URL(window.location.href);
         url.searchParams.set('period', period.value);
+        window.location.assign(url.toString());
+    });
+    const reportCollege = form.querySelector('[data-report-college]');
+    reportCollege?.addEventListener('change', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('college', reportCollege.value);
         window.location.assign(url.toString());
     });
     const college = form.querySelector('[data-college-select]');

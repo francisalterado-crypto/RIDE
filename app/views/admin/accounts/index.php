@@ -256,7 +256,7 @@ $collegeCount = count($colleges);
 
             <h2>Add Account</h2>
 
-            <p class="muted">Accounts added here become active immediately. College is required for coordinators, dean, faculty, and external partner roles. Program is optional.</p>
+            <p class="muted">Accounts added here become active immediately. College is required for the College Coordinators, the College Dean and faculty. RIDE coordinators need at least one cluster. Program is optional.</p>
 
 
 
@@ -321,12 +321,13 @@ $collegeCount = count($colleges);
                             $selected = old('role_id') === (string) $role['id'];
 
                             $needsCollege = isset($collegeScopedSlugs[(string) $role['slug']]);
+                            $needsCluster = isset($clusterScopedTracks[(string) $role['slug']]);
 
                             ?>
 
                             <option value="<?= (int) $role['id'] ?>" <?= $selected ? 'selected' : '' ?>>
 
-                                <?= htmlspecialchars((string) $role['name']) ?><?= $needsCollege ? ' (college required)' : '' ?>
+                                <?= htmlspecialchars((string) $role['name']) ?><?= $needsCollege ? ' (college required)' : ($needsCluster ? ' (cluster required)' : '') ?>
 
                             </option>
 
@@ -361,6 +362,12 @@ $collegeCount = count($colleges);
                 </div>
 
 
+
+                <?php
+                $selectedClusterIds = array_map('intval', (array) ($_SESSION['_old']['cluster_ids'] ?? []));
+                $clusterFieldPrefix = 'account-cluster';
+                require APP_PATH . '/views/admin/accounts/_cluster-field.php';
+                ?>
 
                 <div class="accounts-form-field accounts-form-field-span-2">
 

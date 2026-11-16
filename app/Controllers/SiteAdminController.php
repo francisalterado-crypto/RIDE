@@ -20,8 +20,8 @@ final class SiteAdminController
             $posts = array_values(array_filter($posts, static fn (array $p): bool => $p['kind'] === $kind));
         }
         view('admin.site.index', [
-            'pageTitle' => 'Public Site | RIDE Hub',
-            'pageHeading' => 'Public Site',
+            'pageTitle' => 'Manage Website Content | RIDE Hub',
+            'pageHeading' => 'Manage Website Content',
             'pageSubtitle' => 'News, The Palawan Scientist and conference posts shown on the public RIDE site.',
             'posts' => $posts,
             'kind' => $kind,
