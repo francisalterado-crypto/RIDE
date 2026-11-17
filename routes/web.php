@@ -15,6 +15,7 @@ use App\Controllers\ResearchRequestController;
 use App\Controllers\FacultyDirectoryController;
 use App\Controllers\FacultyDeadlineSettingsController;
 use App\Controllers\FormTemplateController;
+use App\Controllers\HealthController;
 use App\Controllers\DirectMessageController;
 use App\Controllers\MonitoringController;
 use App\Controllers\NotificationController;
@@ -32,6 +33,8 @@ $admin = [...$auth, RoleMiddleware::require('ride_admin')];
 
 // Public site (no sign-in needed).
 $router->get('/', [SiteController::class, 'home']);
+// Public uptime check for the deployment; reports only whether the database is reachable.
+$router->get('/api/health', [HealthController::class, 'show']);
 $router->get('/news', [SiteController::class, 'news']);
 $router->get('/journal', [SiteController::class, 'journal']);
 $router->get('/conferences', [SiteController::class, 'conferences']);

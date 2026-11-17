@@ -52,7 +52,6 @@ try {
     $counts['proposals'] = $deleteAll($pdo, 'proposals');
     $counts['audit_logs'] = $deleteAll($pdo, 'audit_logs');
     $counts['notifications'] = $deleteAll($pdo, 'notifications');
-    $counts['api_tokens'] = $deleteAll($pdo, 'api_tokens');
     $counts['published_papers'] = $deleteAll($pdo, 'published_papers');
     $counts['paper_presentations'] = $deleteAll($pdo, 'paper_presentations');
     $counts['scholarly_attachments'] = $deleteAll($pdo, 'scholarly_attachments');

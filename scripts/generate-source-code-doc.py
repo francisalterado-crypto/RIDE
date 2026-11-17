@@ -40,7 +40,6 @@ MODULES: list[tuple[str, str, list[str]]] = [
             "app/config/",
             "public/index.php",
             "routes/web.php",
-            "routes/api.php",
         ],
     ),
     (
@@ -202,14 +201,7 @@ MODULES: list[tuple[str, str, list[str]]] = [
         ],
     ),
     (
-        "24. Java REST API Client",
-        "Maven-based Java client for external API integration.",
-        [
-            "java-client/",
-        ],
-    ),
-    (
-        "25. Documentation",
+        "24. Documentation",
         "Project README and documentation.",
         [
             "README.md",
@@ -274,7 +266,7 @@ def assign_files_to_modules(all_files: list[Path]) -> dict[str, list[Path]]:
             unassigned.append(path)
 
     if unassigned:
-        assigned["26. Other Files"] = unassigned
+        assigned["25. Other Files"] = unassigned
 
     return assigned
 
@@ -392,12 +384,12 @@ def generate_document() -> Path:
         if files:
             add_module_section(doc, title, module_descriptions[title], files)
 
-    if "26. Other Files" in module_files:
+    if "25. Other Files" in module_files:
         add_module_section(
             doc,
-            "26. Other Files",
+            "25. Other Files",
             "Additional source files not assigned to a specific module.",
-            module_files["26. Other Files"],
+            module_files["25. Other Files"],
         )
 
     doc.save(OUTPUT)

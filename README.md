@@ -1,6 +1,6 @@
 # RIDE Hub - Information Management System for RIDE
 
-PHP web application (XAMPP) with a Java REST API client for integration and public showcase workflows.
+PHP web application (XAMPP locally, Vercel with Postgres in production) for research and extension proposals, approvals, monitoring and reporting.
 
 ## Stack
 
@@ -8,14 +8,12 @@ PHP web application (XAMPP) with a Java REST API client for integration and publ
 |-----------|------------|
 | Web app | PHP 8.2+, plain MVC |
 | Database | MySQL (MariaDB via XAMPP) |
-| API client | Java 17 + Maven (`java-client/`) |
 | Auth (dev) | Email / password sessions |
 | Auth (prod) | SSO planned |
 
 ## Requirements
 
 - XAMPP (Apache + MySQL + PHP 8.2+)
-- Optional: JDK 17+ and Maven for the Java client
 
 ## Setup (XAMPP)
 
@@ -86,21 +84,10 @@ Quarterly reports (ESO-06 to 10, RDO-05 to 14) are prepared by the RIDE Coordina
 
 The Administrator sees everything and manages the configuration, but is not part of the approval chain.
 
-## REST API (for Java / external systems)
+## Health check
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/login` | JSON `{email, password}` → `{token, user}` |
-| GET | `/api/proposals` | Bearer token → proposal list |
-| GET | `/api/stats` | Bearer token → KPI stats |
-
-### Java client
-
-```bat
-cd java-client
-mvn -q package
-java -jar target\ride-api-client-1.0.0-SNAPSHOT.jar http://localhost/RIDE/public director@ride.local password123
-```
+`GET /api/health` returns `{"status":"ok","database":"connected"}`, or HTTP 503 with `"status":"error"` when the
+database is not configured or not reachable. It is public and reports no connection details.
 
 ## Project structure
 
@@ -108,9 +95,8 @@ java -jar target\ride-api-client-1.0.0-SNAPSHOT.jar http://localhost/RIDE/public
 RIDE/
 ├── app/           # Controllers, models, views, core
 ├── database/      # schema.sql, seeds.sql
-├── java-client/   # Maven API client
 ├── public/        # Web root (index.php, assets)
-├── routes/        # web.php, api.php
+├── routes/        # web.php
 └── scripts/       # install.php
 ```
 
@@ -124,17 +110,9 @@ RIDE/
 - **Extension module** — beneficiaries, partner MOUs, impact metrics
 - **Accreditation report** — extension beneficiaries by year (`/reports/extension-beneficiaries`)
 
-### API (Phase 2)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/projects` | Ongoing approved projects |
-| GET | `/api/reports/extension-beneficiaries?years=3` | Beneficiary report (ESO Director, OVPRIDE, Administrator) |
-
 Existing databases auto-migrate on first request after update (`database/migrations/phase2.sql`).
 
 ## Next phases
 
 - PDF/Excel export for accreditation reports
 - University SSO and finance system integration
-- Public showcase website API

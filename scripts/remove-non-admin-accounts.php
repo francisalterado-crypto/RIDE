@@ -36,7 +36,6 @@ try {
     $pdo->exec('DELETE FROM proposal_comments WHERE user_id <> ' . $adminId);
     $pdo->exec('DELETE FROM approval_actions WHERE user_id <> ' . $adminId);
     $pdo->exec('DELETE FROM notifications WHERE user_id <> ' . $adminId);
-    $pdo->exec('DELETE FROM api_tokens WHERE user_id <> ' . $adminId);
     $pdo->exec('DELETE FROM user_roles WHERE user_id <> ' . $adminId);
     $pdo->exec('DELETE FROM users WHERE id <> ' . $adminId);
 
