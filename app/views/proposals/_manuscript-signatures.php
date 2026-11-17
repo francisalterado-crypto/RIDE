@@ -57,12 +57,30 @@ $directorDisplayRole = $isExtension
 $directorEndorsement = $proposalId > 0
     ? proposal_step_endorsement($proposalId, $directorStep, $directorRoleLabel)
     : null;
-$directorSignatory = proposal_manuscript_role_signatory(
-    $directorStep,
-    $directorDisplayRole,
-    $directorEndorsement,
-    $isExtension ? '' : 'DR. JHONAMIE M. OMAR'
+// Names come from the approval record, or else from the active account holding the role.
+$directorSignatory = proposal_manuscript_role_signatory($directorStep, $directorDisplayRole, $directorEndorsement);
+$vprideEndorsement = $proposalId > 0
+    ? proposal_step_endorsement($proposalId, AccessControl::VPRIDE, 'OVPRIDE')
+    : null;
+$vprideSignatory = proposal_manuscript_role_signatory(
+    AccessControl::VPRIDE,
+    'VP Research, Innovation, Development and Extension (RIDE)',
+    $vprideEndorsement
 );
+
+// A signature image appears only once that person has approved their step; before that only the name is shown.
+if ($coordinatorEndorsement === null) {
+    $coordinatorSignatory['signature_url'] = null;
+}
+if ($deanEndorsement === null) {
+    $deanSignatory['signature_url'] = null;
+}
+if ($directorEndorsement === null) {
+    $directorSignatory['signature_url'] = null;
+}
+if ($vprideEndorsement === null) {
+    $vprideSignatory['signature_url'] = null;
+}
 
 $isApproved = is_array($proposal) && in_array((string) ($proposal['status'] ?? ''), ['ongoing', 'approved', 'completed'], true);
 $approvedAt = '';
@@ -107,10 +125,10 @@ $blocks = [
     ],
     [
         'label' => 'Approved by:',
-        'role' => 'VP Research, Innovation, Development and Extension (RIDE)',
-        'signature_url' => null,
-        'date' => $approvedAt,
-        'name' => 'DR. LOTA A. CREENCIA',
+        'role' => $vprideSignatory['role'],
+        'signature_url' => $vprideSignatory['signature_url'],
+        'date' => $vprideSignatory['date'] !== '' ? $vprideSignatory['date'] : $approvedAt,
+        'name' => $vprideSignatory['name'],
     ],
 ];
 

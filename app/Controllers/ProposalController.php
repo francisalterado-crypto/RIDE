@@ -75,8 +75,9 @@ final class ProposalController
     /** @return list<array<string, mixed>> records of one kind (proposal, request, report) the viewer can see */
     private function registryProposals(array $user, string $kind = 'proposal'): array
     {
+        // The SQL condition does the filtering; kindOf() stays as the definition and a safety check.
         return array_values(array_filter(
-            $this->visibleProposalsForCurrentUser($user),
+            $this->visibleProposalsForCurrentUser($user, \App\Support\ProposalRegistry::kindWhere($kind)),
             static fn (array $proposal): bool => \App\Support\ProposalRegistry::kindOf($proposal) === $kind
         ));
     }
@@ -1117,16 +1118,10 @@ final class ProposalController
 
     public function createTerminalReportAssessmentForm(): void
     {
-        if (!$this->allowTerminalReportAccess()) {
-            return;
-        }
-
-        $user = Auth::user();
-        view('proposals.terminal-report-assessment-form', [
-            'proposal' => null,
-            'colleges' => College::all(),
-            'collegeName' => $this->collegeNameForUser($user),
-        ]);
+        // Retired as a standalone form: see App\Support\TerminalReportAssessment.
+        set_flash('error', 'The Terminal Report Assessment is now completed by the Research Coordinator (RIDE-RDO) when '
+                . 'reviewing the terminal report. Submit your Terminal Report instead.');
+        redirect('proposals/terminal-report-registry');
     }
 
     public function storeInventionsUmCopyrights(): void
@@ -1543,30 +1538,10 @@ final class ProposalController
 
     public function storeTerminalReportAssessmentForm(): void
     {
-        if (!$this->allowTerminalReportAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/create/terminal-report-assessment-form');
-        }
-
-        $user = Auth::user();
-        $data = $this->validatedTerminalReportAssessmentFormInput();
-        $data['user_id'] = (int) $user['id'];
-        $data['college_id'] = (quarterly_report_college_id($user) ?: (int) ($_POST['college_id'] ?? 0));
-        $data['campus_id'] = (int) ($user['campus_id'] ?? $_POST['campus_id'] ?? 0) ?: null;
-
-        if ($data['college_id'] === 0) {
-            set_flash('error', 'College is required.');
-            redirect('proposals/create/terminal-report-assessment-form');
-        }
-
-        $id = Proposal::create($data);
-        AuditLog::record('proposal', $id, 'created');
-        set_flash('success', 'Terminal report assessment form saved as draft.');
-        redirect('proposals/' . $id);
+        // Retired as a standalone form: see App\Support\TerminalReportAssessment.
+        set_flash('error', 'The Terminal Report Assessment is now completed by the Research Coordinator (RIDE-RDO) when '
+                . 'reviewing the terminal report. Submit your Terminal Report instead.');
+        redirect('proposals/terminal-report-registry');
     }
 
     public function updateInventionsUmCopyrights(int $id): void
@@ -1923,25 +1898,9 @@ final class ProposalController
 
     public function updateTerminalReportAssessmentForm(int $id): void
     {
-        if (!$this->allowTerminalReportAccess()) {
-            return;
-        }
-
-        if (!verify_csrf()) {
-            set_flash('error', 'Invalid session.');
-            redirect('proposals/' . $id . '/edit');
-        }
-
-        $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || !proposal_is_terminal_report_assessment_form($proposal)) {
-            http_response_code(403);
-            view('errors.403');
-            return;
-        }
-
-        Proposal::update($id, $this->validatedTerminalReportAssessmentFormInput());
-        AuditLog::record('proposal', $id, 'updated');
-        set_flash('success', 'Terminal report assessment form updated.');
+        // Former standalone assessments are read-only: see App\Support\TerminalReportAssessment.
+        set_flash('error', 'Terminal Report Assessment records filed as a separate form can no longer be edited. '
+                . 'The assessment is now completed by the Research Coordinator (RIDE-RDO) on the terminal report.');
         redirect('proposals/' . $id);
     }
 
@@ -2731,7 +2690,8 @@ final class ProposalController
         view('proposals.terminal-report-assessment-form-show', [
             'proposal' => $proposal,
             'comments' => Proposal::comments($id),
-            'canEdit' => $this->canEdit($proposal),
+            // Read-only: the assessment is now entered on the terminal report (TerminalReportAssessment).
+            'canEdit' => false,
             'canApprove' => $this->canApprove($proposal),
             'approveLabel' => AccessControl::actionLabel((string) ($proposal['current_step'] ?? '')),
             'stepLabel' => AccessControl::stepLabel((string) ($proposal['current_step'] ?? '')),
@@ -3059,14 +3019,6 @@ final class ProposalController
             ]);
             return;
         }
-        if (proposal_is_terminal_report_assessment_form($proposal)) {
-            view('proposals.terminal-report-assessment-form', [
-                'proposal' => $proposal,
-                'colleges' => College::all(),
-                'collegeName' => (string) ($proposal['college_name'] ?? ''),
-            ]);
-            return;
-        }
         if (proposal_is_obr_matrix($proposal)) {
             view('proposals.obr-matrix-form', [
                 'proposal' => $proposal,
@@ -3137,6 +3089,12 @@ final class ProposalController
             http_response_code(403);
             view('errors.403');
             return;
+        }
+        if (proposal_is_terminal_report_assessment_form($proposal)) {
+            // Former standalone assessments cannot be submitted: the assessment belongs to the RDO review.
+            set_flash('error', 'The Terminal Report Assessment is now completed by the Research Coordinator (RIDE-RDO) when '
+                . 'reviewing the terminal report. Submit your Terminal Report instead.');
+            redirect('proposals/' . $id);
         }
         if (!$this->isStandaloneProposalForm($proposal)) {
             $missingRequiredFiles = $this->missingRequiredFileLabels($id);
@@ -3250,6 +3208,21 @@ final class ProposalController
         $this->workflowAction($id, 'return', $_POST['comment'] ?? '');
     }
 
+    /**
+     * Reviewer inputs that the current step must complete with its approval, if any.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function reviewFieldsFor(array $proposal, string $step): array
+    {
+        $requestType = \App\Support\ResearchRequestForms::typeOf($proposal);
+        if ($requestType !== null) {
+            return \App\Support\ResearchRequestForms::reviewFields($requestType, $step);
+        }
+
+        return \App\Support\TerminalReportAssessment::reviewFieldsFor($proposal, $step);
+    }
+
     private function workflowAction(int $id, string $action, string $comment = ''): void
     {
         if (!verify_csrf()) {
@@ -3269,10 +3242,10 @@ final class ProposalController
             redirect('proposals/' . $id);
         }
         if ($action === 'approve') {
-            // Forms with a reviewer section (the incentive requests): the reviewer's entries are saved with the approval.
-            $requestType = \App\Support\ResearchRequestForms::typeOf($proposal);
+            // Forms with a reviewer section (the incentive requests, and the terminal report assessment entered by
+            // the RDO Research Coordinator): the reviewer's entries are saved with the approval.
             $step = (string) ($proposal['current_step'] ?? '');
-            $reviewFields = $requestType !== null ? \App\Support\ResearchRequestForms::reviewFields($requestType, $step) : [];
+            $reviewFields = self::reviewFieldsFor($proposal, $step);
             if ($reviewFields !== []) {
                 [$review, $reviewErrors] = \App\Support\ResearchRequestForms::validatedReview($reviewFields, $_POST['review'] ?? null);
                 if ($reviewErrors !== []) {
@@ -3280,16 +3253,45 @@ final class ProposalController
                     set_flash('error', implode(' ', $reviewErrors));
                     redirect('proposals/' . $id);
                 }
+                // A terminal report assessed as needing major revisions, or failing, goes back to the researcher
+                // with the assessment instead of moving on; the coordinator's comments are the revision notes.
+                if (\App\Support\TerminalReportAssessment::reviewFieldsFor($proposal, $step) !== []
+                    && \App\Support\TerminalReportAssessment::requiresRevision($review)) {
+                    if (trim((string) ($review['comments'] ?? '')) === '') {
+                        $_SESSION['_old_review'] = $_POST['review'] ?? [];
+                        set_flash('error', 'Comments and suggested revisions are required when the judgment is major revisions or failed to pass.');
+                        redirect('proposals/' . $id);
+                    }
+                    $action = 'return';
+                    $comment = \App\Support\TerminalReportAssessment::returnComment($review);
+                }
                 unset($_SESSION['_old_review']);
-                $summary = json_decode((string) ($proposal['summary'] ?? ''), true);
-                $summary = is_array($summary) ? $summary : [];
-                $summary['reviews'][$step] = $review;
-                Proposal::updateSummaryCoauthorsOnly($id, (string) json_encode($summary, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                $saveReview = static function () use ($id, $step, $review): void {
+                    // Re-read inside the locked transaction so a concurrent save is not overwritten.
+                    $current = Proposal::find($id) ?? [];
+                    $summary = json_decode((string) ($current['summary'] ?? ''), true);
+                    $summary = is_array($summary) ? $summary : [];
+                    $summary['reviews'][$step] = $review;
+                    Proposal::updateSummaryCoauthorsOnly($id, (string) json_encode($summary, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                };
             }
         }
-        Proposal::advanceWorkflow($id, $action, (int) Auth::user()['id'], $comment);
+        $applied = Proposal::advanceWorkflow(
+            $id,
+            $action,
+            (int) Auth::user()['id'],
+            $comment,
+            (string) ($proposal['current_step'] ?? ''),
+            $saveReview ?? null
+        );
+        if (!$applied) {
+            set_flash('error', 'This record is no longer awaiting action at your step. It may have been acted on by another reviewer.');
+            redirect('proposals/' . $id);
+        }
         AuditLog::record('proposal', $id, $action);
-        set_flash('success', 'Action recorded successfully.');
+        set_flash('success', $action === 'return' && isset($saveReview)
+            ? 'Assessment saved. The terminal report was returned to the researcher for revision.'
+            : 'Action recorded successfully.');
         redirect('proposals/' . $id);
     }
 
@@ -4542,67 +4544,6 @@ final class ProposalController
         }
         if ($reportAsOf !== '') {
             $title .= ' - ' . $reportAsOf;
-        }
-
-        return [
-            'title' => $title,
-            'summary' => json_encode($structuredSummary, JSON_UNESCAPED_SLASHES) ?: '',
-            'project_type' => 'research',
-            'funding_source' => '',
-            'risk_level' => 'low',
-            'ethics_required' => false,
-        ];
-    }
-
-    private function validatedTerminalReportAssessmentFormInput(): array
-    {
-        $date = trim((string) ($_POST['date'] ?? ''));
-        $collegeName = trim((string) ($_POST['college_name'] ?? ''));
-        $parameters = [
-            1 => 'The abstract presents an accurate synopsis of the research.',
-            2 => 'The approved methodology in the proposal was followed (i.e. sample size, sampling procedure, data collection, data analysis, etc).',
-            3 => 'The approved research ethics protocol was followed.',
-            4 => 'Analysis of limitations and errors of the methods were presented.',
-            5 => 'Stakeholders validated the data.',
-            6 => 'Scientific literature supported the findings.',
-            7 => 'The conclusion(s) captures the result of hypotheses test.',
-            8 => 'The conclusions validated the theory used.',
-            9 => 'The study generated new knowledge in the discipline.',
-            10 => 'There are leads to future studies emanating from the current results.',
-            11 => 'The paper complied with the standard of technical writing.',
-            12 => "There is evidence that scientific literature and stakeholder's view support the recommendations.",
-            13 => 'The over-all presentation of report captures the substance of the study.',
-        ];
-
-        $scores = [];
-        foreach ($parameters as $number => $label) {
-            $postedValue = strtolower(trim((string) ($_POST['scores'][$number] ?? '')));
-            $scores[(string) $number] = in_array($postedValue, ['yes', 'no', 'na'], true) ? $postedValue : '';
-        }
-
-        $structuredSummary = [
-            'form_type' => 'terminal_report_assessment_form',
-            'version' => 1,
-            'date' => $date,
-            'control_no' => trim((string) ($_POST['control_no'] ?? '')),
-            'college_name' => $collegeName,
-            'lead_researcher' => trim((string) ($_POST['lead_researcher'] ?? '')),
-            'co_researchers' => trim((string) ($_POST['co_researchers'] ?? '')),
-            'research_title' => trim((string) ($_POST['research_title'] ?? '')),
-            'duration_of_study' => trim((string) ($_POST['duration_of_study'] ?? '')),
-            'proposed_budget' => trim((string) ($_POST['proposed_budget'] ?? '')),
-            'scores' => $scores,
-            'comments' => trim((string) ($_POST['comments'] ?? '')),
-            'judgment' => trim((string) ($_POST['judgment'] ?? '')),
-            'reviewer_name' => trim((string) ($_POST['reviewer_name'] ?? '')),
-        ];
-
-        $title = 'Terminal Report Assessment Form';
-        if ($collegeName !== '') {
-            $title .= ' - ' . $collegeName;
-        }
-        if ($date !== '') {
-            $title .= ' - ' . $date;
         }
 
         return [
@@ -6048,14 +5989,15 @@ final class ProposalController
      *
      * @param array<string, mixed> $user
      */
-    private function visibleProposalsForCurrentUser(array $user): array
+    /** @param array{0: string, 1: list<mixed>}|null $where extra condition on alias p */
+    private function visibleProposalsForCurrentUser(array $user, ?array $where = null): array
     {
         $rows = [];
-        foreach (AccessControl::visibleProposals() as $proposal) {
+        foreach (AccessControl::visibleProposals($where) as $proposal) {
             $rows[(int) $proposal['id']] = $proposal;
         }
         if (Auth::hasRole('faculty')) {
-            foreach (Proposal::forUser((int) ($user['id'] ?? 0)) as $proposal) {
+            foreach (Proposal::forUser((int) ($user['id'] ?? 0), $where) as $proposal) {
                 $rows[(int) $proposal['id']] ??= $proposal;
             }
         }

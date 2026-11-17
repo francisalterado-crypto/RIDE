@@ -9,6 +9,10 @@
 $pageTitle = (string) $proposal['title'] . ' | RIDE Hub';
 $pageHeading = 'Terminal Report';
 $pageSubtitle = 'Project terminal report (WPU-QSF-RDE-VPRDE-21).';
+// The RDO Research Coordinator completes the Terminal Report Assessment with their approval.
+$reviewFields = $canApprove
+    ? \App\Controllers\ProposalController::reviewFieldsFor($proposal, (string) ($proposal['current_step'] ?? ''))
+    : [];
 ?>
 
 <div class="page-actions-bar">
@@ -19,6 +23,7 @@ $pageSubtitle = 'Project terminal report (WPU-QSF-RDE-VPRDE-21).';
 
 <?php require APP_PATH . '/views/proposals/_proposal-status-strip.php'; ?>
 <?php require APP_PATH . '/views/proposals/_project-report-details.php'; ?>
+<?php require APP_PATH . '/views/proposals/_terminal-report-assessment.php'; ?>
 
 <div class="app-panel proposal-workflow-panel">
     <?php
@@ -32,9 +37,14 @@ $pageSubtitle = 'Project terminal report (WPU-QSF-RDE-VPRDE-21).';
 <?php require APP_PATH . '/views/proposals/_submit-for-review-button.php'; ?>
 
             <?php if ($canApprove): ?>
-                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="inline-action">
+                <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/approve') ?>" class="<?= $reviewFields !== [] ? 'request-review-form' : 'inline-action' ?>">
                     <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-accent"><?= htmlspecialchars($approveLabel) ?></button>
+                    <?php if ($reviewFields !== []): ?>
+                        <h4 class="proposal-subtitle">Terminal Report Assessment (WPU-QSF-RDE-VPRDE-22)</h4>
+                        <p class="webform-hint">Rate the terminal report on each parameter and give your judgment. The assessment is saved with your action: accepted without revisions or after minor revisions approves the report; major revisions or failed to pass returns it to the researcher with your comments.</p>
+                        <?php require APP_PATH . '/views/requests/_review-fields.php'; ?>
+                    <?php endif; ?>
+                    <button type="submit" class="btn btn-accent"><?= htmlspecialchars($reviewFields !== [] ? 'Save Assessment' : $approveLabel) ?></button>
                 </form>
                 <form method="post" action="<?= base_url('proposals/' . $proposal['id'] . '/return') ?>" class="proposal-review-form">
                     <?= csrf_field() ?>

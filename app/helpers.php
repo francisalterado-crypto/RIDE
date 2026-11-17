@@ -725,9 +725,15 @@ function proposal_is_attendance_sheet(?array $proposal): bool
 }
 
 /** Forms replaced by admin-managed downloadable templates; legacy records stay viewable but read-only. */
+/**
+ * Forms that are no longer filled in the portal; their existing records stay viewable, read-only. The four ESO
+ * forms are downloadable templates now, and the Terminal Report Assessment is entered by the RDO Research
+ * Coordinator on the terminal report itself (App\Support\TerminalReportAssessment).
+ */
 function proposal_is_retired_downloadable_form(?array $proposal): bool
 {
-    return proposal_is_accomplishment_report($proposal)
+    return proposal_is_terminal_report_assessment_form($proposal)
+        || proposal_is_accomplishment_report($proposal)
         || proposal_is_technical_advisory_ar($proposal)
         || proposal_is_outreach_activities_ar($proposal)
         || proposal_is_attendance_sheet($proposal)

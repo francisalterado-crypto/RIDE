@@ -11,6 +11,26 @@ final class Document
     private const ALLOWED = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'zip'];
     private const MAX_BYTES = 10 * 1024 * 1024;
 
+    /**
+     * Project repository categories that no longer take uploads; files already in them stay listed. The Terminal
+     * Report Assessment is entered by the RDO Research Coordinator on the terminal report, so a project leader
+     * must not file a document under that label.
+     */
+    public const RETIRED_UPLOAD_CATEGORIES = ['terminal_report_assessment_form'];
+
+    /** @return list<string> retired categories that still hold files of this project */
+    public static function retiredCategoriesWithFiles(int $proposalId): array
+    {
+        $found = [];
+        foreach (self::RETIRED_UPLOAD_CATEGORIES as $category) {
+            if (self::forProposal($proposalId, $category) !== []) {
+                $found[] = $category;
+            }
+        }
+
+        return $found;
+    }
+
     /** @return list<array> */
     public static function forProposal(int $proposalId, ?string $category = null): array
     {

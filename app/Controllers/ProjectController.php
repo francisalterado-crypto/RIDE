@@ -55,6 +55,7 @@ final class ProjectController
             'reports' => ProgressReport::forProposal($id),
             'documents' => Document::forProposal($id, $selectedDocumentCategory),
             'selectedDocumentCategory' => $selectedDocumentCategory ?? 'completed_researches',
+            'retiredCategoriesWithFiles' => $tab === 'documents' ? Document::retiredCategoriesWithFiles($id) : [],
             'innovation' => $proposal['project_type'] === 'innovation' ? [
                 'summary' => Innovation::summary($id),
                 'ip_disclosures' => Innovation::list('ip_disclosures', $id),
@@ -295,8 +296,14 @@ final class ProjectController
             view('errors.403');
             return;
         }
+        $category = strtolower(trim((string) ($_POST['category'] ?? 'other')));
+        if (in_array($category, Document::RETIRED_UPLOAD_CATEGORIES, true)) {
+            set_flash('error', 'Files can no longer be uploaded under this document type. The Terminal Report Assessment '
+                . 'is completed by the Research Coordinator (RIDE-RDO) on the terminal report.');
+            redirect('projects/' . $id . '?tab=documents');
+        }
         try {
-            Document::store($id, (int) Auth::user()['id'], $_FILES['document'] ?? [], $_POST['category'] ?? 'other');
+            Document::store($id, (int) Auth::user()['id'], $_FILES['document'] ?? [], $category);
             set_flash('success', 'Document uploaded.');
         } catch (\Throwable $e) {
             set_flash('error', $e->getMessage());

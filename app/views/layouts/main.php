@@ -185,7 +185,6 @@ $isAuthStandalone = !\App\Core\Auth::check() && str_ends_with($contentView ?? ''
                 $hideDirectorResearchFormNav = \App\Support\AccessControl::isDirectorResearch();
                 $showProgressReportNav = \App\Support\AccessControl::canAccessProgressReport() && !$hideDirectorResearchFormNav;
                 $showTerminalReportNav = \App\Support\AccessControl::canAccessTerminalReport() && !$hideDirectorResearchFormNav;
-                $showTerminalReportAssessmentFormNav = \App\Support\AccessControl::canAccessTerminalReport() && !$hideDirectorResearchFormNav;
                 $showTrainingsConductedNav = \App\Support\AccessControl::canAccessTrainingsConducted();
                 $showTechnicalAdvisoryNav = \App\Support\AccessControl::canAccessTechnicalAdvisory();
                 $showExtensionLinkagesNav = \App\Support\AccessControl::canAccessExtensionLinkages();

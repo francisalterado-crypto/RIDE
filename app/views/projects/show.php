@@ -140,8 +140,20 @@ if ($extension) $tabs['extension'] = 'Extension';
         'attendance_sheet' => 'WPU-QSF-RIDE-ESO Attendance Sheet',
     ];
     $selectedDocumentCategory = $selectedDocumentCategory ?? 'completed_researches';
+    // Retired types take no uploads and are offered as a filter only while the project still has files in them.
+    $retiredCategoriesWithFiles = $retiredCategoriesWithFiles ?? [];
+    $selectableCategories = array_filter(
+        $documentCategories,
+        static fn (string $key): bool => !in_array($key, \App\Models\Document::RETIRED_UPLOAD_CATEGORIES, true)
+            || in_array($key, $retiredCategoriesWithFiles, true),
+        ARRAY_FILTER_USE_KEY
+    );
+    $uploadAllowed = !in_array($selectedDocumentCategory, \App\Models\Document::RETIRED_UPLOAD_CATEGORIES, true);
     ?>
-    <?php if ($canManage): ?>
+    <?php if ($canManage && !$uploadAllowed): ?>
+    <p class="muted">Earlier uploads, read-only. The Terminal Report Assessment is now completed by the Research Coordinator (RIDE-RDO) on the terminal report.</p>
+    <?php endif; ?>
+    <?php if ($canManage && $uploadAllowed): ?>
     <form method="post" action="<?= base_url('projects/' . $project['id'] . '/documents') ?>" enctype="multipart/form-data" class="inline-form">
         <?= csrf_field() ?>
         <input type="hidden" name="category" value="<?= htmlspecialchars($selectedDocumentCategory) ?>">
@@ -153,7 +165,7 @@ if ($extension) $tabs['extension'] = 'Extension';
     <form method="get" class="inline-form" style="margin-top: .75rem;">
         <input type="hidden" name="tab" value="documents">
         <select name="document_category" onchange="this.form.submit()">
-            <?php foreach ($documentCategories as $categoryKey => $categoryLabel): ?>
+            <?php foreach ($selectableCategories as $categoryKey => $categoryLabel): ?>
                 <option value="<?= htmlspecialchars($categoryKey) ?>" <?= $selectedDocumentCategory === $categoryKey ? 'selected' : '' ?>>
                     <?= htmlspecialchars($categoryLabel) ?>
                 </option>

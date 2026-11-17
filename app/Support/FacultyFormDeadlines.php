@@ -49,7 +49,6 @@ final class FacultyFormDeadlines
         'technology_adoption' => self::GROUP_EXTENSION,
         'progress_report' => self::GROUP_PROJECT_MONITORING,
         'terminal_report' => self::GROUP_PROJECT_MONITORING,
-        'terminal_report_assessment_form' => self::GROUP_PROJECT_MONITORING,
         'obr_matrix' => self::GROUP_PROJECT_MONITORING,
         'consolidated_completed_researches' => self::GROUP_CONSOLIDATED,
         'consolidated_ongoing_researches' => self::GROUP_CONSOLIDATED,
