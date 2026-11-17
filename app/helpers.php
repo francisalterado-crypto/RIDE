@@ -282,17 +282,17 @@ function user_avatar_url(array $user): ?string
 
 function user_role_label(): string
 {
-    $M = \App\Support\AccessControl::class;
+    $access = \App\Support\AccessControl::class;
     return match (true) {
-        $M::isAdmin() => 'Administrator',
-        $M::isOvpride() => 'OVPRIDE',
-        $M::isDirectorResearch() => 'RDO Director',
-        $M::isDirectorExtension() => 'ESO Director',
-        $M::isRideCoordinatorResearch() => 'Research Coordinator (RDO)',
-        $M::isRideCoordinatorExtension() => 'Field Extensionist (ESO)',
-        $M::isDean() => 'College Dean',
-        $M::isCoordinatorResearch() => 'College Coordinator - Research',
-        $M::isCoordinatorExtension() => 'College Coordinator - Extension',
+        $access::isAdmin() => 'Administrator',
+        $access::isOvpride() => 'OVPRIDE',
+        $access::isDirectorResearch() => 'RDO Director',
+        $access::isDirectorExtension() => 'ESO Director',
+        $access::isRideCoordinatorResearch() => 'Research Coordinator (RDO)',
+        $access::isRideCoordinatorExtension() => 'Field Extensionist (ESO)',
+        $access::isDean() => 'College Dean',
+        $access::isCoordinatorResearch() => 'College Coordinator - Research',
+        $access::isCoordinatorExtension() => 'College Coordinator - Extension',
         \App\Core\Auth::hasRole('faculty') => 'Faculty',
         default => 'User',
     };
@@ -777,7 +777,7 @@ function proposal_is_attendance_sheet(?array $proposal): bool
  * forms are downloadable templates now, and the Terminal Report Assessment is entered by the RDO Research
  * Coordinator on the terminal report itself (App\Support\TerminalReportAssessment).
  */
-function proposal_is_retired_downloadable_form(?array $proposal): bool
+function proposal_is_retired_form(?array $proposal): bool
 {
     return proposal_is_terminal_report_assessment_form($proposal)
         || proposal_is_accomplishment_report($proposal)

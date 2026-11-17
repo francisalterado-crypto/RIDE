@@ -51,7 +51,7 @@ final class User
         return $stmt->fetchAll() ?: [];
     }
 
-    public static function findByEmailForAuth(string $email): ?array
+    public static function findByEmail(string $email): ?array
     {
         $stmt = Database::pdo()->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
         $stmt->execute([$email]);

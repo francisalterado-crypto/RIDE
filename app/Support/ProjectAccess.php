@@ -2,12 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Support;
 
 use App\Core\Auth;
 use App\Models\Proposal;
-use App\Support\AccessControl;
-use App\Support\ProposalCoAuthors;
 
 final class ProjectAccess
 {

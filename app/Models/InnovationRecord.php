@@ -6,7 +6,7 @@ namespace App\Models;
 
 use App\Core\Database;
 
-final class Innovation
+final class InnovationRecord
 {
     public static function summary(int $proposalId): array
     {

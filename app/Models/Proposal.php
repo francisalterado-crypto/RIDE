@@ -225,7 +225,7 @@ final class Proposal
         )->execute([$title, $summaryJson, self::formTypeFromSummary($summaryJson), $id]);
     }
 
-    public static function updateSummaryCoauthorsOnly(int $id, string $summaryJson): void
+    public static function updateSummary(int $id, string $summaryJson): void
     {
         Database::pdo()->prepare(
             'UPDATE proposals SET summary = ?, form_type = ? WHERE id = ?'

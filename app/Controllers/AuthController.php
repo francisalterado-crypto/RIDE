@@ -29,7 +29,7 @@ final class AuthController
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
 
-        $user = User::findByEmailForAuth($email);
+        $user = User::findByEmail($email);
         if (!$user || !password_verify($password, $user['password_hash'])) {
             set_flash('error', 'Invalid email or password.');
             $_SESSION['_old'] = ['email' => $email];

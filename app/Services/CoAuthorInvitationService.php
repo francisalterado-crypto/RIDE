@@ -34,7 +34,7 @@ final class CoAuthorInvitationService
         $updatedCoauthors = self::applyInvitationStatusesToCoauthors($coauthors, $proposalId, $previousStatuses);
         $encodedSummary = self::replaceCoauthorsInSummary($summaryJson, $updatedCoauthors);
         if ($encodedSummary !== null && $encodedSummary !== $summaryJson) {
-            Proposal::updateSummaryCoauthorsOnly($proposalId, $encodedSummary);
+            Proposal::updateSummary($proposalId, $encodedSummary);
             $summaryJson = $encodedSummary;
         }
 
@@ -306,7 +306,7 @@ final class CoAuthorInvitationService
 
         $encoded = json_encode($summary, JSON_UNESCAPED_SLASHES);
         if ($encoded !== false) {
-            Proposal::updateSummaryCoauthorsOnly($proposalId, $encoded);
+            Proposal::updateSummary($proposalId, $encoded);
         }
     }
 
@@ -347,7 +347,7 @@ final class CoAuthorInvitationService
         $summary['coauthors'] = $filtered;
         $encoded = json_encode($summary, JSON_UNESCAPED_SLASHES);
         if ($encoded !== false) {
-            Proposal::updateSummaryCoauthorsOnly($proposalId, $encoded);
+            Proposal::updateSummary($proposalId, $encoded);
         }
     }
 }

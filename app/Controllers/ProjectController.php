@@ -7,13 +7,13 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Models\AuditLog;
 use App\Models\Document;
-use App\Models\Extension;
-use App\Models\Innovation;
+use App\Models\ExtensionRecord;
+use App\Models\InnovationRecord;
 use App\Models\Milestone;
 use App\Models\Notification;
 use App\Models\ProgressReport;
 use App\Models\Proposal;
-use App\Services\ProjectAccess;
+use App\Support\ProjectAccess;
 use App\Support\AccessControl;
 
 final class ProjectController
@@ -57,17 +57,17 @@ final class ProjectController
             'selectedDocumentCategory' => $selectedDocumentCategory ?? 'completed_researches',
             'retiredCategoriesWithFiles' => $tab === 'documents' ? Document::retiredCategoriesWithFiles($id) : [],
             'innovation' => $proposal['project_type'] === 'innovation' ? [
-                'summary' => Innovation::summary($id),
-                'ip_disclosures' => Innovation::list('ip_disclosures', $id),
-                'patents' => Innovation::list('patents', $id),
-                'technology_transfers' => Innovation::list('technology_transfers', $id),
-                'prototypes' => Innovation::list('prototypes', $id),
+                'summary' => InnovationRecord::summary($id),
+                'ip_disclosures' => InnovationRecord::list('ip_disclosures', $id),
+                'patents' => InnovationRecord::list('patents', $id),
+                'technology_transfers' => InnovationRecord::list('technology_transfers', $id),
+                'prototypes' => InnovationRecord::list('prototypes', $id),
             ] : null,
             'extension' => $proposal['project_type'] === 'extension' ? [
-                'summary' => Extension::summary($id),
-                'beneficiaries' => Extension::list('community_beneficiaries', $id),
-                'mous' => Extension::list('partner_mous', $id),
-                'impacts' => Extension::list('impact_metrics', $id),
+                'summary' => ExtensionRecord::summary($id),
+                'beneficiaries' => ExtensionRecord::list('community_beneficiaries', $id),
+                'mous' => ExtensionRecord::list('partner_mous', $id),
+                'impacts' => ExtensionRecord::list('impact_metrics', $id),
             ] : null,
         ]);
     }
@@ -369,7 +369,7 @@ final class ProjectController
             return;
         }
         $type = $_POST['record_type'] ?? '';
-        Innovation::create($type, $id, $_POST);
+        InnovationRecord::create($type, $id, $_POST);
         set_flash('success', 'Innovation record added.');
         redirect('projects/' . $id . '?tab=innovation');
     }
@@ -392,7 +392,7 @@ final class ProjectController
             set_flash('error', $data);
             redirect('projects/' . $id . '?tab=extension');
         }
-        Extension::create($type, $id, $data);
+        ExtensionRecord::create($type, $id, $data);
         AuditLog::record('proposal', $id, 'extension_record_added', ['record_type' => $type]);
         set_flash('success', 'Extension record added.');
         redirect('projects/' . $id . '?tab=extension');
@@ -605,7 +605,7 @@ final class ProjectController
         }
 
         view('reports.extension-beneficiaries', [
-            'rows' => Extension::beneficiaryReport($years),
+            'rows' => ExtensionRecord::beneficiaryReport($years),
             'years' => $years,
             'proposalDetails' => $proposalDetails,
             'proposalFilters' => [

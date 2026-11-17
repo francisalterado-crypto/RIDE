@@ -2713,7 +2713,7 @@ final class ProposalController
     public function edit(int $id): void
     {
         $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || proposal_is_retired_downloadable_form($proposal)) {
+        if (!$proposal || !$this->canEdit($proposal) || proposal_is_retired_form($proposal)) {
             http_response_code(403);
             view('errors.403');
             return;
@@ -3059,7 +3059,7 @@ final class ProposalController
             redirect('proposals/' . $id . '/edit');
         }
         $proposal = $this->authorizeView($id);
-        if (!$proposal || !$this->canEdit($proposal) || proposal_is_retired_downloadable_form($proposal)) {
+        if (!$proposal || !$this->canEdit($proposal) || proposal_is_retired_form($proposal)) {
             http_response_code(403);
             view('errors.403');
             return;
@@ -3272,7 +3272,7 @@ final class ProposalController
                     $summary = json_decode((string) ($current['summary'] ?? ''), true);
                     $summary = is_array($summary) ? $summary : [];
                     $summary['reviews'][$step] = $review;
-                    Proposal::updateSummaryCoauthorsOnly($id, (string) json_encode($summary, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+                    Proposal::updateSummary($id, (string) json_encode($summary, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
                 };
             }
         }

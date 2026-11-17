@@ -8,7 +8,7 @@ use App\Core\Database;
 use App\Core\Sql;
 use PDO;
 
-final class Extension
+final class ExtensionRecord
 {
     public static function summary(int $proposalId): array
     {
