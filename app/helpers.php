@@ -384,6 +384,53 @@ function normalize_request_post_text_fields(array &$data): void
     }
 }
 
+/** Content types of stored uploads by file extension; any other extension is sent as a binary download. */
+const STORED_FILE_CONTENT_TYPES = [
+    'pdf' => 'application/pdf',
+    'doc' => 'application/msword',
+    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'rtf' => 'application/rtf',
+    'xls' => 'application/vnd.ms-excel',
+    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'csv' => 'text/csv',
+    'ppt' => 'application/vnd.ms-powerpoint',
+    'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'odt' => 'application/vnd.oasis.opendocument.text',
+    'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+    'odp' => 'application/vnd.oasis.opendocument.presentation',
+    'txt' => 'text/plain',
+    'jpg' => 'image/jpeg',
+    'jpeg' => 'image/jpeg',
+    'png' => 'image/png',
+    'zip' => 'application/zip',
+];
+
+/** Stored uploads that may open in the browser instead of downloading. */
+const STORED_FILE_INLINE_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png'];
+
+/**
+ * Sends a stored upload and ends the request. The Content-Type is chosen from the file extension, never from the
+ * type the browser declared at upload (saved in the mime_type columns), and only PDFs and images may open inline,
+ * so an uploaded file cannot be rendered as a page within the application's origin.
+ */
+function send_stored_file(string $path, string $downloadName, bool $inline = false): never
+{
+    $name = basename(str_replace('\\', '/', $downloadName));
+    if ($name === '' || $name === '.') {
+        $name = 'download';
+    }
+    $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    $inline = $inline && in_array($extension, STORED_FILE_INLINE_EXTENSIONS, true);
+    $asciiName = preg_replace('/[^\x20-\x7E]|["\\\\]/', '_', $name) ?? 'download';
+
+    header('Content-Type: ' . (STORED_FILE_CONTENT_TYPES[$extension] ?? 'application/octet-stream'));
+    header('Content-Length: ' . (string) filesize($path));
+    header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . '; filename="' . $asciiName . '"; filename*=UTF-8\'\'' . rawurlencode($name));
+    header('X-Content-Type-Options: nosniff');
+    readfile($path);
+    exit;
+}
+
 function redirect(string $path): never
 {
     header('Location: ' . base_url($path));

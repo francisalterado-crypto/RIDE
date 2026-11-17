@@ -38,14 +38,7 @@ final class FormTemplateController
             return;
         }
 
-        $name = (string) $template['original_name'];
-        $asciiName = preg_replace('/[^\x20-\x7E]/', '_', $name) ?? 'form-template';
-        header('Content-Type: ' . ((string) ($template['mime_type'] ?? '') ?: 'application/octet-stream'));
-        header('Content-Length: ' . (string) filesize($path));
-        header('Content-Disposition: attachment; filename="' . $asciiName . '"; filename*=UTF-8\'\'' . rawurlencode($name));
-        header('X-Content-Type-Options: nosniff');
-        readfile($path);
-        exit;
+        send_stored_file($path, (string) $template['original_name']);
     }
 
     public function adminIndex(): void

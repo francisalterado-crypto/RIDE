@@ -327,10 +327,7 @@ final class ProjectController
             http_response_code(404);
             exit;
         }
-        header('Content-Type: ' . ($doc['mime_type'] ?: 'application/octet-stream'));
-        header('Content-Disposition: attachment; filename="' . basename($doc['original_name']) . '"');
-        readfile($path);
-        exit;
+        send_stored_file($path, (string) $doc['original_name']);
     }
 
     public function deleteDocument(int $id, int $docId): void

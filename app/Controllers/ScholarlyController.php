@@ -700,19 +700,7 @@ final class ScholarlyController
 
 
 
-        $name = basename((string) $attachment['original_name']);
-
-        $asciiName = preg_replace('/[^\x20-\x7E]|["\\\\]/', '_', $name) ?? 'document';
-
-        header('Content-Type: ' . ($attachment['mime_type'] ?: 'application/octet-stream'));
-
-        header('Content-Disposition: attachment; filename="' . $asciiName . '"; filename*=UTF-8\'\'' . rawurlencode($name));
-
-        header('X-Content-Type-Options: nosniff');
-
-        readfile($path);
-
-        exit;
+        send_stored_file($path, (string) $attachment['original_name']);
 
     }
 

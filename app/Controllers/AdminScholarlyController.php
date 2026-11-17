@@ -258,13 +258,7 @@ final class AdminScholarlyController
 
 
 
-        header('Content-Type: ' . ($attachment['mime_type'] ?: 'application/octet-stream'));
-
-        header('Content-Disposition: attachment; filename="' . basename((string) $attachment['original_name']) . '"');
-
-        readfile($path);
-
-        exit;
+        send_stored_file($path, (string) $attachment['original_name']);
 
     }
 

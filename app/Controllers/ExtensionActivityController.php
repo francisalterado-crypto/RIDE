@@ -181,15 +181,8 @@ final class ExtensionActivityController
             return;
         }
 
-        $name = (string) $document['original_name'];
-        $asciiName = preg_replace('/[^\x20-\x7E]/', '_', $name) ?? 'document';
-        $inline = preg_match('/\.(pdf|jpe?g|png)$/i', $name) === 1;
-        header('Content-Type: ' . ((string) ($document['mime_type'] ?? '') ?: 'application/octet-stream'));
-        header('Content-Length: ' . (string) filesize($path));
-        header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment') . '; filename="' . $asciiName . '"; filename*=UTF-8\'\'' . rawurlencode($name));
-        header('X-Content-Type-Options: nosniff');
-        readfile($path);
-        exit;
+        // PDFs and images open in the browser; send_stored_file() limits inline display to those types.
+        send_stored_file($path, (string) $document['original_name'], true);
     }
 
     public function destroyDocument(int $id, int $documentId): void
