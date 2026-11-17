@@ -93,4 +93,4 @@ foreach ($accounts as $account) {
 }
 
 echo "\nDone. Password for all: password123\n";
-echo "Open: http://localhost/RIDE/public/login\n";
+echo "Open: http://localhost/RIDE/login\n";

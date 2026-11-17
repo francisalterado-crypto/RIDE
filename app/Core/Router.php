@@ -48,12 +48,8 @@ final class Router
     public function dispatch(): void
     {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-
-        $base = $this->detectBasePath();
-        if ($base !== '' && str_starts_with($uri, $base)) {
-            $uri = substr($uri, strlen($base)) ?: '/';
-        }
+        // Path relative to the application's base URL (APP_URL), the same one base_url() builds links from.
+        $uri = '/' . request_path();
 
         foreach ($this->routes as $route) {
             if ($route['method'] !== $method) {
@@ -74,12 +70,6 @@ final class Router
 
         http_response_code(404);
         view('errors.404');
-    }
-
-    private function detectBasePath(): string
-    {
-        $script = $_SERVER['SCRIPT_NAME'] ?? '';
-        return rtrim(str_replace('\\', '/', dirname($script)), '/');
     }
 
     /** @return array<string, string>|null */

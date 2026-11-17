@@ -66,11 +66,8 @@ if ($pgHost !== null && $pgHost !== '') {
     $database['ssl'] = true;
 }
 
-$vercel = ($env('VERCEL') === '1' || $env('VERCEL') === 'true');
 $tidbHost = $env('TIDB_HOST');
 if ($database['driver'] === 'pgsql') {
-    $database['ssl'] = $database['ssl'] || $env('DB_SSL') !== 'false';
-} elseif ($vercel && $database['host'] !== '127.0.0.1' && $database['host'] !== 'localhost') {
     $database['ssl'] = $database['ssl'] || $env('DB_SSL') !== 'false';
 }
 if ($tidbHost !== null && $tidbHost !== '') {
@@ -80,13 +77,7 @@ if ($tidbHost !== null && $tidbHost !== '') {
     }
 }
 
-$appUrl = $env('APP_URL');
-if ($appUrl === null || $appUrl === '') {
-    $vercelHost = $env('VERCEL_PROJECT_PRODUCTION_URL') ?? $env('VERCEL_URL');
-    $appUrl = $vercelHost !== null && $vercelHost !== ''
-        ? (str_starts_with($vercelHost, 'http') ? $vercelHost : 'https://' . $vercelHost)
-        : 'http://localhost/RIDE/public';
-}
+$appUrl = $env('APP_URL') ?? 'http://localhost/RIDE';
 
 return [
     'app' => [

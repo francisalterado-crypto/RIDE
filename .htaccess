@@ -1,0 +1,9 @@
+# Serves the application from public/, so addresses do not include /public.
+#
+# In production, point the server's document root at public/ instead; this file is then not used. It is kept
+# for local installs (http://localhost/RIDE/) and for hosts where the document root cannot be changed. Every
+# request is sent into public/, so nothing outside it (app/, storage/, database/, .env) can be requested.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

@@ -61,9 +61,7 @@ final class Database
             self::ensureBaseSchema();
             self::migratePending();
         } catch (PDOException $e) {
-            if (self::$driver === 'mysql'
-                && str_contains($e->getMessage(), 'Unknown database')
-                && !self::isServerless()) {
+            if (self::$driver === 'mysql' && str_contains($e->getMessage(), 'Unknown database')) {
                 self::createDatabase($config);
                 self::$pdo = new PDO($dsn, $config['user'], $config['pass'], $options);
                 self::runMigrations();
@@ -405,13 +403,6 @@ final class Database
             }
             self::$pdo->exec($chunk);
         }
-    }
-
-    private static function isServerless(): bool
-    {
-        $value = getenv('VERCEL');
-
-        return $value === '1' || $value === 'true';
     }
 
     /** @param array{name: string, host: string} $config */

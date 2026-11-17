@@ -18,10 +18,7 @@ final class HealthController
             Database::pdo()->query('SELECT 1')->fetchColumn();
         } catch (\Throwable $e) {
             error_log('Health check failed: ' . $e->getMessage());
-            // On Vercel, the local default credentials mean the database environment variables are missing.
-            $database = config('database', []);
-            $configured = !is_vercel() || database_configured(is_array($database) ? $database : []);
-            json_response(['status' => 'error', 'database' => $configured ? 'unreachable' : 'not_configured'], 503);
+            json_response(['status' => 'error', 'database' => 'unreachable'], 503);
         }
 
         json_response(['status' => 'ok', 'database' => 'connected']);

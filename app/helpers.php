@@ -19,27 +19,6 @@ function config(string $key, mixed $default = null): mixed
     return $value;
 }
 
-function is_vercel(): bool
-{
-    $value = $_ENV['VERCEL'] ?? $_SERVER['VERCEL'] ?? getenv('VERCEL');
-
-    return $value === '1' || $value === 'true';
-}
-
-/** @param array{host?: string, user?: string, pass?: string} $database */
-function database_configured(array $database): bool
-{
-    $host = (string) ($database['host'] ?? '');
-    $user = (string) ($database['user'] ?? '');
-    $pass = (string) ($database['pass'] ?? '');
-
-    if (($host === '127.0.0.1' || $host === 'localhost') && $user === 'root' && $pass === '') {
-        return false;
-    }
-
-    return $host !== '' && $user !== '';
-}
-
 function app_base_url(): string
 {
     static $cached = null;
@@ -54,18 +33,14 @@ function app_base_url(): string
         return $cached;
     }
 
-    // Forwarded headers are client-controlled unless a known proxy sets them. Other proxies should set APP_URL.
-    $firstForwarded = static fn (string $header): string => trim(explode(',', (string) ($_SERVER[$header] ?? ''))[0]);
-    $forwardedHost = is_vercel() ? $firstForwarded('HTTP_X_FORWARDED_HOST') : '';
-    $host = $forwardedHost !== '' ? $forwardedHost : (string) ($_SERVER['HTTP_HOST'] ?? '');
+    // Behind a reverse proxy, set APP_URL: forwarded headers are client-controlled and are not trusted here.
+    $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
     $hostname = strtolower((string) preg_replace('/:\d+$/', '', $host));
     $isLocalHost = in_array($hostname, ['', 'localhost', '127.0.0.1'], true);
 
     if (!$isLocalHost) {
-        $proto = is_vercel()
-            ? ($firstForwarded('HTTP_X_FORWARDED_PROTO') ?: 'https')
-            : (string) ($_SERVER['REQUEST_SCHEME'] ?? 'http');
-        $configPath = is_vercel() ? '' : rtrim((string) (parse_url((string) config('app.url', ''), PHP_URL_PATH) ?? ''), '/');
+        $proto = (string) ($_SERVER['REQUEST_SCHEME'] ?? 'http');
+        $configPath = rtrim((string) (parse_url((string) config('app.url', ''), PHP_URL_PATH) ?? ''), '/');
         $cached = $proto . '://' . $host . $configPath;
 
         return $cached;
