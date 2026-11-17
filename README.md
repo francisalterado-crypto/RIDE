@@ -1,33 +1,44 @@
 # RIDE Hub - Information Management System for RIDE
 
-PHP web application (XAMPP locally, Vercel with Postgres in production) for research and extension proposals, approvals, monitoring and reporting.
+RIDE Hub is the information management system of the Office of the Vice President for Research, Innovation,
+Development and Extension (OVPRIDE) of Western Philippines University. Faculty file research and extension
+proposals, requests and reports online; the records move through the college and RIDE approval chain; approved
+work is monitored as projects and summarized in the university's quarterly and accreditation reports.
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [General overview](docs/OVERVIEW.md) | Purpose, users and roles, record types, approval workflow, features |
+| [Architecture](docs/ARCHITECTURE.md) | Components, request flow, data model, configuration, deployment, security |
+| [Data privacy](docs/DATA-PRIVACY.md) | Personal data held, access, sharing, retention, data subject rights, open items |
+| [Database diagram](docs/erd/) | Entity-relationship diagram (draw.io, with PNG and PDF exports) |
+| [License](LICENSE) | Copyright and terms of use |
 
 ## Stack
 
 | Component | Technology |
-|-----------|------------|
-| Web app | PHP 8.2+, plain MVC |
-| Database | MySQL (MariaDB via XAMPP) |
-| Auth (dev) | Email / password sessions |
-| Auth (prod) | SSO planned |
+|---|---|
+| Application | PHP 8.2+, plain MVC (no framework or Composer dependencies) |
+| Database | MySQL / MariaDB (PostgreSQL also supported) |
+| Web server | Apache with `mod_rewrite` (XAMPP locally) |
+| Sign-in | E-mail and password, database-stored sessions |
 
-## Requirements
+## Local setup (XAMPP)
 
-- XAMPP (Apache + MySQL + PHP 8.2+)
+1. Start **Apache** and **MySQL** in the XAMPP Control Panel, with `mod_rewrite` enabled.
+2. Place the project at `c:\xampp\htdocs\RIDE`.
+3. If the database credentials differ from `root` with an empty password, set them through the environment
+   variables listed in [Architecture: Configuration](docs/ARCHITECTURE.md#configuration).
+4. Run the installer, which creates the database, the tables and the administrator account:
 
-## Setup (XAMPP)
+   ```bat
+   c:\xampp\php\php.exe scripts\install.php
+   ```
 
-1. Start **Apache** and **MySQL** in XAMPP Control Panel.
-2. Ensure `mod_rewrite` is enabled in Apache.
-3. Copy or clone this project to `c:\xampp\htdocs\RIDE`.
-4. Edit `app/config/config.php` if your DB credentials differ from `root` / empty password.
-5. Run the installer (creates DB, tables, and the default admin account on first run):
+5. Open **http://localhost/RIDE/login**.
 
-```bat
-c:\xampp\php\php.exe scripts\install.php
-```
-
-6. Open: **http://localhost/RIDE/public/login**
+Schema changes are applied automatically on the next request after an update.
 
 ### Demo accounts
 
@@ -57,32 +68,34 @@ c:\xampp\php\php.exe scripts\install.php
 | Antonio Flores | dean.cbm@ride.local | College Dean | CBEHM |
 | Rachel Gomez | faculty.cbm@ride.local | Faculty | CBEHM |
 
-**Already installed?** Create or refresh all demo accounts:
+Create or refresh the demo accounts on an existing installation:
 
 ```bat
 c:\xampp\php\php.exe scripts\seed-demo-accounts.php
 ```
 
-**Remove sample/demo data** (proposals, extra accounts, uploads):
+Remove sample data (records, extra accounts and uploads):
 
 ```bat
 c:\xampp\php\php.exe scripts\clean-sample-data.php
 ```
 
-## Approval workflow
+Demo accounts are for local use only; do not create them on a production deployment.
 
-Proposals, requests, progress and terminal reports:
+## Approval workflow in brief
 
-1. **Faculty** creates the record (draft) and submits.
-2. **College Coordinator** (Research or Extension, of the college) endorses. A College Coordinator's own record skips this step.
-3. **College Dean** approves.
-4. **RIDE Coordinator** of the college's cluster (Research Coordinator for RDO, Field Extensionist for ESO) reviews.
-5. **RDO or ESO Director** approves.
-6. **OVPRIDE** grants final approval. Proposals get a project code (e.g. `RIDE-2026-CET-001`); requests get a `REQ-` code.
+1. **Faculty** create a record as a draft and submit it.
+2. The **College Coordinator** (Research or Extension) endorses it, unless they filed it themselves.
+3. The **College Dean** approves.
+4. The **RIDE coordinator** of the college's cluster (Research Coordinator for RDO, Field Extensionist for ESO)
+   reviews.
+5. The **RDO or ESO Director** approves.
+6. **OVPRIDE** grants final approval. Proposals receive a project code such as `RIDE-2026-CET-001`; requests
+   receive a `REQ-` code.
 
-Quarterly reports (ESO-06 to 10, RDO-05 to 14) are prepared by the RIDE Coordinator, one per college of their cluster, then go to the College Dean (attests), the Director and OVPRIDE.
-
-The Administrator sees everything and manages the configuration, but is not part of the approval chain.
+Quarterly reports, prepared by the RIDE coordinator for each college of their cluster, go to the College Dean,
+the Director and OVPRIDE. The Administrator manages the system but takes no part in approvals. See the
+[general overview](docs/OVERVIEW.md) for details.
 
 ## Health check
 
@@ -93,26 +106,14 @@ database is not configured or not reachable. It is public and reports no connect
 
 ```
 RIDE/
-├── app/           # Controllers, models, views, core
-├── database/      # schema.sql, seeds.sql
-├── public/        # Web root (index.php, assets)
-├── routes/        # web.php
-└── scripts/       # install.php
+|-- app/           Controllers, models, services, support rules, views, core
+|-- database/      schema.sql, seeds.sql, migrations/
+|-- docs/          Documentation and database diagram
+|-- public/        Web root (index.php, assets); the server's document root in production
+|-- routes/        web.php
+`-- scripts/       Installer and maintenance scripts
 ```
 
-## Phase 2 (Monitoring)
+## License
 
-- **Projects** hub after approval (`/projects`) — milestones, progress reports, documents
-- **Milestones** with overdue detection and in-app notifications
-- **Progress reports** — narrative, financial lines, outputs; draft → submit workflow
-- **Document repository** — upload/download (PDF, Office, images, zip; max 10 MB)
-- **Innovation module** — IP disclosures, patents, technology transfers, prototypes
-- **Extension module** — beneficiaries, partner MOUs, impact metrics
-- **Accreditation report** — extension beneficiaries by year (`/reports/extension-beneficiaries`)
-
-Existing databases auto-migrate on first request after update (`database/migrations/phase2.sql`).
-
-## Next phases
-
-- PDF/Excel export for accreditation reports
-- University SSO and finance system integration
+Copyright (c) 2026 Alterado et al. All rights reserved. See [LICENSE](LICENSE).

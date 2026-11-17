@@ -1,0 +1,35 @@
+RIDE Hub - Information Management System for RIDE
+
+Copyright (c) 2026 Alterado et al.
+All rights reserved.
+
+This software, including its source code, database design, user interface,
+documentation and related materials (the "Software"), is protected by
+copyright and is the property of the copyright holders named above.
+
+No part of the Software may be copied, reproduced, modified, merged,
+published, distributed, sublicensed, sold, deployed, or otherwise used, in
+whole or in part, without the prior written permission of the copyright
+holders.
+
+Access to this repository, whether as a collaborator, reviewer or user of a
+deployed instance, does not grant any license or right to the Software
+except as expressly agreed in writing with the copyright holders.
+
+Data entered into a deployed instance of the Software (proposals, reports,
+records, uploaded files and account information) is not part of the Software
+and remains the property of the institution and the persons who provided it.
+
+Third-party components that the Software loads at run time (Font Awesome,
+Chart.js, MapLibre GL JS, html2pdf.js and Google Fonts) are not covered by
+this notice and remain under their own licenses.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Requests for permission should be addressed to the copyright holders through
+the owner of this repository.
