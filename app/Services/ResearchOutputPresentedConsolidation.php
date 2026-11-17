@@ -512,7 +512,7 @@ final class ResearchOutputPresentedConsolidation
 
     private static function findEditableConsolidatedDraft(int $coordinatorUserId, int $collegeId, string $reportAsOf): ?array
     {
-        foreach (Proposal::forUser($coordinatorUserId) as $proposal) {
+        foreach (Proposal::editableForUserByFormType($coordinatorUserId, 'consolidated_research_output_presented') as $proposal) {
             if ((int) ($proposal['college_id'] ?? 0) !== $collegeId) {
                 continue;
             }

@@ -751,7 +751,7 @@ final class ResearchFormConsolidation
         string $reportAsOf
     ): ?array {
         $config = self::config($formKey);
-        foreach (Proposal::forUser($coordinatorUserId) as $proposal) {
+        foreach (Proposal::editableForUserByFormType($coordinatorUserId, $config['consolidated_form_type']) as $proposal) {
             if ((int) ($proposal['college_id'] ?? 0) !== $collegeId) {
                 continue;
             }

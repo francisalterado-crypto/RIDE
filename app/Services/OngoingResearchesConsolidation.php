@@ -526,7 +526,7 @@ final class OngoingResearchesConsolidation
 
     private static function findEditableCollegeConsolidatedDraft(int $coordinatorUserId, int $collegeId, string $reportAsOf): ?array
     {
-        foreach (Proposal::forUser($coordinatorUserId) as $proposal) {
+        foreach (Proposal::editableForUserByFormType($coordinatorUserId, 'consolidated_ongoing_researches') as $proposal) {
             if ((int) ($proposal['college_id'] ?? 0) !== $collegeId) {
                 continue;
             }
@@ -560,7 +560,7 @@ final class OngoingResearchesConsolidation
 
     private static function findEditableVprideConsolidatedDraft(int $vprideUserId, string $reportAsOf): ?array
     {
-        foreach (Proposal::forUser($vprideUserId) as $proposal) {
+        foreach (Proposal::editableForUserByFormType($vprideUserId, 'consolidated_ongoing_researches') as $proposal) {
             if (!in_array((string) ($proposal['status'] ?? ''), ['draft', 'returned'], true)) {
                 continue;
             }

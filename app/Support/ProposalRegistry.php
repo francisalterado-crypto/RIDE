@@ -43,6 +43,27 @@ final class ProposalRegistry
     }
 
     /**
+     * kindOf() as a SQL condition on proposals alias p, using the form_type column (a copy of summary.form_type).
+     * Keep the two in step: a request is a ResearchRequestForms type; a proposal has no form type (RDO-20 and
+     * older records), is an ESO-03 extension proposal, or is an OBR matrix; everything else is a report.
+     *
+     * @return array{0: string, 1: list<string>}
+     */
+    public static function kindWhere(string $kind, string $alias = 'p'): array
+    {
+        $requestTypes = array_keys(ResearchRequestForms::all());
+        $requestIn = implode(', ', array_fill(0, count($requestTypes), '?'));
+        $proposalSql = "({$alias}.form_type IS NULL OR {$alias}.form_type = 'obr_matrix'"
+            . " OR ({$alias}.project_type = 'extension' AND {$alias}.form_type IN ('wpu_funded_extension', 'extension_program_proposal')))";
+
+        return match ($kind) {
+            'request' => ["{$alias}.form_type IN ({$requestIn})", $requestTypes],
+            'proposal' => [$proposalSql, []],
+            default => ["{$alias}.form_type IS NOT NULL AND {$alias}.form_type NOT IN ({$requestIn}) AND NOT {$proposalSql}", $requestTypes],
+        };
+    }
+
+    /**
      * @param list<array<string, mixed>> $proposals
      * @param callable(array<string, mixed>): bool $canApprove whether the viewer can act on it now
      * @return list<array<string, mixed>> proposals with a 'registry' entry added

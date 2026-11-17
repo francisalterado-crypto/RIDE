@@ -28,8 +28,11 @@ final class Proposal
         return $row ?: null;
     }
 
-    /** @return list<array> */
-    public static function forUser(int $userId): array
+    /**
+     * @param array{0: string, 1: list<mixed>}|null $where extra condition on alias p, e.g. from ProposalRegistry::kindWhere()
+     * @return list<array>
+     */
+    public static function forUser(int $userId, ?array $where = null): array
     {
         $accessSql = ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
         $stmt = Database::pdo()->prepare(
@@ -38,10 +41,10 @@ final class Proposal
              FROM proposals p
              LEFT JOIN users u ON u.id = p.user_id
              LEFT JOIN colleges c ON c.id = p.college_id
-             WHERE ' . $accessSql . '
+             WHERE ' . $accessSql . ($where !== null ? ' AND (' . $where[0] . ')' : '') . '
              ORDER BY p.updated_at DESC'
         );
-        $stmt->execute([$userId, ...ProposalCoAuthorInvitation::coauthorAccessParams($userId)]);
+        $stmt->execute([$userId, ...ProposalCoAuthorInvitation::coauthorAccessParams($userId), ...($where[1] ?? [])]);
 
         return $stmt->fetchAll() ?: [];
     }
@@ -74,7 +77,7 @@ final class Proposal
     }
 
     /** @return list<array> */
-    public static function forCollege(int $collegeId, ?string $status = null): array
+    public static function forCollege(int $collegeId, ?string $status = null, ?string $formType = null): array
     {
         $sql = 'SELECT p.*, u.first_name, u.last_name FROM proposals p
                 INNER JOIN users u ON u.id = p.user_id
@@ -84,31 +87,42 @@ final class Proposal
             $sql .= ' AND p.status = ?';
             $params[] = $status;
         }
+        if ($formType !== null) {
+            $sql .= ' AND p.form_type = ?';
+            $params[] = $formType;
+        }
         $sql .= ' ORDER BY p.updated_at DESC';
         $stmt = Database::pdo()->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll() ?: [];
     }
 
-    /** @return list<array> */
-    public static function all(?string $status = null, ?string $projectType = null): array
+    /**
+     * @param array{0: string, 1: list<mixed>}|null $where extra condition on alias p, e.g. from ProposalRegistry::kindWhere()
+     * @return list<array>
+     */
+    public static function all(?string $status = null, ?string $projectType = null, ?array $where = null): array
     {
         $sql = 'SELECT p.*, u.first_name, u.last_name, c.name AS college_name
                 FROM proposals p
                 INNER JOIN users u ON u.id = p.user_id
                 INNER JOIN colleges c ON c.id = p.college_id';
         $params = [];
-        $where = [];
+        $conditions = [];
         if ($status) {
-            $where[] = 'p.status = ?';
+            $conditions[] = 'p.status = ?';
             $params[] = $status;
         }
         if ($projectType !== null) {
-            $where[] = 'p.project_type = ?';
+            $conditions[] = 'p.project_type = ?';
             $params[] = $projectType;
         }
-        if ($where !== []) {
-            $sql .= ' WHERE ' . implode(' AND ', $where);
+        if ($where !== null) {
+            $conditions[] = '(' . $where[0] . ')';
+            array_push($params, ...$where[1]);
+        }
+        if ($conditions !== []) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
         }
         $sql .= ' ORDER BY p.updated_at DESC';
         $stmt = Database::pdo()->prepare($sql);
@@ -140,8 +154,8 @@ final class Proposal
     public static function create(array $data): int
     {
         $stmt = Database::pdo()->prepare(
-            'INSERT INTO proposals (user_id, college_id, campus_id, project_type, title, summary, funding_source, risk_level, ethics_required, status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO proposals (user_id, college_id, campus_id, project_type, title, summary, form_type, funding_source, risk_level, ethics_required, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $data['user_id'],
@@ -150,6 +164,7 @@ final class Proposal
             $data['project_type'],
             $data['title'],
             $data['summary'] ?? null,
+            self::formTypeFromSummary($data['summary'] ?? null),
             $data['funding_source'] ?? null,
             $data['risk_level'] ?? 'low',
             !empty($data['ethics_required']) ? 1 : 0,
@@ -184,12 +199,13 @@ final class Proposal
     public static function update(int $id, array $data): void
     {
         $stmt = Database::pdo()->prepare(
-            'UPDATE proposals SET title = ?, summary = ?, funding_source = ?, risk_level = ?, ethics_required = ?, project_type = ?
+            'UPDATE proposals SET title = ?, summary = ?, form_type = ?, funding_source = ?, risk_level = ?, ethics_required = ?, project_type = ?
              WHERE id = ? AND status IN (\'draft\', \'returned\')'
         );
         $stmt->execute([
             $data['title'],
             $data['summary'] ?? null,
+            self::formTypeFromSummary($data['summary'] ?? null),
             $data['funding_source'] ?? null,
             $data['risk_level'] ?? 'low',
             !empty($data['ethics_required']) ? 1 : 0,
@@ -205,15 +221,54 @@ final class Proposal
     public static function updateConsolidatedDraft(int $id, string $title, string $summaryJson): void
     {
         Database::pdo()->prepare(
-            'UPDATE proposals SET title = ?, summary = ? WHERE id = ? AND status IN (\'draft\', \'returned\')'
-        )->execute([$title, $summaryJson, $id]);
+            'UPDATE proposals SET title = ?, summary = ?, form_type = ? WHERE id = ? AND status IN (\'draft\', \'returned\')'
+        )->execute([$title, $summaryJson, self::formTypeFromSummary($summaryJson), $id]);
     }
 
     public static function updateSummaryCoauthorsOnly(int $id, string $summaryJson): void
     {
         Database::pdo()->prepare(
-            'UPDATE proposals SET summary = ? WHERE id = ?'
-        )->execute([$summaryJson, $id]);
+            'UPDATE proposals SET summary = ?, form_type = ? WHERE id = ?'
+        )->execute([$summaryJson, self::formTypeFromSummary($summaryJson), $id]);
+    }
+
+    /**
+     * The form_type key of a summary JSON. It is copied to proposals.form_type on every write so queries can
+     * filter by form without decoding each row; the JSON stays the source of truth.
+     */
+    public static function formTypeFromSummary(?string $summaryJson): ?string
+    {
+        if ($summaryJson === null || $summaryJson === '') {
+            return null;
+        }
+        $decoded = json_decode($summaryJson, true);
+        $formType = is_array($decoded) ? ($decoded['form_type'] ?? null) : null;
+
+        return is_string($formType) && $formType !== '' ? substr($formType, 0, 60) : null;
+    }
+
+    /**
+     * Draft or returned records of one form type that a user leads or co-authors, newest first.
+     *
+     * @return list<array>
+     */
+    public static function editableForUserByFormType(int $userId, string $formType): array
+    {
+        $accessSql = ProposalCoAuthorInvitation::coauthorAccessWhereSql('p');
+        $stmt = Database::pdo()->prepare(
+            'SELECT p.*, u.first_name, u.last_name, c.name AS college_name,
+                    CASE WHEN p.user_id = ? THEN \'lead\' ELSE \'coauthor\' END AS membership
+             FROM proposals p
+             LEFT JOIN users u ON u.id = p.user_id
+             LEFT JOIN colleges c ON c.id = p.college_id
+             WHERE ' . $accessSql . '
+               AND p.form_type = ?
+               AND p.status IN (\'draft\', \'returned\')
+             ORDER BY p.updated_at DESC'
+        );
+        $stmt->execute([$userId, ...ProposalCoAuthorInvitation::coauthorAccessParams($userId), $formType]);
+
+        return $stmt->fetchAll() ?: [];
     }
 
     public static function deleteForUser(int $id, int $userId): bool
@@ -273,10 +328,58 @@ final class Proposal
         $stmt->execute([$proposalId, $userId, $step, $comment, $action]);
     }
 
-    public static function advanceWorkflow(int $id, string $action, int $userId, string $comment = ''): bool
+    /**
+     * Applies an approval action as one transaction. The record row is locked first, so two approvers acting at
+     * the same time are serialized. When $expectedStep is given and the record has since moved to another step,
+     * nothing is changed and false is returned. $beforeAction runs inside the transaction, after the step check.
+     */
+    public static function advanceWorkflow(
+        int $id,
+        string $action,
+        int $userId,
+        string $comment = '',
+        ?string $expectedStep = null,
+        ?callable $beforeAction = null
+    ): bool {
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            $lock = $pdo->prepare('SELECT status, current_step FROM proposals WHERE id = ? FOR UPDATE');
+            $lock->execute([$id]);
+            $locked = $lock->fetch();
+            if (!$locked
+                || !in_array((string) $locked['status'], ['submitted', 'under_review'], true)
+                || ($expectedStep !== null && (string) ($locked['current_step'] ?? '') !== $expectedStep)) {
+                $pdo->rollBack();
+
+                return false;
+            }
+
+            // Writes that belong to this action (e.g. the reviewer's evaluation) commit or roll back with it.
+            if ($beforeAction !== null) {
+                $beforeAction();
+            }
+            $applied = self::applyWorkflowAction($id, $action, $userId, $comment);
+            if ($applied) {
+                $pdo->commit();
+            } else {
+                $pdo->rollBack();
+            }
+
+            return $applied;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /** Body of advanceWorkflow(); runs inside its transaction with the record row locked. */
+    private static function applyWorkflowAction(int $id, string $action, int $userId, string $comment): bool
     {
         $proposal = self::find($id);
-        if (!$proposal || !in_array($proposal['status'], ['submitted', 'under_review'], true)) {
+        if (!$proposal) {
             return false;
         }
 
@@ -372,30 +475,60 @@ final class Proposal
 
     private static function generateProjectCode(array $proposal): string
     {
-        $college = Database::pdo()->prepare('SELECT code FROM colleges WHERE id = ?');
-        $college->execute([$proposal['college_id']]);
-        $code = $college->fetchColumn() ?: 'GEN';
         $year = date('Y');
-        $stmt = Database::pdo()->prepare(
-            'SELECT COUNT(*) FROM proposals WHERE project_code LIKE ? AND ' . Sql::year('approved_at') . ' = ?'
-        );
-        $stmt->execute(['RIDE-%', $year]);
-        $seq = (int) $stmt->fetchColumn() + 1;
-        return sprintf('RIDE-%s-%s-%03d', $year, $code, $seq);
+        $seq = self::nextCodeSequence('RIDE-' . $year . '-');
+
+        return sprintf('RIDE-%s-%s-%03d', $year, self::collegeCode($proposal), $seq);
     }
 
     /** Code of an approved RDO request form: REQ-<year>-<college>-<seq>, numbered per year. */
     private static function generateRequestCode(array $proposal): string
     {
+        $year = date('Y');
+        $seq = self::nextCodeSequence('REQ-' . $year . '-');
+
+        return sprintf('REQ-%s-%s-%03d', $year, self::collegeCode($proposal), $seq);
+    }
+
+    private static function collegeCode(array $proposal): string
+    {
         $college = Database::pdo()->prepare('SELECT code FROM colleges WHERE id = ?');
         $college->execute([$proposal['college_id']]);
-        $code = $college->fetchColumn() ?: 'GEN';
-        $year = date('Y');
-        $stmt = Database::pdo()->prepare('SELECT COUNT(*) FROM proposals WHERE project_code LIKE ?');
-        $stmt->execute(['REQ-' . $year . '-%']);
-        $seq = (int) $stmt->fetchColumn() + 1;
 
-        return sprintf('REQ-%s-%s-%03d', $year, $code, $seq);
+        return (string) ($college->fetchColumn() ?: 'GEN');
+    }
+
+    /**
+     * Next number of a per-year code series ("RIDE-2026-", "REQ-2026-") from its code_sequences counter row.
+     * Must run inside a transaction: the row stays locked until commit, so concurrent approvals get distinct
+     * numbers. A missing counter starts from the highest number already issued with that prefix.
+     */
+    private static function nextCodeSequence(string $prefix): int
+    {
+        $pdo = Database::pdo();
+        $select = $pdo->prepare('SELECT last_value FROM code_sequences WHERE scope = ? FOR UPDATE');
+        $select->execute([$prefix]);
+        $last = $select->fetchColumn();
+
+        if ($last === false) {
+            $issued = $pdo->prepare('SELECT project_code FROM proposals WHERE project_code LIKE ?');
+            $issued->execute([$prefix . '%']);
+            $highest = 0;
+            foreach ($issued->fetchAll(PDO::FETCH_COLUMN) as $code) {
+                if (preg_match('/-(\d+)$/', (string) $code, $m) === 1) {
+                    $highest = max($highest, (int) $m[1]);
+                }
+            }
+            $pdo->prepare(Sql::insertIgnore('INSERT INTO code_sequences (scope, last_value) VALUES (?, ?)', 'scope'))
+                ->execute([$prefix, $highest]);
+            $select->execute([$prefix]);
+            $last = $select->fetchColumn();
+        }
+
+        $next = (int) $last + 1;
+        $pdo->prepare('UPDATE code_sequences SET last_value = ? WHERE scope = ?')->execute([$next, $prefix]);
+
+        return $next;
     }
 
     /**

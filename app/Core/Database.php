@@ -130,6 +130,8 @@ final class Database
         self::applyMigrationFile('phase40');
         self::applyMigrationFile('phase41');
         self::applyMigrationFile('phase42');
+        self::applyMigrationFile('phase43');
+        self::applyMigrationFile(self::$driver === 'pgsql' ? 'phase44_pgsql' : 'phase44_mysql');
     }
 
     public static function ensureSessionsTable(): void

@@ -260,10 +260,10 @@ final class AccessControl
      *
      * @return list<array<string, mixed>>
      */
-    public static function visibleProposals(): array
+    public static function visibleProposals(?array $where = null): array
     {
         if (self::isVpride()) {
-            return \App\Models\Proposal::all();
+            return \App\Models\Proposal::all(null, null, $where);
         }
         $user = Auth::user();
         if ($user === null) {
@@ -271,12 +271,12 @@ final class AccessControl
         }
         $oversees = self::isUniversityWide() || self::isRideCoordinator() || self::isCoordinator() || self::isDean();
         if (!$oversees) {
-            return \App\Models\Proposal::forUser((int) $user['id']);
+            return \App\Models\Proposal::forUser((int) $user['id'], $where);
         }
         $type = self::proposalScopeType();
 
         return array_values(array_filter(
-            \App\Models\Proposal::all(null, $type),
+            \App\Models\Proposal::all(null, $type, $where),
             static fn (array $proposal): bool => self::canViewProposal($proposal)
         ));
     }

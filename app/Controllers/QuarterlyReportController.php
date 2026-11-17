@@ -54,7 +54,9 @@ final class QuarterlyReportController
         $entryCount = $period !== '' ? (int) ExtensionActivity::reportSummary($type, $period, $scope)['count'] : 0;
 
         // Reports of this type already generated for the college (or by the user, outside a college).
-        $candidates = $collegeId > 0 ? Proposal::forCollege($collegeId) : Proposal::forUser((int) ($user['id'] ?? 0));
+        $candidates = $collegeId > 0
+            ? Proposal::forCollege($collegeId, null, $type)
+            : Proposal::forUser((int) ($user['id'] ?? 0), ['p.form_type = ?', [$type]]);
         $reports = [];
         foreach ($candidates as $row) {
             if (proposal_form_type($row) !== $type) {
