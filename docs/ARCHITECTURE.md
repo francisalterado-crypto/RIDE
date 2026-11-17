@@ -180,7 +180,7 @@ the local XAMPP defaults.
 | `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` | PostgreSQL connection parts | none |
 | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` | MySQL connection parts | `127.0.0.1`, `3306`, `ride_ims`, `root`, empty |
 | `DB_SSL`, `DB_SSL_CA`, `DB_SSL_VERIFY` | TLS for the database connection | off (on for PostgreSQL) |
-| `APP_URL` | Base URL of the application, without a trailing slash; set it on every server other than localhost | `http://localhost/RIDE` |
+| `APP_URL` | Base URL of the application, without a trailing slash | `https://ride.wpu.edu.ph`; `http://localhost/RIDE` when opened on localhost |
 | `APP_NAME`, `APP_TIMEZONE` | Display name, time zone | RIDE Hub name, `Asia/Manila` |
 | `SESSION_LIFETIME` | Session lifetime in seconds | `7200` |
 
@@ -192,8 +192,8 @@ Secrets belong in the environment (or a local `.env`, which is not committed), n
 `php scripts/install.php`, which creates the database, tables and the administrator account. The application
 runs at `http://localhost/RIDE`; the root `.htaccess` sends requests into `public/`.
 
-**Server.** On a university server the application runs at the root of its own domain (for example
-`https://ride.example.edu.ph/`), with no `/RIDE` or `/public` in the address:
+**Server.** In production the application runs at the root of its own domain, `https://ride.wpu.edu.ph/`, with
+no `/RIDE` or `/public` in the address:
 
 - Apache with `mod_rewrite` and PHP 8.2 or later, with the `pdo_mysql`, `mbstring`, `zip`, `dom` and `fileinfo`
   extensions.
@@ -201,20 +201,21 @@ runs at `http://localhost/RIDE`; the root `.htaccess` sends requests into `publi
   project can be requested. Where the document root cannot be changed, place the project in the document root;
   the root `.htaccess` then sends every request into `public/`.
 - `AllowOverride All` (or at least `FileInfo`) for the folder, so the `.htaccess` rules apply.
-- HTTPS enabled, and `APP_URL` (for example `https://ride.example.edu.ph`) and the database variables set in the
-  server environment.
+- HTTPS enabled, and the database variables set in the server environment. `APP_URL` defaults to
+  `https://ride.wpu.edu.ph`; set it only if the address changes. Links are always built from it, never from the
+  request's Host header.
 
 Example virtual host:
 
 ```apache
 <VirtualHost *:443>
-    ServerName ride.example.edu.ph
+    ServerName ride.wpu.edu.ph
     DocumentRoot /var/www/ride/public
     <Directory /var/www/ride/public>
         AllowOverride All
         Require all granted
     </Directory>
-    SetEnv APP_URL https://ride.example.edu.ph
+    # SetEnv APP_URL https://ride.wpu.edu.ph   (optional; this is the default)
     # SSL settings, and SetEnv DB_HOST / DB_NAME / DB_USER / DB_PASS, go here.
 </VirtualHost>
 ```

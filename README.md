@@ -5,6 +5,8 @@ Development and Extension (OVPRIDE) of Western Philippines University. Faculty f
 proposals, requests and reports online; the records move through the college and RIDE approval chain; approved
 work is monitored as projects and summarized in the university's quarterly and accreditation reports.
 
+Production: **https://ride.wpu.edu.ph**
+
 ## Documentation
 
 | Document | Contents |

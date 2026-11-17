@@ -26,26 +26,8 @@ function app_base_url(): string
         return $cached;
     }
 
-    $envUrl = (string) (getenv('APP_URL') ?: '');
-    if ($envUrl !== '') {
-        $cached = rtrim($envUrl, '/');
-
-        return $cached;
-    }
-
-    // Behind a reverse proxy, set APP_URL: forwarded headers are client-controlled and are not trusted here.
-    $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
-    $hostname = strtolower((string) preg_replace('/:\d+$/', '', $host));
-    $isLocalHost = in_array($hostname, ['', 'localhost', '127.0.0.1'], true);
-
-    if (!$isLocalHost) {
-        $proto = (string) ($_SERVER['REQUEST_SCHEME'] ?? 'http');
-        $configPath = rtrim((string) (parse_url((string) config('app.url', ''), PHP_URL_PATH) ?? ''), '/');
-        $cached = $proto . '://' . $host . $configPath;
-
-        return $cached;
-    }
-
+    // Links always use the configured address (APP_URL, or its default in config.php), never the request's Host
+    // header, which the client controls.
     $cached = rtrim((string) config('app.url', ''), '/');
 
     return $cached;

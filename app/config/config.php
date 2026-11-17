@@ -77,7 +77,10 @@ if ($tidbHost !== null && $tidbHost !== '') {
     }
 }
 
-$appUrl = $env('APP_URL') ?? 'http://localhost/RIDE';
+// Production runs at https://ride.wpu.edu.ph; a local install at http://localhost/RIDE. APP_URL overrides both.
+$requestHost = strtolower((string) preg_replace('/:\d+$/', '', (string) ($_SERVER['HTTP_HOST'] ?? '')));
+$isLocalRequest = PHP_SAPI === 'cli' || in_array($requestHost, ['', 'localhost', '127.0.0.1'], true);
+$appUrl = $env('APP_URL') ?? ($isLocalRequest ? 'http://localhost/RIDE' : 'https://ride.wpu.edu.ph');
 
 return [
     'app' => [
